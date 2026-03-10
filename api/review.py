@@ -21,7 +21,12 @@ def review_hotel(data: dict):
         "optionId": data["optionId"],
         "correlationId": data["correlationId"],
     }
-    
+    if "hotelId" in data and data["hotelId"]:
+        payload["hotelId"] = data["hotelId"]
+        
+    if "reviewHash" in data and data["reviewHash"]:
+        payload["reviewHash"] = data["reviewHash"]
+        
     if "currency" in data:
         payload["currency"] = data["currency"]
 

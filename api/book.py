@@ -4,19 +4,21 @@ from requests import JSONDecodeError
 from config import API_KEY, BASE_URL
 
 
+# Fixed book URL — always use apitest.tripjack.com for booking regardless of env selector
+BOOK_URL = "https://apitest.tripjack.com/oms/v1/hotel/book"
+BOOK_APIKEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
+BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
+
+
 def book_hotel(data: dict):
-    env = data.get("env", BASE_URL).rstrip("/")
-    api_key = data.get("apiKey", API_KEY)
     booking_type = data.get("bookingType", "VOUCHER")  # "VOUCHER" or "HOLD"
-    url = f"{env}/oms/v3/hotel/book"
+    url = BOOK_URL
 
     headers = {
         "Content-Type": "application/json",
-        "apikey": api_key,
+        "apikey": BOOK_APIKEY,
+        "Authorization": BOOK_AUTH,
     }
-
-    if "apitest-hms" in env:
-        headers["Authorization"] = f"Bearer {api_key}"
 
     # Build roomTravellerInfo from the travellers array passed by frontend
     travellers = data.get("travellers", [])

@@ -6,7 +6,7 @@ from config import API_KEY, BASE_URL
 def fetch_hotel_detail(data: dict):
     env = data.get("env", BASE_URL).rstrip("/")
     api_key = data.get("apiKey", API_KEY)
-    url = f"{env}/hms/v3/hotel/dynamic-detail"
+    url = f"{env}/hms/v3/hotel/pricing"
 
     # Body matches the curl payload shape for single hotel detail
     payload = {
@@ -37,7 +37,7 @@ def fetch_hotel_detail(data: dict):
     except JSONDecodeError:
         return {
             "ok": False,
-            "message": "Upstream Tripjack /hotel/dynamic-detail did not return valid JSON",
+            "message": "Upstream Tripjack /hotel/pricing did not return valid JSON",
             "status_code": response.status_code,
             "reason": response.reason,
             "url": response.url,

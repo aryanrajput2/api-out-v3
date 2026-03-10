@@ -1,30 +1,31 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
+
+# Fixed booking detail URL — always use apitest.tripjack.com
+BOOKING_DETAIL_URL = "https://apitest.tripjack.com/oms/v1/hotel/booking-details"
+BOOKING_DETAIL_APIKEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
 
 
 def fetch_booking_detail(data: dict):
-    env = data.get("env", BASE_URL).rstrip("/")
-    api_key = data.get("apiKey", API_KEY)
-    url = f"{env}/hms/v3/booking/detail"
-
     headers = {
         "Content-Type": "application/json",
-        "apikey": api_key,
+        "apikey": BOOKING_DETAIL_APIKEY,
     }
-    
-    if "apitest-hms" in env:
-        headers["Authorization"] = f"Bearer {api_key}"
 
-    response = requests.post(url, headers=headers, json=data)
+    payload = {
+        "bookingId": data.get("bookingId"),
+        "requireHosis": True,
+    }
+
+    response = requests.post(BOOKING_DETAIL_URL, headers=headers, json=payload)
 
     try:
         return response.json()
     except JSONDecodeError:
         return {
             "ok": False,
-            "message": "Upstream Tripjack /booking/detail did not return valid JSON",
+            "message": "Upstream Tripjack /hotel/booking-details did not return valid JSON",
             "status_code": response.status_code,
             "reason": response.reason,
             "url": response.url,

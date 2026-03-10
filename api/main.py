@@ -7,12 +7,15 @@ from api.book import book_hotel
 from api.booking_detail import fetch_booking_detail
 from api.cancel import cancel_booking
 from api.hotel_detail import fetch_hotel_detail
+from api.hotel_static_detail import fetch_hotel_static_detail
 
 ALLOWED_IPS = {
     "127.0.0.1",        # Localhost (always allow)
     "65.2.62.247",      # Office IP 1
     "157.49.118.218",   # Office IP 2
     "160.22.60.16",     # Office IP 3
+    "3.108.106.208",     # janmejay ip
+    "13.204.135.18",     # janmejay ip second
 }
 
 app = FastAPI()
@@ -27,8 +30,14 @@ async def ip_whitelist_middleware(request: Request, call_next):
         # Get the original client IP
         client_ip = forwarded_for.split(",")[0].strip()
         
-    # Check against whitelist
-    if client_ip not in ALLOWED_IPS:
+    # Check if IP is from a local network (Wi-Fi/LAN)
+    is_local_network = client_ip.startswith("192.168.") or client_ip.startswith("10.") or client_ip.startswith("172.")
+    
+    # Check against whitelist or local network
+    if client_ip not in ALLOWED_IPS and not is_local_network:
+        # Print the blocked IP out to your terminal running `start.sh` so you can see it
+        print(f"\n🚨 [BLOCKED] Someone tried to access from IP: {client_ip}🚨\n")
+        
         return JSONResponse(
             status_code=403,
             content={
@@ -45,6 +54,7 @@ async def ip_whitelist_middleware(request: Request, call_next):
 @app.get("/ui/results")
 @app.get("/ui/detail")
 @app.get("/ui/review")
+@app.get("/ui/booking-detail")
 def serve_spa():
     return FileResponse("hotel-ui/index.html")
 
@@ -99,3 +109,7 @@ def cancel(data: dict):
 @app.post("/dynamic-detail")
 def hotel_dynamic_detail(data: dict):
     return fetch_hotel_detail(data)
+
+@app.post("/static-detail")
+def hotel_static_detail(data: dict):
+    return fetch_hotel_static_detail(data)

@@ -43,7 +43,7 @@
         <div class="logo-circle">AH</div>
         <div>
           <a href="/ui/search" style="text-decoration: none; color: inherit;">
-            <h1 style="cursor: pointer; margin-bottom: 4px;">Aryan Hotels</h1>
+            <h1 style="cursor: pointer; margin-bottom: 4px;">Api V3 Hotels Testing</h1>
           </a>
           <p class="subtitle" style="margin: 0;">Experience modern, fast hotel booking.</p>
         </div>
@@ -133,6 +133,18 @@
               <input type="text" id="config-apikey-custom" placeholder="Paste custom API key here..."
                 onkeyup="saveCustomApiKey()" onfocus="unmaskCustomKey()" onblur="maskCustomKey()" />
             </div>
+          </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div id="recent-bookings-container" class="glass-panel"
+          style="margin-bottom: 24px; padding: 24px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); display: none;">
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px;">
+            <i class="ph ph-clock-counter-clockwise" style="font-size: 1.4rem; color: #10b981;"></i>
+            <h3 style="margin: 0; font-size: 1.1rem; color: #065f46;">Recent Bookings</h3>
+          </div>
+          <div id="recent-bookings-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <!-- Rendered via JS -->
           </div>
         </div>
 
@@ -318,6 +330,8 @@
             <h2 class="hotel-name">Loading Hotel...</h2>
           </div>
 
+          <div id="static-detail-container" style="margin-bottom: 24px;"></div>
+
           <div class="panel-header"
             style="margin-top: 24px; flex-direction: column; align-items: flex-start; gap: 16px;">
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
@@ -414,6 +428,142 @@
           </div>
         </div>
       </section>
+
+      <!-- Page 5: Booking Detail Page -->
+      <section id="booking-detail-page" class="view-page hidden">
+        <div class="results-header">
+          <button type="button" class="btn-ghost" onclick="backToReviewFromBookingDetail()">
+            <i class="ph ph-arrow-left"></i> Back to Booking
+          </button>
+        </div>
+
+        <div class="glass-panel fade-in-up" style="padding: 0; overflow: hidden;">
+          <!-- Header Bar -->
+          <div id="bd-header-bar"
+            style="background: linear-gradient(90deg, #1e293b, #334155); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="color: #fff; font-size: 1.2rem; font-weight: 700;"><i class="ph ph-receipt"></i> Booking Detail
+            </div>
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <span id="bd-booking-id" style="font-family: monospace; font-size: 1rem; color: #ffffff;">—</span>
+              <span id="bd-status-badge"
+                style="border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; font-weight: 700;">—</span>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div id="bd-loading" style="padding: 48px; text-align: center;">
+            <div class="loader"
+              style="margin: 0 auto 16px; border-color: var(--primary); border-top-color: transparent; width: 36px; height: 36px;">
+            </div>
+            <p style="color: var(--text-muted);">Fetching booking details...</p>
+          </div>
+
+          <!-- Error state -->
+          <div id="bd-error" class="alert-box error hidden" style="margin: 24px; flex-direction: column;"></div>
+
+          <!-- Content -->
+          <div id="bd-content" class="hidden" style="padding: 28px; display: flex; flex-direction: column; gap: 24px;">
+
+            <!-- Success Banner (injected by JS) -->
+            <div id="bd-success-banner"></div>
+
+            <!-- Hotel & Room -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+                <div
+                  style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 10px; font-weight: 600;">
+                  <i class="ph ph-building"></i> Hotel
+                </div>
+                <div id="bd-hotel-name" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 4px;"></div>
+                <div id="bd-hotel-stars" style="color: #eab308; font-size: 0.9rem; margin-bottom: 8px;"></div>
+                <div id="bd-hotel-address" style="font-size: 0.82rem; color: #64748b; line-height: 1.6;"></div>
+                <div id="bd-checkin-info" style="margin-top: 10px; font-size: 0.82rem; color: #374151;"></div>
+              </div>
+              <div style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+                <div
+                  style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 10px; font-weight: 600;">
+                  <i class="ph ph-bed"></i> Room
+                </div>
+                <div id="bd-room-name" style="font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;"></div>
+                <div id="bd-room-meal" style="font-size: 0.82rem; color: #64748b; margin-bottom: 10px;"></div>
+                <div id="bd-room-tags" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+              </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 14px; font-weight: 600;">
+                <i class="ph ph-coins"></i> Payment Summary
+              </div>
+              <div id="bd-payment-info"
+                style="display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: center;">
+              </div>
+            </div>
+
+            <!-- Flags / Key Info -->
+            <div style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 14px; font-weight: 600;">
+                <i class="ph ph-flag"></i> Key Flags
+              </div>
+              <div id="bd-flags" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+            </div>
+
+            <!-- Travellers -->
+            <div id="bd-travellers-section"
+              style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 12px; font-weight: 600;">
+                <i class="ph ph-users"></i> Travellers
+              </div>
+              <div id="bd-travellers" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <!-- Delivery Info -->
+            <div id="bd-delivery-section"
+              style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 12px; font-weight: 600;">
+                <i class="ph ph-envelope"></i> Delivery Info
+              </div>
+              <div id="bd-delivery" style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 0.88rem;"></div>
+            </div>
+
+            <!-- Cancellation Policy -->
+            <div id="bd-cancellation-section"
+              style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #991b1b; margin-bottom: 12px; font-weight: 600;">
+                <i class="ph ph-warning-circle"></i> Cancellation Policy
+              </div>
+              <div id="bd-cancellation" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <!-- Hotel Instructions -->
+            <div id="bd-instructions-section"
+              style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 12px; font-weight: 600;">
+                <i class="ph ph-info"></i> Hotel Instructions
+              </div>
+              <div id="bd-instructions" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+
+            <!-- Amenities -->
+            <div id="bd-amenities-section"
+              style="background: #f8faff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px;">
+              <div
+                style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.6px; color: #64748b; margin-bottom: 12px; font-weight: 600;">
+                <i class="ph ph-star"></i> Amenities
+              </div>
+              <div id="bd-amenities" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+            </div>
+
+          </div><!-- /bd-content -->
+        </div>
+      </section>
+
     </main>
   </div>
 

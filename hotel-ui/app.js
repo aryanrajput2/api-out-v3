@@ -243,6 +243,42 @@ function getConfigPayload() {
   };
 }
 
+/* =========================================
+   Recent Bookings Flow
+   ========================================= */
+function saveRecentBooking(bookingId) {
+  if (!bookingId) return;
+  try {
+    let recent = JSON.parse(localStorage.getItem('tj_recent_bookings') || '[]');
+    recent = recent.filter(id => id !== bookingId);
+    recent.unshift(bookingId);
+    if (recent.length > 5) recent = recent.slice(0, 5);
+    localStorage.setItem('tj_recent_bookings', JSON.stringify(recent));
+    renderRecentBookings();
+  } catch (e) { }
+}
+
+function renderRecentBookings() {
+  const container = document.getElementById('recent-bookings-container');
+  const list = document.getElementById('recent-bookings-list');
+  if (!container || !list) return;
+
+  try {
+    let recent = JSON.parse(localStorage.getItem('tj_recent_bookings') || '[]');
+    if (recent.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+    list.innerHTML = recent.map(id => `
+      <a href="#" onclick="event.preventDefault(); window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${id}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${id}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #fff; border: 1px solid #d1d5db; border-radius: 999px; color: var(--text-main); font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='var(--text-main)';">
+        <i class="ph ph-receipt" style="color: var(--primary);"></i> ${id}
+      </a>
+    `).join('');
+  } catch (e) { }
+}
+
 async function searchHotels() {
   clearSearchError();
   setSearchLoading(true);
@@ -714,7 +750,24 @@ async function fetchHotelDetails(hotelId) {
     };
     delete body.hids; // Detail API takes hid, not an array of hids
 
+    const staticBody = {
+      TripjackID: hotelId,
+      env: config.env,
+      apiKey: config.apiKey
+    };
+
     const startTime = performance.now();
+
+    // Fetch static details in parallel
+    fetch(`${API_BASE}/static-detail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(staticBody)
+    })
+      .then(res => res.json())
+      .then(data => renderStaticDetails(data))
+      .catch(err => console.error("Static details fetch failed:", err));
+
     const res = await fetch(`${API_BASE}/dynamic-detail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -726,7 +779,7 @@ async function fetchHotelDetails(hotelId) {
 
     if (!res.ok || data.ok === false) {
       errorBox.classList.remove("hidden");
-      errorBox.querySelector(".message").textContent = "Failed to load hotel details.";
+      errorBox.querySelector(".message").textContent = "Failed to load dynamic hotel details.";
       const rawHtml = JSON.stringify(data, null, 2);
       const pre = errorBox.querySelector(".raw-error");
       pre.textContent = rawHtml;
@@ -738,12 +791,106 @@ async function fetchHotelDetails(hotelId) {
     timerUI.innerHTML = formatDuration(durationMs);
     timerUI.classList.remove("hidden");
 
+    // Show room filters once dynamic data loads
+    const filters = document.getElementById("room-filters");
+    if (filters) filters.style.display = 'flex';
+
     renderHotelDetails(data);
   } catch (err) {
     errorBox.classList.remove("hidden");
     errorBox.querySelector(".message").textContent = err.message;
     resultsContainer.innerHTML = "";
   }
+}
+
+function renderStaticDetails(data) {
+  const container = document.getElementById("static-detail-container");
+  if (!container) return;
+
+  if (!data || data.ok === false) return; // Silent fail for static details
+
+  const staticDetails = data;
+  if (!staticDetails.name && !staticDetails.images && !staticDetails.descriptions) return;
+
+  // 1. Photos (show top 6)
+  let imagesHtml = '';
+  if (staticDetails.images && staticDetails.images.length > 0) {
+    const topImages = staticDetails.images.slice(0, 6);
+    imagesHtml = `
+      <div style="display: flex; gap: 12px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 12px;" class="hide-scrollbar">
+        ${topImages.map(img => {
+      const url = img.links?.original?.href || img.url || "";
+      if (!url) return '';
+      return `<img src="${url}" alt="Hotel Image" style="width: 260px; height: 180px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0;" onerror="this.style.display='none'"/>`;
+    }).join('')}
+      </div>
+    `;
+  }
+
+  // 2. Star rating & Property Type
+  let propertyTypeHtml = '';
+  if (staticDetails.property_type && staticDetails.property_type.name) {
+    propertyTypeHtml = `<span style="display:inline-block; padding: 4px 10px; background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.8rem; font-weight: 600; border-radius: 999px; margin-bottom: 12px;">${staticDetails.property_type.name}</span>`;
+  }
+
+  let starsHtml = '';
+  if (staticDetails.star_rating) {
+    starsHtml = `<div style="color: #eab308; font-size: 1.1rem; margin-bottom: 12px; font-weight: 600;"><i class="ph-fill ph-star"></i> ${staticDetails.star_rating} Star</div>`;
+  }
+
+  // 3. Address
+  let addressHtml = '';
+  if (staticDetails.locale && staticDetails.locale.address) {
+    const add = staticDetails.locale.address;
+    const parts = [add.line_1, add.line_2, add.city, add.statename, add.countryname, add.postal_code].filter(Boolean);
+    addressHtml = `<div style="font-size: 0.95rem; color: #475569; margin-bottom: 16px;"><i class="ph ph-map-pin"></i> ${parts.join(', ')}</div>`;
+  }
+
+  // 4. Description
+  let descHtml = '';
+  if (staticDetails.descriptions) {
+    const headline = staticDetails.descriptions.headline || '';
+
+    descHtml = `
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;">About Hotel</h3>
+        <p style="font-size: 0.95rem; color: #475569; line-height: 1.6;">${headline}</p>
+      </div>
+    `;
+  }
+
+  // 5. Amenities
+  let amenitiesHtml = '';
+  if (staticDetails.amenities) {
+    const amenitiesValues = Object.values(staticDetails.amenities).slice(0, 15);
+    if (amenitiesValues.length > 0) {
+      amenitiesHtml = `
+        <div style="margin-bottom: 24px;">
+          <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;">Top Amenities</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            ${amenitiesValues.map(am => `
+              <span style="font-size: 0.8rem; padding: 6px 12px; background: #f8fafc; color: #334155; border-radius: 8px; border: 1px solid #e2e8f0; font-weight: 500;">
+                <i class="ph ph-check" style="color: var(--primary);"></i> ${am.name}
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = `
+    <div class="glass-panel fade-in-up" style="padding: 24px; margin-bottom: 24px; border-top: 4px solid var(--primary);">
+      ${imagesHtml}
+      ${propertyTypeHtml}
+      ${addressHtml}
+      ${starsHtml}
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 16px;">
+        <div style="flex: 1;">${descHtml}</div>
+        <div style="flex: 1;">${amenitiesHtml}</div>
+      </div>
+    </div>
+  `;
 }
 
 function renderHotelDetails(data) {
@@ -777,19 +924,20 @@ function renderHotelDetails(data) {
 
   // Header Details
   const name = hotel.name || hotel.hotelName || "Unknown Hotel";
+  const reviewHash = data.reviewHash || hotel.reviewHash || "";
   let locationStr = hotel.city || "";
   if (hotel.country) locationStr += (locationStr ? ", " : "") + hotel.country;
   let stars = hotel.starRating ? ` · <span style="color:#eab308"><i class="ph-fill ph-star"></i> ${hotel.starRating}</span>` : "";
 
   header.innerHTML = `
-    <h2 class="hotel-name" style="font-size: 1.8rem;">
-      ${name}
+        <h2 class="hotel-name" style="font-size: 1.8rem;">
+          ${name}
       <span class="hotel-id-badge" style="font-size: 0.8rem; align-self: center;">ID: ${hotel.hotelId}</span>
     </h2>
-    <div class="hotel-location" style="font-size: 1rem; margin-top: 8px;">
-      <i class="ph ph-map-pin"></i> ${locationStr}${stars}
-    </div>
-  `;
+        <div class="hotel-location" style="font-size: 1rem; margin-top: 8px;">
+          <i class="ph ph-map-pin"></i> ${locationStr}${stars}
+        </div>
+      `;
 
   if (!hotel.options || hotel.options.length === 0) {
     document.getElementById("detail-room-count").textContent = "(0 Total)";
@@ -847,11 +995,11 @@ function renderHotelDetails(data) {
         const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
         const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
         return `<div style="font-size:0.8rem; color: #b91c1c; display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-                  <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
+        <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
                 </div>`;
       }).join("");
       penaltiesHtml = `<div style="margin-top:12px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius-sm); padding:10px 14px;">
-                         <div style="font-size:0.8rem; font-weight:600; color:#991b1b; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
+        <div style="font-size:0.8rem; font-weight:600; color:#991b1b; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
                          ${penaltyRows}
                        </div>`;
     }
@@ -868,10 +1016,10 @@ function renderHotelDetails(data) {
 
     const refundPill = isRefundable
       ? `<span class="data-pill pill-success"><i class="ph ph-check-circle"></i> Refundable</span>`
-      : `<span class="data-pill pill-danger"><i class="ph ph-warning-circle"></i> Non-Refundable</span>`;
+      : `<span class="data-pill pill-danger"><i class="ph ph-warning-circle"></i> Non - Refundable</span>`;
 
     card.innerHTML = `
-      <div class="room-details-section">
+        <div class="room-details-section">
         <div class="room-title" style="flex-direction: column; align-items: flex-start; gap: 8px;">
           ${roomNames}
         </div>
@@ -891,39 +1039,39 @@ function renderHotelDetails(data) {
         ${penaltiesHtml}
       </div>
 
-      <div class="hotel-price-row">
-        <div class="price-breakdown">
-          <div class="price-item">
-            <span class="price-label">Base</span>
-            <span class="price-value">${currency} ${basePrice}</span>
+        <div class="hotel-price-row">
+          <div class="price-breakdown">
+            <div class="price-item">
+              <span class="price-label">Base</span>
+              <span class="price-value">${currency} ${basePrice}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">Taxes</span>
+              <span class="price-value">+ ${currency} ${taxes}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">Discount</span>
+              <span class="price-value" style="color:var(--success-text)">- ${currency} ${discount}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">MF</span>
+              <span class="price-value">+ ${currency} ${mf}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">MFT</span>
+              <span class="price-value">+ ${currency} ${mft}</span>
+            </div>
+            <div class="price-item">
+              <span class="price-label">Total</span>
+              <span class="price-total">${currency} ${totalPrice}</span>
+            </div>
           </div>
-          <div class="price-item">
-            <span class="price-label">Taxes</span>
-            <span class="price-value">+ ${currency} ${taxes}</span>
-          </div>
-          <div class="price-item">
-            <span class="price-label">Discount</span>
-            <span class="price-value" style="color:var(--success-text)">- ${currency} ${discount}</span>
-          </div>
-          <div class="price-item">
-            <span class="price-label">MF</span>
-            <span class="price-value">+ ${currency} ${mf}</span>
-          </div>
-          <div class="price-item">
-            <span class="price-label">MFT</span>
-            <span class="price-value">+ ${currency} ${mft}</span>
-          </div>
-          <div class="price-item">
-            <span class="price-label">Total</span>
-            <span class="price-total">${currency} ${totalPrice}</span>
-          </div>
+
+          <button class="btn-premium" onclick="reviewRoom('${option.optionId}', '${data.correlationId}', ${option.pricing?.totalPrice ?? 0}, '${reviewHash}', '${hotel.hotelId}')">
+            <i class="ph ph-lock-key"></i> Review & Lock
+          </button>
         </div>
-        
-        <button class="btn-premium" onclick="reviewRoom('${option.optionId}', '${data.correlationId}', ${option.pricing?.totalPrice ?? 0})">
-          <i class="ph ph-lock-key"></i> Review & Lock
-        </button>
-      </div>
-    `;
+      `;
 
     resultsContainer.appendChild(card);
   });
@@ -991,7 +1139,7 @@ function applyRoomFilters() {
       emptyState.id = "d-filter-empty";
       emptyState.className = "empty-state";
       emptyState.style.width = "100%";
-      emptyState.innerHTML = `<i class="ph ph-funnel-x" style="font-size:3rem; color: #cbd5e1; margin-bottom:12px;"></i><p>Sorry, no room options available for this filter constraint. Please try another combination.</p>`;
+      emptyState.innerHTML = `<i class="ph ph-funnel-x" style="font-size:3rem; color: #cbd5e1; margin-bottom:12px;"></i> <p>Sorry, no room options available for this filter constraint. Please try another combination.</p>`;
       resultsContainer.appendChild(emptyState);
     }
   } else if (existingEmpty) {
@@ -999,7 +1147,7 @@ function applyRoomFilters() {
   }
 }
 
-async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
+async function reviewRoom(optionId, correlationId, searchDisplayPrice, reviewHash, hotelId) {
   // Store the price shown in search results for comparison
   window._searchDisplayPrice = searchDisplayPrice ?? null;
   // Update URL
@@ -1010,7 +1158,7 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
   try {
     const config = getConfigPayload();
     const currency = globalSearchBody?.currency || "INR";
-    const body = { optionId, correlationId, currency, env: config.env, apiKey: config.apiKey };
+    const body = { optionId, correlationId, reviewHash, hotelId, currency, env: config.env, apiKey: config.apiKey };
 
     // Switch UI to review page with loading state
     switchToReviewPage();
@@ -1080,6 +1228,41 @@ function backToDetailFromReview() {
   // Back to Detail URL
   if (window.location.pathname !== '/ui/detail') {
     history.pushState({ view: 'detail' }, '', '/ui/detail');
+  }
+}
+
+function showBookingDetailPage() {
+  const allPages = ["search-page", "results-page", "detail-page", "review-page", "booking-detail-page"];
+  allPages.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      if (id === "booking-detail-page") {
+        el.classList.remove("hidden");
+        el.classList.add("fade-in");
+      } else {
+        el.classList.add("hidden");
+        el.classList.remove("fade-in");
+      }
+    }
+  });
+  if (window.location.pathname !== '/ui/booking-detail') {
+    history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail');
+  }
+}
+
+function backToReviewFromBookingDetail() {
+  const bdPage = document.getElementById("booking-detail-page");
+  const reviewPage = document.getElementById("review-page");
+  if (bdPage) {
+    bdPage.classList.add("hidden");
+    bdPage.classList.remove("fade-in");
+  }
+  if (reviewPage) {
+    reviewPage.classList.remove("hidden");
+    reviewPage.classList.add("fade-in");
+  }
+  if (window.location.pathname !== '/ui/review') {
+    history.pushState({ view: 'review' }, '', '/ui/review');
   }
 }
 
@@ -1288,9 +1471,10 @@ function renderReviewDetails(data, responseMs) {
            <div class="logo-circle" style="width: 48px; height: 48px; font-size: 1.2rem; background: var(--primary); color: white;"><i class="ph ph-buildings"></i></div>
            <div>
              <h3 style="margin: 0; font-size: 1.4rem; color: var(--text-main);">${hotelName || 'Selected Hotel'}</h3>
-             <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; display:flex; gap: 12px;">
+             <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; display:flex; gap: 12px; flex-wrap: wrap;">
                <span><i class="ph ph-hash"></i> Hotel ID: <strong>${hotelId || 'N/A'}</strong></span>
                <span><i class="ph ph-briefcase"></i> Booking ID: <strong style="color:var(--primary);">${bookingId || 'N/A'}</strong></span>
+               ${data.reviewHash ? `<span><i class="ph ph-fingerprint"></i> Review Hash: <strong style="font-family: monospace;">${data.reviewHash}</strong></span>` : ''}
              </div>
            </div>
         </div>
@@ -1499,6 +1683,10 @@ function buildTravellerFormRows(searchBody) {
             ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *')}
             ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *')}
           </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            ${renderInput(`t-pan-${tNum}`, 'ABCDE1234F', 'PAN (optional)')}
+            ${renderInput(`t-pass-${tNum}`, 'Passport No.', 'Passport (optional)')}
+          </div>
         </div>`;
     }
   });
@@ -1636,24 +1824,40 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     if (!bookingEl) return;
 
     const typeLabel = bookingType === 'HOLD' ? 'Hold' : 'Voucher';
-    if (!res.ok || data.ok === false) {
+    const confirmedBookingId = data.order?.bookingId || data.bookingId;
+
+    if (!res.ok || !confirmedBookingId || data.errors || data.status?.success === false) {
+      let errorMsg = data.reason || data.message || "Check response";
+      if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+        errorMsg = data.errors[0].message || errorMsg;
+      }
       bookingEl.innerHTML = `
         <div class="alert-box error fade-in">
           <i class="ph ph-warning-circle"></i>
-          <span class="message">${typeLabel} booking failed: ${data.reason || data.message || "Check response"}</span>
+          <span class="message">${typeLabel} booking failed: ${errorMsg}</span>
         </div>
         <pre style="margin-top:12px; font-size:0.78rem; background:#fdf2f2; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
       return;
     }
 
-    const successColor = bookingType === 'HOLD' ? '#4338ca' : '#16a34a';
-    const successIcon = bookingType === 'HOLD' ? 'ph-clock-countdown' : 'ph-check-circle';
+    // ── Success! ─────────────────
+    const isHold = bookingType === 'HOLD';
+    saveRecentBooking(confirmedBookingId);
+
     bookingEl.innerHTML = `
-      <div class="alert-box success fade-in" style="border-color:${successColor}; background:${successColor}11;">
-        <i class="ph ${successIcon}" style="color:${successColor};"></i>
-        <span class="message" style="color:${successColor};">${typeLabel} booking ${bookingType === 'HOLD' ? 'placed' : 'confirmed'} successfully!</span>
+      <div class="alert-box success fade-in" style="flex-direction:column; align-items:flex-start; margin-bottom: 16px;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <i class="ph ph-check-circle" style="font-size: 1.2rem;"></i>
+          <span class="message" style="font-weight: 600;">${isHold ? 'Booking Placed on Hold!' : 'Booking Confirmed!'}</span>
+        </div>
+        <div style="margin-top:6px; font-size:0.9rem;">
+          <a href="#" onclick="event.preventDefault(); window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${confirmedBookingId}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${confirmedBookingId}');" style="color: var(--primary); font-weight: 600; text-decoration: underline; cursor: pointer;">
+            Click here to view Booking Details for ID: ${confirmedBookingId}
+          </a>
+        </div>
       </div>
-      <pre style="margin-top:12px; font-size:0.78rem; background:#f8faff; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
+    `;
+
   } catch (err) {
     if (!bookingEl) return;
     bookingEl.innerHTML = `
@@ -1663,6 +1867,195 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
       </div>`;
   }
 }
+
+/* =========================================
+   Fetch & Render Full Booking Detail
+   ========================================= */
+async function fetchAndRenderBookingDetail(bookingId) {
+  const bdLoading = document.getElementById("bd-loading");
+  const bdError = document.getElementById("bd-error");
+  const bdContent = document.getElementById("bd-content");
+
+  if (!bdLoading || !bdError || !bdContent) return;
+
+  // reset view
+  bdLoading.classList.remove("hidden");
+  bdError.classList.add("hidden");
+  bdContent.classList.add("hidden");
+
+  try {
+    const res = await fetch(`${API_BASE}/booking-detail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId }),
+    });
+
+    const d = await res.json();
+
+    bdLoading.classList.add("hidden");
+
+    if (!res.ok || d.ok === false) {
+      bdError.innerHTML = `<div><i class="ph ph-warning"></i> <span>Failed to fetch booking details: ${d.message || d.reason || res.status}</span></div>`;
+      bdError.classList.remove("hidden");
+      return;
+    }
+
+    const order = d.order || {};
+    const hotelInfo = d.itemInfos?.HOTEL?.hInfo || {};
+    const ops = hotelInfo.ops || [];
+    const room = ops[0]?.ris?.[0] || {};
+    const cnp = ops[0]?.cnp || {};
+    const addr = hotelInfo.ad || {};
+
+    // Basic Header
+    document.getElementById("bd-booking-id").textContent = order.bookingId || bookingId;
+    const statusBadge = document.getElementById("bd-status-badge");
+    statusBadge.textContent = order.status || '—';
+    if (order.status === 'ON_HOLD') {
+      statusBadge.style.color = '#fdfdfdff'; statusBadge.style.backgroundColor = 'rgba(67,56,202,0.1)'; statusBadge.style.borderColor = 'rgba(67,56,202,0.2)';
+    } else if (order.status === 'CANCELLED') {
+      statusBadge.style.color = '#dc2626'; statusBadge.style.backgroundColor = 'rgba(220,38,38,0.1)'; statusBadge.style.borderColor = 'rgba(220,38,38,0.2)';
+    } else {
+      statusBadge.style.color = '#16a34a'; statusBadge.style.backgroundColor = 'rgba(22,163,74,0.1)'; statusBadge.style.borderColor = 'rgba(22,163,74,0.2)';
+    }
+
+    // Success Banner
+    const isHold = order.status === 'ON_HOLD';
+    document.getElementById("bd-success-banner").innerHTML = isHold ? `
+      <div style="background: linear-gradient(135deg, #312e81 0%, #4338ca 100%); border-radius: 14px; padding: 20px 24px; color: #ffffffff; box-shadow: 0 4px 14px rgba(67,56,202,0.25);">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div style="font-size:1.8rem; flex-shrink:0;"><i class="ph-fill ph-clock-countdown"></i></div>
+          <div>
+            <div style="font-size:1.2rem; font-weight:700;">Booking On Hold!</div>
+            <div style="opacity:0.8; font-size:0.9rem; margin-top:2px;">Your booking has been successfully placed on hold.</div>
+          </div>
+        </div>
+      </div>
+    ` : `
+      <div style="background: linear-gradient(135deg, #14532d 0%, #16a34a 100%); border-radius: 14px; padding: 20px 24px; color: #fff; box-shadow: 0 4px 14px rgba(22,163,74,0.25);">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div style="font-size:1.8rem; flex-shrink:0;"><i class="ph-fill ph-check-circle"></i></div>
+          <div>
+            <div style="font-size:1.2rem; font-weight:700;">Voucher Confirmed!</div>
+            <div style="opacity:0.8; font-size:0.9rem; margin-top:2px;">Congratulations! Your voucher booking was successfully created.</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Helpers
+    const fmtDate = (s) => s ? new Date(s).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const fmtAmt = (n) => n != null ? `INR ${parseFloat(n).toFixed(2)}` : '—';
+
+    // Hotel & Room
+    document.getElementById("bd-hotel-name").textContent = hotelInfo.name || '—';
+    document.getElementById("bd-hotel-stars").textContent = '★'.repeat(Math.round(hotelInfo.rt || 0));
+    document.getElementById("bd-hotel-address").innerHTML = `${addr.adr || ''}<br>${addr.ctn || ''}${addr.sn || ''} ${addr.cn || ''} ${addr.postalCode || ''}`;
+
+    let checkinInfoHtml = '';
+    if (hotelInfo.checkInTime) checkinInfoHtml += `<div><i class="ph ph-sign-in"></i> Check-in from <strong>${hotelInfo.checkInTime.beginTime}</strong></div>`;
+    if (hotelInfo.checkOutTime) checkinInfoHtml += `<div><i class="ph ph-sign-out"></i> Check-out by <strong>${hotelInfo.checkOutTime.beginTime}</strong></div>`;
+    document.getElementById("bd-checkin-info").innerHTML = checkinInfoHtml;
+
+    document.getElementById("bd-room-name").textContent = room.rc || room.rt || '—';
+    document.getElementById("bd-room-meal").textContent = room.mb || '';
+
+    document.getElementById("bd-room-tags").innerHTML = `
+      <span class="data-pill pill-neutral" style="font-size:0.72rem;"><i class="ph ph-user"></i> ${room.adt || 0} Adult${(room.adt || 0) !== 1 ? 's' : ''}</span>
+      ${room.chd > 0 ? `<span class="data-pill pill-neutral" style="font-size:0.72rem;"><i class="ph ph-baby"></i> ${room.chd} Child</span>` : ''}
+    `;
+
+    // Payment Summary
+    document.getElementById("bd-payment-info").innerHTML = `
+      <div style="display:flex; gap:32px; flex-wrap:wrap;">
+        <div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Total Amount</div><div style="font-size:1.25rem; font-weight:800; color:var(--primary);">${fmtAmt(order.amount)}</div></div>
+        ${order.markup ? `<div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Markup</div><div style="font-size:1rem; font-weight:600; color:#f59e0b;">${fmtAmt(order.markup)}</div></div>` : ''}
+        <div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Created On</div><div style="font-size:0.9rem; font-weight:600; color:#334155;">${fmtDate(order.createdOn)}</div></div>
+      </div>
+    `;
+
+    // Flags
+    document.getElementById("bd-flags").innerHTML = `
+      <span class="data-pill ${cnp.ifra ? 'pill-success' : 'pill-danger'}" style="font-size:0.72rem;">${cnp.ifra ? '✓ Refundable' : '✗ Non-refundable'}</span>
+      ${cnp.panReq ? `<span class="data-pill pill-warning" style="font-size:0.72rem;">PAN Required</span>` : ''}
+    `;
+
+    // Travellers
+    const travCont = document.getElementById("bd-travellers");
+    const travHtml = (room.ti || []).map(t => `
+      <div style="display:flex; align-items:center; gap:10px; padding:10px 14px; background:#fff; border:1px solid #e2e8f0; border-radius:10px; font-size:0.88rem;">
+        <div style="background:#eff6ff; color:#3b82f6; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;"><i class="ph-fill ph-user"></i></div>
+        <div style="flex:1;"><strong style="color:#1e293b;">${t.ti} ${t.fN} ${t.lN}</strong></div>
+        <span class="data-pill pill-neutral" style="font-size:0.75rem;">${t.pt}</span>
+      </div>`).join('');
+
+    if (travHtml) {
+      travCont.innerHTML = travHtml;
+      document.getElementById("bd-travellers-section").classList.remove("hidden");
+    } else {
+      document.getElementById("bd-travellers-section").classList.add("hidden");
+    }
+
+    // Delivery Info
+    const deliveryCont = document.getElementById("bd-delivery");
+    let delivHtml = '';
+    if (order.deliveryInfo?.emails?.length) delivHtml += `<div><span style="color:#64748b;">Email: </span><strong style="color:#334155;">${order.deliveryInfo.emails.join(', ')}</strong></div>`;
+    if (order.deliveryInfo?.contacts?.length) delivHtml += `<div><span style="color:#64748b;">Phone: </span><strong style="color:#334155;">${(order.deliveryInfo.code?.[0] || '+91')} ${order.deliveryInfo.contacts.join(', ')}</strong></div>`;
+
+    if (delivHtml) {
+      deliveryCont.innerHTML = delivHtml;
+      document.getElementById("bd-delivery-section").classList.remove("hidden");
+    } else {
+      document.getElementById("bd-delivery-section").classList.add("hidden");
+    }
+
+    // Cancellation
+    const cancCont = document.getElementById("bd-cancellation");
+    if (cnp.pd?.length) {
+      cancCont.innerHTML = cnp.pd.map(p => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:0.85rem;">
+          <span style="color:#7f1d1d; font-weight:500;">${fmtDate(p.fdt)} → ${fmtDate(p.tdt)}</span>
+          <span style="font-weight:700; color:${parseFloat(p.am) === 0 ? '#16a34a' : '#dc2626'};">${parseFloat(p.am) === 0 ? '✓ Free Cancel' : fmtAmt(p.am)}</span>
+        </div>`).join('');
+      document.getElementById("bd-cancellation-section").classList.remove("hidden");
+    } else {
+      document.getElementById("bd-cancellation-section").classList.add("hidden");
+    }
+
+    // Instructions
+    const instCont = document.getElementById("bd-instructions");
+    let instHtml = '';
+    if (hotelInfo.inst) {
+      instHtml = hotelInfo.inst.map(desc => `<div style="font-size:0.85rem; color:#475569; padding-bottom:8px; border-bottom:1px solid #f1f5f9; line-height:1.5;"><strong>${desc.type || 'Instruction'}:</strong> ${desc.msg || ''}</div>`).join('');
+    }
+    if (instHtml) {
+      instCont.innerHTML = instHtml;
+      document.getElementById("bd-instructions-section").classList.remove("hidden");
+    } else {
+      document.getElementById("bd-instructions-section").classList.add("hidden");
+    }
+
+    // Amenities
+    const amenitiesCont = document.getElementById("bd-amenities");
+    const benefits = room.rexb?.BENEFIT?.[0]?.values || [];
+    if (benefits.length) {
+      amenitiesCont.innerHTML = benefits.map(b => `<span class="data-pill pill-neutral" style="background:#fff; border-color:#e2e8f0; font-size:0.8rem;"><i class="ph ph-check" style="color:#10b981;"></i> ${b}</span>`).join('');
+      document.getElementById("bd-amenities-section").classList.remove("hidden");
+    } else {
+      document.getElementById("bd-amenities-section").classList.add("hidden");
+    }
+
+    // Show content
+    bdContent.classList.remove("hidden");
+
+  } catch (err) {
+    bdLoading.classList.add("hidden");
+    bdError.innerHTML = `<div><i class="ph ph-warning"></i> <span>Could not load booking details: ${err.message}</span></div>`;
+    bdError.classList.remove("hidden");
+  }
+}
+
+
 
 async function bookRoom(optionId, correlationId) {
 
@@ -1754,16 +2147,45 @@ async function bookRoom(optionId, correlationId) {
     const data = await res.json();
     if (!bookingEl) return;
 
-    if (!res.ok || data.ok === false) {
+    if (!res.ok || data.ok === false || (data.status && data.status.success === false)) {
+      // Handle the new Duplicate Booking Array format
+      let errorMsg = data.reason || "Check response";
+      let dupBookingHtml = "";
+
+      if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+        const errObj = data.errors[0];
+        errorMsg = errObj.message || errorMsg;
+
+        // If it's a duplicate booking error (code 2502)
+        if (errObj.errCode === "2502" && errObj.details) {
+          const dupId = errObj.details;
+          dupBookingHtml = `
+            <div style="margin-top: 12px; padding: 12px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2); border-radius: 8px;">
+              <div style="font-weight: 600; color:var(--primary); margin-bottom: 6px;"><i class="ph ph-copy"></i> Duplicate Detected</div>
+              <div style="font-size: 0.85rem; color: #334155; margin-bottom: 8px;">You already have an existing, identical booking.</div>
+              <a href="#" onclick="event.preventDefault(); window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${dupId}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${dupId}');" style="display: inline-block; padding: 6px 12px; background: #4f46e5; color: white; border-radius: 6px; font-weight: 600; text-decoration: none; font-size: 0.8rem;">
+                View Original Booking (${dupId})
+              </a>
+            </div>
+          `;
+        }
+      }
+
       bookingEl.innerHTML = `
-        <div class="alert-box error fade-in">
-          <i class="ph ph-warning-circle"></i>
-          <span class="message">Booking failed: ${data.reason || "Check response"}</span>
+        <div class="alert-box error fade-in" style="flex-direction: column; align-items: flex-start;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i>
+            <span class="message" style="font-weight:600;">Booking failed: ${errorMsg}</span>
+          </div>
+          ${dupBookingHtml}
         </div>
         <pre style="margin-top:12px; font-size: 0.8rem; background: #fdf2f2; padding: 10px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
       `;
       return;
     }
+
+    const confirmedBookingId = data.order?.bookingId || data.bookingId;
+    if (confirmedBookingId) saveRecentBooking(confirmedBookingId);
 
     bookingEl.innerHTML = `
       <div class="alert-box success fade-in">
@@ -1857,6 +2279,7 @@ function initializeDates() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  renderRecentBookings();
   const container = document.getElementById("rooms-container");
   if (container && container.children.length === 0) {
     addRoom();
@@ -1865,7 +2288,20 @@ window.addEventListener("DOMContentLoaded", () => {
   loadConfigState();
 
   // Enforce statless SPA routing validation on load
-  if (window.location.pathname !== '/ui/' && window.location.pathname !== '/ui/search') {
+  const currentPath = window.location.pathname;
+
+  if (currentPath.startsWith('/ui/booking-detail')) {
+    // If refreshing on the booking details page, grab the ID and stay on this page
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id) {
+      showBookingDetailPage();
+      fetchAndRenderBookingDetail(id);
+      return;
+    }
+  }
+
+  if (currentPath !== '/ui/' && currentPath !== '/ui/search') {
     // If we hard-refresh on a deep link without search state, we must kick back to search
     if (!globalSearchBody) {
       window.location.replace('/ui/search');
