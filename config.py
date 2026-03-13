@@ -1,6 +1,6 @@
-API_KEY = "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe"
+API_KEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
 
-BASE_URL = "https://tj-hotel-admin.tripjack.com/"
+BASE_URL = "https://apitest-hms.tripjack.com/"
 
 
 

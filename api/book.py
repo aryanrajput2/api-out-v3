@@ -5,7 +5,7 @@ from config import API_KEY, BASE_URL
 
 
 # Fixed book URL — always use apitest.tripjack.com for booking regardless of env selector
-BOOK_URL = "https://apitest.tripjack.com/oms/v1/hotel/book"
+BOOK_URL = "https://apitest.tripjack.com/oms/v3/hotel/book"
 BOOK_APIKEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
 BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
 

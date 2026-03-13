@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 def fetch_hotel_static_detail(data: dict):
     env = data.get("env", "https://tj-hotel-admin.tripjack.com/")
     api_key = data.get("apiKey", "")
-    tripjack_id = data.get("TripjackID")
+    hid = data.get("hid") or data.get("TripjackID")
 
-    if not tripjack_id:
-        raise HTTPException(status_code=400, detail="TripjackID is required")
+    if not hid:
+        raise HTTPException(status_code=400, detail="hid is required")
 
     headers = {
         "Content-Type": "application/json",
@@ -20,7 +20,7 @@ def fetch_hotel_static_detail(data: dict):
     url = f"{env}hms/v3/hotel/static-detail"
     
     payload = {
-        "TripjackID": tripjack_id
+        "hid": hid
     }
 
     try:

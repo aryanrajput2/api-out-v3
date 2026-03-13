@@ -1,5 +1,9 @@
 const API_BASE = window.location.origin;
-let globalSearchBody = null; // Store the last search used for dynamic-detail
+let globalSearchBody = null;
+try {
+  const saved = sessionStorage.getItem("tj_global_search");
+  if (saved) globalSearchBody = JSON.parse(saved);
+} catch (e) { console.warn("Failed to restore search body", e); }
 
 const OPTION_TYPES = {
   SRSM: { name: "Same Room Same Mealplan", desc: "All rooms are the same room type AND all have the same meal plan." },
@@ -99,11 +103,11 @@ function clearSearchError() {
    Configuration & Environment
    ========================================= */
 const PREDEFINED_KEYS = [
+  "6116982da6b759-28f8-4cdf-b210-04cb98116165",
   "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe",
   "8112616278b36e4e-6996-4088-b66b-bf5d6787fe13",
   "81139487b3f2160f-acb8-41d6-9177-4bc69df0148a",
   "711814269fe755f1-cdc6-44bf-acbc-d91b1a451878",
-  "6116982da6b759-28f8-4cdf-b210-04cb98116165",
   "412801f9073cf9-6dd0-40fa-b016-c2f5abf02355",
   "112571637e862b-8a47-475e-8fe4-1604fdf3ba03",
   "7128778166f20c-45ac-4608-8960-191b2c68f922"
@@ -279,33 +283,39 @@ function renderRecentBookings() {
   } catch (e) { }
 }
 
-async function searchHotels() {
+async function searchHotels(cachedBody = null) {
   clearSearchError();
   setSearchLoading(true);
 
   try {
-    const checkin = document.getElementById("checkin").value;
-    const checkout = document.getElementById("checkout").value;
-    const currency = document.getElementById("currency").value || "INR";
-    const correlationInput = document.getElementById("correlationId").value.trim();
-    const correlationId = correlationInput || `ui-${Date.now().toString(36).toUpperCase()}`;
-
-    let hotelids = document.getElementById("hotelids").value.split(",");
-    hotelids = hotelids.map((id) => parseInt(id.trim(), 10)).filter(Boolean);
-
-    const rooms = readRoomsFromUi();
+    let body;
     const config = getConfigPayload();
 
-    const body = {
-      checkIn: checkin,
-      checkOut: checkout,
-      rooms,
-      currency,
-      correlationId,
-      hids: hotelids,
-      env: config.env,
-      apiKey: config.apiKey
-    };
+    if (cachedBody) {
+      body = cachedBody;
+    } else {
+      const checkin = document.getElementById("checkin").value;
+      const checkout = document.getElementById("checkout").value;
+      const currency = document.getElementById("currency").value || "INR";
+      const correlationInput = document.getElementById("correlationId").value.trim();
+      const correlationId = correlationInput || `ui-${Date.now().toString(36).toUpperCase()}`;
+
+      let hotelids = document.getElementById("hotelids").value.split(",");
+      hotelids = hotelids.map((id) => parseInt(id.trim(), 10)).filter(Boolean);
+
+      const rooms = readRoomsFromUi();
+
+      body = {
+        checkIn: checkin,
+        checkOut: checkout,
+        rooms,
+        currency,
+        correlationId,
+        hids: hotelids,
+        env: config.env,
+        apiKey: config.apiKey
+      };
+    }
 
     const startTime = performance.now();
     const res = await fetch(`${API_BASE}/search`, {
@@ -336,6 +346,7 @@ async function searchHotels() {
 
     displayHotels(data);
     globalSearchBody = body; // Cache for detail queries
+    sessionStorage.setItem("tj_global_search", JSON.stringify(body));
     switchToResultsPage(body, duration, data);
   } catch (err) {
     showSearchError("Unexpected error while searching hotels.", err?.message);
@@ -611,16 +622,23 @@ function applySearchFilters() {
   }
 }
 
+function hideAllPages() {
+  const pages = ["search-page", "results-page", "detail-page", "review-page", "booking-detail-page"];
+  pages.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add("hidden");
+      el.classList.remove("fade-in");
+    }
+  });
+}
+
 function switchToResultsPage(lastSearchBody, durationMs, data) {
-  const searchPage = document.getElementById("search-page");
   const resultsPage = document.getElementById("results-page");
   const summary = document.getElementById("results-summary");
   const resultsTimer = document.getElementById("results-timer");
 
-  if (searchPage) {
-    searchPage.classList.remove("fade-in");
-    searchPage.classList.add("hidden");
-  }
+  hideAllPages();
   if (resultsPage) {
     resultsPage.classList.remove("hidden");
     resultsPage.classList.add("fade-in");
@@ -704,8 +722,6 @@ function backToResults() {
 async function fetchHotelDetails(hotelId) {
   if (!globalSearchBody) return;
 
-  const searchPage = document.getElementById("search-page");
-  const resultsPage = document.getElementById("results-page");
   const detailPage = document.getElementById("detail-page");
   const header = document.getElementById("hotel-detail-header");
   const resultsContainer = document.getElementById("detail-results");
@@ -713,21 +729,15 @@ async function fetchHotelDetails(hotelId) {
   const errorBox = document.getElementById("detail-error");
 
   // Reset View
-  if (resultsPage) {
-    resultsPage.classList.remove("fade-in");
-    resultsPage.classList.add("hidden");
-  }
-  if (searchPage) {
-    searchPage.classList.add("hidden");
-  }
+  hideAllPages();
   if (detailPage) {
     detailPage.classList.remove("hidden");
     detailPage.classList.add("fade-in");
   }
 
   // Update URL
-  if (window.location.pathname !== '/ui/detail') {
-    history.pushState({ view: 'detail', hid: hotelId }, '', '/ui/detail');
+  if (window.location.search !== `?hid=${hotelId}`) {
+    history.pushState({ view: 'detail', hid: hotelId }, '', `/ui/detail?hid=${hotelId}`);
   }
 
   header.innerHTML = `<h2 class="hotel-name">Loading Details...</h2>`;
@@ -751,7 +761,7 @@ async function fetchHotelDetails(hotelId) {
     delete body.hids; // Detail API takes hid, not an array of hids
 
     const staticBody = {
-      TripjackID: hotelId,
+      hid: hotelId,
       env: config.env,
       apiKey: config.apiKey
     };
@@ -1150,9 +1160,18 @@ function applyRoomFilters() {
 async function reviewRoom(optionId, correlationId, searchDisplayPrice, reviewHash, hotelId) {
   // Store the price shown in search results for comparison
   window._searchDisplayPrice = searchDisplayPrice ?? null;
-  // Update URL
-  if (window.location.pathname !== '/ui/review') {
-    history.pushState({ view: 'review' }, '', '/ui/review');
+
+  // Update URL with full context for refresh support
+  const params = new URLSearchParams();
+  params.set('hid', hotelId);
+  params.set('oid', optionId);
+  params.set('cid', correlationId);
+  if (reviewHash) params.set('rh', reviewHash);
+  if (searchDisplayPrice) params.set('sdp', searchDisplayPrice);
+
+  const newUrl = `/ui/review?${params.toString()}`;
+  if (window.location.search !== `?${params.toString()}`) {
+    history.pushState({ view: 'review' }, '', newUrl);
   }
 
   try {
@@ -1184,14 +1203,10 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice, reviewHas
 }
 
 function switchToReviewPage() {
-  const detailPage = document.getElementById("detail-page");
   const reviewPage = document.getElementById("review-page");
   const reviewContent = document.getElementById("review-content");
 
-  if (detailPage) {
-    detailPage.classList.remove("fade-in");
-    detailPage.classList.add("hidden");
-  }
+  hideAllPages();
   if (reviewPage) {
     reviewPage.classList.remove("hidden");
     reviewPage.classList.add("fade-in");
@@ -1204,11 +1219,6 @@ function switchToReviewPage() {
           <p>Fetching review details and current pricing...</p>
         </div>
      `;
-  }
-
-  // Update URL
-  if (window.location.pathname !== '/ui/review') {
-    history.pushState({ view: 'review' }, '', '/ui/review');
   }
 }
 
@@ -1225,38 +1235,31 @@ function backToDetailFromReview() {
     detailPage.classList.add("fade-in");
   }
 
-  // Back to Detail URL
+  // Back to Detail URL - try to keep the hid if we have it
+  const params = new URLSearchParams(window.location.search);
+  const hid = params.get('hid');
+  const newUrl = hid ? `/ui/detail?hid=${hid}` : '/ui/detail';
+
   if (window.location.pathname !== '/ui/detail') {
-    history.pushState({ view: 'detail' }, '', '/ui/detail');
+    history.pushState({ view: 'detail', hid }, '', newUrl);
   }
 }
 
 function showBookingDetailPage() {
-  const allPages = ["search-page", "results-page", "detail-page", "review-page", "booking-detail-page"];
-  allPages.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      if (id === "booking-detail-page") {
-        el.classList.remove("hidden");
-        el.classList.add("fade-in");
-      } else {
-        el.classList.add("hidden");
-        el.classList.remove("fade-in");
-      }
-    }
-  });
+  hideAllPages();
+  const el = document.getElementById("booking-detail-page");
+  if (el) {
+    el.classList.remove("hidden");
+    el.classList.add("fade-in");
+  }
   if (window.location.pathname !== '/ui/booking-detail') {
     history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail');
   }
 }
 
 function backToReviewFromBookingDetail() {
-  const bdPage = document.getElementById("booking-detail-page");
+  hideAllPages();
   const reviewPage = document.getElementById("review-page");
-  if (bdPage) {
-    bdPage.classList.add("hidden");
-    bdPage.classList.remove("fade-in");
-  }
   if (reviewPage) {
     reviewPage.classList.remove("hidden");
     reviewPage.classList.add("fade-in");
@@ -2287,12 +2290,11 @@ window.addEventListener("DOMContentLoaded", () => {
   initializeDates();
   loadConfigState();
 
-  // Enforce statless SPA routing validation on load
+  // Enforce stateless SPA routing validation on load
   const currentPath = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
 
   if (currentPath.startsWith('/ui/booking-detail')) {
-    // If refreshing on the booking details page, grab the ID and stay on this page
-    const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (id) {
       showBookingDetailPage();
@@ -2301,8 +2303,36 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  if (currentPath.startsWith('/ui/detail')) {
+    const hid = params.get('hid');
+    if (hid && globalSearchBody) {
+      fetchHotelDetails(hid);
+      return;
+    }
+  }
+
+  if (currentPath.startsWith('/ui/review')) {
+    const hid = params.get('hid');
+    const oid = params.get('oid');
+    const cid = params.get('cid');
+    const rh = params.get('rh');
+    const sdp = params.get('sdp') ? parseFloat(params.get('sdp')) : null;
+
+    if (hid && oid && cid && globalSearchBody) {
+      reviewRoom(oid, cid, sdp, rh, hid);
+      return;
+    }
+  }
+
+  if (currentPath.startsWith('/ui/results')) {
+    if (globalSearchBody) {
+      // Re-trigger visual search flow to populate results
+      searchHotels(globalSearchBody);
+      return;
+    }
+  }
+
   if (currentPath !== '/ui/' && currentPath !== '/ui/search') {
-    // If we hard-refresh on a deep link without search state, we must kick back to search
     if (!globalSearchBody) {
       window.location.replace('/ui/search');
     }
