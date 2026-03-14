@@ -822,17 +822,32 @@ function renderStaticDetails(data) {
   const staticDetails = data;
   if (!staticDetails.name && !staticDetails.images && !staticDetails.descriptions) return;
 
-  // 1. Photos (show top 6)
+  // 1. Photos Gallery with Zoom
   let imagesHtml = '';
   if (staticDetails.images && staticDetails.images.length > 0) {
-    const topImages = staticDetails.images.slice(0, 6);
+    const allImages = staticDetails.images;
     imagesHtml = `
-      <div style="display: flex; gap: 12px; overflow-x: auto; margin-bottom: 24px; padding-bottom: 12px;" class="hide-scrollbar">
-        ${topImages.map(img => {
-      const url = img.links?.original?.href || img.url || "";
-      if (!url) return '';
-      return `<img src="${url}" alt="Hotel Image" style="width: 260px; height: 180px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); flex-shrink: 0;" onerror="this.style.display='none'"/>`;
-    }).join('')}
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;"><i class="ph ph-image"></i> Photo Gallery</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          ${allImages.slice(0, 12).map((img, idx) => {
+            const url = img.links?.original?.href || img.url || "";
+            if (!url) return '';
+            return `
+              <div style="position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.3s ease;" 
+                   onclick="openImageZoom('${url}')" 
+                   onmouseover="this.style.transform='scale(1.05)'" 
+                   onmouseout="this.style.transform='scale(1)'">
+                <img src="${url}" alt="Hotel Image ${idx + 1}" style="width: 100%; height: 160px; object-fit: cover;"/>
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0); transition: background 0.3s ease;" 
+                     onmouseover="this.style.background='rgba(0,0,0,0.3)'" 
+                     onmouseout="this.style.background='rgba(0,0,0,0)'">
+                  <i class="ph ph-magnifying-glass" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.5rem; opacity: 0; transition: opacity 0.3s ease;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0'"></i>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
     `;
   }
@@ -840,31 +855,41 @@ function renderStaticDetails(data) {
   // 2. Star rating & Property Type
   let propertyTypeHtml = '';
   if (staticDetails.property_type && staticDetails.property_type.name) {
-    propertyTypeHtml = `<span style="display:inline-block; padding: 4px 10px; background: rgba(99,102,241,0.1); color: var(--primary); font-size: 0.8rem; font-weight: 600; border-radius: 999px; margin-bottom: 12px;">${staticDetails.property_type.name}</span>`;
+    propertyTypeHtml = `<span style="display:inline-block; padding: 6px 14px; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.1)); color: var(--primary); font-size: 0.85rem; font-weight: 600; border-radius: 999px; margin-bottom: 12px; border: 1px solid rgba(59,130,246,0.2);"><i class="ph ph-building"></i> ${staticDetails.property_type.name}</span>`;
   }
 
   let starsHtml = '';
   if (staticDetails.star_rating) {
-    starsHtml = `<div style="color: #eab308; font-size: 1.1rem; margin-bottom: 12px; font-weight: 600;"><i class="ph-fill ph-star"></i> ${staticDetails.star_rating} Star</div>`;
+    starsHtml = `<div style="color: #eab308; font-size: 1.2rem; margin-bottom: 12px; font-weight: 600;"><i class="ph-fill ph-star"></i> ${staticDetails.star_rating} Star Rating</div>`;
   }
 
-  // 3. Address
+  // 3. Address & Contact
   let addressHtml = '';
   if (staticDetails.locale && staticDetails.locale.address) {
     const add = staticDetails.locale.address;
-    const parts = [add.line_1, add.line_2, add.city, add.statename, add.countryname, add.postal_code].filter(Boolean);
-    addressHtml = `<div style="font-size: 0.95rem; color: #475569; margin-bottom: 16px;"><i class="ph ph-map-pin"></i> ${parts.join(', ')}</div>`;
+    const parts = [add.line_1, add.city, add.statename, add.countryname, add.postal_code].filter(Boolean);
+    const phone = staticDetails.locale.phone ? staticDetails.locale.phone[0] : '';
+    addressHtml = `
+      <div style="background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(99,102,241,0.05)); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary); margin-bottom: 16px;">
+        <div style="font-size: 0.95rem; color: #475569; margin-bottom: 8px;"><i class="ph ph-map-pin" style="color: var(--primary); margin-right: 8px;"></i> ${parts.join(', ')}</div>
+        ${phone ? `<div style="font-size: 0.95rem; color: #475569;"><i class="ph ph-phone" style="color: var(--primary); margin-right: 8px;"></i> ${phone}</div>` : ''}
+      </div>
+    `;
   }
 
   // 4. Description
   let descHtml = '';
   if (staticDetails.descriptions) {
     const headline = staticDetails.descriptions.headline || '';
-
+    const location = staticDetails.descriptions.default ? JSON.parse(staticDetails.descriptions.default).location || '' : '';
+    const attractions = staticDetails.descriptions.default ? JSON.parse(staticDetails.descriptions.default).attractions || '' : '';
+    
     descHtml = `
       <div style="margin-bottom: 24px;">
-        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;">About Hotel</h3>
-        <p style="font-size: 0.95rem; color: #475569; line-height: 1.6;">${headline}</p>
+        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;"><i class="ph ph-info"></i> About Hotel</h3>
+        <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; margin-bottom: 16px;">${headline}</p>
+        ${location ? `<div style="font-size: 0.9rem; color: #64748b; line-height: 1.6; padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px;"><strong>Location:</strong> ${location}</div>` : ''}
+        ${attractions ? `<div style="font-size: 0.9rem; color: #64748b; line-height: 1.6; padding: 12px; background: #f8fafc; border-radius: 8px;"><strong>Nearby Attractions:</strong> ${attractions}</div>` : ''}
       </div>
     `;
   }
@@ -872,16 +897,16 @@ function renderStaticDetails(data) {
   // 5. Amenities
   let amenitiesHtml = '';
   if (staticDetails.amenities) {
-    const amenitiesValues = Object.values(staticDetails.amenities).slice(0, 15);
+    const amenitiesValues = Object.values(staticDetails.amenities);
     if (amenitiesValues.length > 0) {
       amenitiesHtml = `
         <div style="margin-bottom: 24px;">
-          <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;">Top Amenities</h3>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;"><i class="ph ph-star"></i> Amenities (${amenitiesValues.length})</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
             ${amenitiesValues.map(am => `
-              <span style="font-size: 0.8rem; padding: 6px 12px; background: #f8fafc; color: #334155; border-radius: 8px; border: 1px solid #e2e8f0; font-weight: 500;">
-                <i class="ph ph-check" style="color: var(--primary);"></i> ${am.name}
-              </span>
+              <div style="font-size: 0.85rem; padding: 8px 12px; background: linear-gradient(135deg, #f0f9ff, #f8fafc); color: #334155; border-radius: 8px; border: 1px solid #e0f2fe; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                <i class="ph ph-check-circle" style="color: var(--primary); font-size: 1rem;"></i> ${am.name}
+              </div>
             `).join('')}
           </div>
         </div>
@@ -889,18 +914,136 @@ function renderStaticDetails(data) {
     }
   }
 
+  // 6. Policies & Check-in Info
+  let policiesHtml = '';
+  if (staticDetails.policies) {
+    const policies = staticDetails.policies;
+    const checkin = policies.checkInCheckOut || {};
+    const specialInstructions = policies.special_instructions ? JSON.parse(policies.special_instructions) : {};
+    const knowBeforeYouGo = policies.know_before_you_go ? JSON.parse(policies.know_before_you_go) : {};
+    const mandatoryFees = policies.mandatory_fees ? JSON.parse(policies.mandatory_fees) : {};
+    
+    policiesHtml = `
+      <div style="margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 600;"><i class="ph ph-info"></i> Important Information</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          ${checkin.checkin_from ? `
+            <div style="background: linear-gradient(135deg, rgba(34,197,94,0.05), rgba(74,222,128,0.05)); padding: 12px; border-radius: 8px; border-left: 4px solid #22c55e;">
+              <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 4px;"><i class="ph ph-sign-in"></i> Check-in</div>
+              <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">${checkin.checkin_from} - ${checkin.checkin_till || 'Late'}</div>
+            </div>
+          ` : ''}
+          ${checkin.checkout_from ? `
+            <div style="background: linear-gradient(135deg, rgba(239,68,68,0.05), rgba(248,113,113,0.05)); padding: 12px; border-radius: 8px; border-left: 4px solid #ef4444;">
+              <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 4px;"><i class="ph ph-sign-out"></i> Check-out</div>
+              <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">${checkin.checkout_from}</div>
+            </div>
+          ` : ''}
+          ${checkin.checkin_min_age ? `
+            <div style="background: linear-gradient(135deg, rgba(168,85,247,0.05), rgba(196,181,253,0.05)); padding: 12px; border-radius: 8px; border-left: 4px solid #a855f7;">
+              <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 4px;"><i class="ph ph-user"></i> Min. Age</div>
+              <div style="font-size: 0.9rem; color: #1e293b; font-weight: 600;">${checkin.checkin_min_age}+</div>
+            </div>
+          ` : ''}
+        </div>
+
+        ${specialInstructions['Special Instructions'] ? `
+          <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 0.85rem; color: #92400e; font-weight: 600; margin-bottom: 6px;"><i class="ph ph-warning"></i> Special Instructions</div>
+            <div style="font-size: 0.85rem; color: #b45309; line-height: 1.5;">${specialInstructions['Special Instructions']}</div>
+          </div>
+        ` : ''}
+
+        ${knowBeforeYouGo['know_before_you_go'] ? `
+          <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="font-size: 0.85rem; color: #1e40af; font-weight: 600; margin-bottom: 6px;"><i class="ph ph-info"></i> Know Before You Go</div>
+            <div style="font-size: 0.85rem; color: #1e3a8a; line-height: 1.5;">${knowBeforeYouGo['know_before_you_go']}</div>
+          </div>
+        ` : ''}
+
+        ${mandatoryFees['Mandatory'] ? `
+          <div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; border-radius: 8px;">
+            <div style="font-size: 0.85rem; color: #991b1b; font-weight: 600; margin-bottom: 6px;"><i class="ph ph-receipt"></i> Mandatory Fees</div>
+            <div style="font-size: 0.85rem; color: #b91c1c; line-height: 1.5;">${mandatoryFees['Mandatory']}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // 7. Chain & Active Status
+  let chainHtml = '';
+  if (staticDetails.chain || staticDetails.is_active !== undefined) {
+    const chainName = staticDetails.chain?.name || 'Independent';
+    const isActive = staticDetails.is_active ? '<i class="ph ph-check-circle" style="color: #22c55e;"></i> Active' : '<i class="ph ph-x-circle" style="color: #ef4444;"></i> Inactive';
+    chainHtml = `
+      <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <div style="flex: 1; background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(59,130,246,0.1)); padding: 12px; border-radius: 8px; border: 1px solid rgba(59,130,246,0.2);">
+          <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 4px;"><i class="ph ph-link"></i> Chain</div>
+          <div style="font-size: 0.95rem; color: #1e293b; font-weight: 600;">${chainName}</div>
+        </div>
+        <div style="flex: 1; background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(74,222,128,0.1)); padding: 12px; border-radius: 8px; border: 1px solid rgba(34,197,94,0.2);">
+          <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-bottom: 4px;"><i class="ph ph-info"></i> Status</div>
+          <div style="font-size: 0.95rem; color: #1e293b; font-weight: 600;">${isActive}</div>
+        </div>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     <div class="glass-panel fade-in-up" style="padding: 24px; margin-bottom: 24px; border-top: 4px solid var(--primary);">
       ${imagesHtml}
       ${propertyTypeHtml}
-      ${addressHtml}
       ${starsHtml}
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 16px;">
-        <div style="flex: 1;">${descHtml}</div>
-        <div style="flex: 1;">${amenitiesHtml}</div>
-      </div>
+      ${addressHtml}
+      ${chainHtml}
+      ${descHtml}
+      ${amenitiesHtml}
+      ${policiesHtml}
     </div>
   `;
+}
+
+// Image Zoom Modal
+function openImageZoom(imageUrl) {
+  const modal = document.createElement('div');
+  modal.id = 'image-zoom-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+  `;
+  
+  modal.innerHTML = `
+    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+      <img src="${imageUrl}" alt="Zoomed Hotel Image" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;"/>
+      <button onclick="closeImageZoom()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.onclick = (e) => {
+    if (e.target === modal) closeImageZoom();
+  };
+}
+
+function closeImageZoom() {
+  const modal = document.getElementById('image-zoom-modal');
+  if (modal) {
+    modal.style.animation = 'fadeOut 0.3s ease';
+    setTimeout(() => modal.remove(), 300);
+  }
 }
 
 function renderHotelDetails(data) {
@@ -2344,3 +2487,116 @@ window.addEventListener('popstate', (e) => {
   // Simple fallback for browser back/forward buttons: reload to restore clean state
   window.location.reload();
 });
+
+
+// Location-based Batch Search
+async function searchLocationHotels(location) {
+  clearSearchError();
+  setSearchLoading(true);
+
+  try {
+    // First, load the hotel codes for the location
+    const codesResponse = await fetch(`${API_BASE}/hotel-codes/${location}`);
+    const codesData = await codesResponse.json();
+
+    if (!codesData.ok) {
+      showSearchError(`Failed to load ${location} hotel codes.`, codesData.message);
+      setSearchLoading(false);
+      return;
+    }
+
+    const hotelCodes = codesData.hotel_codes;
+    console.log(`Loaded ${hotelCodes.length} hotel codes for ${location}`);
+
+    // Get search parameters from UI
+    const checkin = document.getElementById("checkin").value;
+    const checkout = document.getElementById("checkout").value;
+    const currency = document.getElementById("currency").value || "INR";
+    const correlationInput = document.getElementById("correlationId").value.trim();
+    const correlationId = correlationInput || `ui-batch-${Date.now().toString(36).toUpperCase()}`;
+    const rooms = readRoomsFromUi();
+    const config = getConfigPayload();
+
+    if (!checkin || !checkout) {
+      showSearchError("Please select check-in and check-out dates.");
+      setSearchLoading(false);
+      return;
+    }
+
+    // Prepare batch search request
+    const batchBody = {
+      checkIn: checkin,
+      checkOut: checkout,
+      rooms,
+      currency,
+      correlationId,
+      hotelCodes: hotelCodes.map(code => parseInt(code, 10)),
+      location: location,
+      env: config.env,
+      apiKey: config.apiKey
+    };
+
+    console.log(`Sending batch search for ${hotelCodes.length} hotels in batches of 100...`);
+
+    const startTime = performance.now();
+    const res = await fetch(`${API_BASE}/batch-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(batchBody),
+    });
+
+    const data = await res.json();
+    const duration = Math.round(performance.now() - startTime);
+
+    if (!res.ok || data.ok === false) {
+      const detail =
+        data && typeof data === "object"
+          ? `${data.status_code || res.status} ${data.reason || ""}`.trim()
+          : `${res.status}`;
+      showSearchError(`Batch search failed for ${location}.`, detail, data);
+      displayHotels(null);
+      setSearchLoading(false);
+      return;
+    }
+
+    // Set Timer UI
+    const timerUI = document.getElementById("search-timer");
+    if (timerUI) {
+      timerUI.innerHTML = formatDuration(duration);
+      timerUI.classList.remove("hidden");
+    }
+
+    // Prepare display body for results page
+    const displayBody = {
+      checkIn: checkin,
+      checkOut: checkout,
+      rooms,
+      currency,
+      correlationId,
+      hids: hotelCodes.map(code => parseInt(code, 10)),
+      env: config.env,
+      apiKey: config.apiKey
+    };
+
+    // Format batch response for display (ensure it has hotels array)
+    const displayData = {
+      ...data,
+      hotels: data.hotels || data.data || []
+    };
+
+    displayHotels(displayData);
+    globalSearchBody = displayBody;
+    sessionStorage.setItem("tj_global_search", JSON.stringify(displayBody));
+    switchToResultsPage(displayBody, duration, displayData);
+  } catch (err) {
+    showSearchError(`Unexpected error while searching ${location} hotels.`, err?.message);
+    displayHotels(null);
+  } finally {
+    setSearchLoading(false);
+  }
+}
+
+// Legacy function for backward compatibility
+async function searchMumbaiHotels() {
+  return searchLocationHotels('mumbai');
+}
