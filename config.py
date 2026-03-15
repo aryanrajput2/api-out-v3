@@ -1,21 +1,9 @@
-API_KEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
+import os
+from dotenv import load_dotenv
 
-BASE_URL = "https://apitest-hms.tripjack.com/"
+load_dotenv()
 
-
-
-# uvicorn api.main:app --reload
-
-
-
-
-# http://10.146.180.179:8000/ui/search
-
-
-
-# 10.146.180.179 for differnt area
-
+API_KEY = os.getenv("API_KEY")
+BASE_URL = os.getenv("BASE_URL", "https://apitest-hms.tripjack.com/")
 
 # ./start.sh
-# lsof -t -i:8000 | xargs kill -9
-

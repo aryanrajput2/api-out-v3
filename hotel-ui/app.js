@@ -13,19 +13,196 @@ const OPTION_TYPES = {
   SINGLE: { name: "Single Option", desc: "Single option provided." }
 };
 
+/* =========================================
+   API Response Time Tracking
+   ========================================= */
+let apiResponseTimes = {
+  search: null,
+  detail: null,
+  staticDetail: null,
+  review: null,
+  booking: null,
+  bookingDetail: null,
+  batchTimes: {} // For tracking individual batch response times
+};
+
+function recordApiTime(endpoint, ms) {
+  apiResponseTimes[endpoint] = ms;
+  console.log(`API Time recorded: ${endpoint} = ${ms}ms`, apiResponseTimes);
+  updateApiTimesDisplay();
+}
+
+function recordBatchTime(batchId, ms) {
+  apiResponseTimes.batchTimes[batchId] = ms;
+  console.log(`Batch time recorded: ${batchId} = ${ms}ms`, apiResponseTimes);
+  updateApiTimesDisplay();
+}
+
+function updateApiTimesDisplay() {
+  let container = document.getElementById("api-times-container");
+  
+  // If container not found, try again after a short delay
+  if (!container) {
+    console.warn("api-times-container not found, retrying...");
+    setTimeout(() => {
+      container = document.getElementById("api-times-container");
+      if (!container) {
+        console.error("api-times-container still not found after retry");
+        return;
+      }
+      displayApiTimes(container);
+    }, 100);
+    return;
+  }
+  
+  displayApiTimes(container);
+}
+
+function displayApiTimes(container) {
+  console.log("displayApiTimes called with container:", container);
+  console.log("apiResponseTimes object:", apiResponseTimes);
+  
+  // Force the container to be visible by overriding any CSS rules
+  container.classList.remove('hidden');
+  container.style.setProperty('display', 'block', 'important');
+  container.style.setProperty('visibility', 'visible', 'important');
+  container.style.setProperty('opacity', '1', 'important');
+  
+  let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">';
+  let hasAnyTime = false;
+  
+  console.log("Checking apiResponseTimes.search:", apiResponseTimes.search);
+  
+  if (apiResponseTimes.search) {
+    html += `<div class="api-time-badge"><i class="ph ph-magnifying-glass"></i> Search: ${formatDuration(apiResponseTimes.search)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  // Show batch times if they exist
+  if (Object.keys(apiResponseTimes.batchTimes).length > 0) {
+    Object.entries(apiResponseTimes.batchTimes).forEach(([batchId, ms]) => {
+      html += `<div class="api-time-badge"><i class="ph ph-stack"></i> ${batchId}: ${formatDuration(ms)}</div>`;
+      hasAnyTime = true;
+    });
+  }
+  
+  if (apiResponseTimes.detail) {
+    html += `<div class="api-time-badge"><i class="ph ph-info"></i> Detail: ${formatDuration(apiResponseTimes.detail)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  if (apiResponseTimes.staticDetail) {
+    html += `<div class="api-time-badge"><i class="ph ph-image"></i> Static: ${formatDuration(apiResponseTimes.staticDetail)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  if (apiResponseTimes.review) {
+    html += `<div class="api-time-badge"><i class="ph ph-list-checks"></i> Review: ${formatDuration(apiResponseTimes.review)}</div>`;
+    hasAnyTime = true;
+  }
+  if (apiResponseTimes.booking) {
+    html += `<div class="api-time-badge"><i class="ph ph-check-circle"></i> Booking: ${formatDuration(apiResponseTimes.booking)}</div>`;
+    hasAnyTime = true;
+  }
+  if (apiResponseTimes.bookingDetail) {
+    html += `<div class="api-time-badge"><i class="ph ph-receipt"></i> Booking Detail: ${formatDuration(apiResponseTimes.bookingDetail)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  html += '</div>';
+  
+  console.log("hasAnyTime:", hasAnyTime, "html:", html);
+  
+  // Only show container if there are times to display
+  if (hasAnyTime) {
+    container.innerHTML = html;
+    container.classList.remove('hidden');
+    container.style.setProperty('display', 'block', 'important');
+    container.style.setProperty('visibility', 'visible', 'important');
+    container.style.setProperty('opacity', '1', 'important');
+    console.log("API times displayed successfully:", apiResponseTimes);
+  } else {
+    container.classList.add('hidden');
+    container.style.setProperty('display', 'none', 'important');
+    container.style.setProperty('visibility', 'hidden', 'important');
+    container.style.setProperty('opacity', '0', 'important');
+    console.log("No API times to display");
+  }
+  
+  // Also update search page API times display
+  updateSearchPageApiTimes();
+}
+
+function updateSearchPageApiTimes() {
+  // Update the search page API times display
+  const searchApiTimesContainer = document.getElementById("search-api-times");
+  if (!searchApiTimesContainer) return;
+
+  let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">';
+  let hasAnyTime = false;
+  
+  if (apiResponseTimes.search) {
+    html += `<div class="api-time-badge"><i class="ph ph-magnifying-glass"></i> Search: ${formatDuration(apiResponseTimes.search)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  // Show batch times if they exist
+  if (Object.keys(apiResponseTimes.batchTimes).length > 0) {
+    Object.entries(apiResponseTimes.batchTimes).forEach(([batchId, ms]) => {
+      html += `<div class="api-time-badge"><i class="ph ph-stack"></i> ${batchId}: ${formatDuration(ms)}</div>`;
+      hasAnyTime = true;
+    });
+  }
+  
+  html += '</div>';
+  
+  // Only show container if there are times to display
+  if (hasAnyTime) {
+    searchApiTimesContainer.innerHTML = html;
+    searchApiTimesContainer.style.display = 'block';
+    console.log("Search page API times displayed:", apiResponseTimes);
+  } else {
+    searchApiTimesContainer.style.display = 'none';
+  }
+}
+
+function formatSearchInfo() {
+  const checkin = document.getElementById("checkin")?.value;
+  const checkout = document.getElementById("checkout")?.value;
+  const currency = document.getElementById("currency")?.value || "INR";
+  
+  if (!checkin || !checkout) return "";
+  
+  const rooms = readRoomsFromUi();
+  const totalAdults = rooms.reduce((sum, r) => sum + (r.adults || 0), 0);
+  const totalChildren = rooms.reduce((sum, r) => sum + (r.children || 0), 0);
+  
+  const start = new Date(checkin);
+  const end = new Date(checkout);
+  const nights = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  
+  let info = `${rooms.length} Room(s) for ${totalAdults} Adult(s)`;
+  if (totalChildren > 0) {
+    info += ` & ${totalChildren} Child(ren)`;
+  }
+  info += ` · ${nights} Night(s) (${checkin} → ${checkout}) · ${currency}`;
+  
+  return info;
+}
+
 function formatDuration(ms) {
-  if (ms < 1000) return `<i class="ph ph-timer"></i> ${ms}ms`;
+  if (ms < 1000) return `${ms}ms`;
 
   const seconds = Math.floor(ms / 1000);
   const remainingMs = ms % 1000;
 
   if (seconds < 60) {
-    return `<i class="ph ph-timer"></i> ${seconds}s ${remainingMs}ms`;
+    return `${seconds}s ${remainingMs}ms`;
   }
 
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return `<i class="ph ph-timer"></i> ${minutes}m ${remainingSeconds}s ${remainingMs}ms`;
+  return `${minutes}m ${remainingSeconds}s ${remainingMs}ms`;
 }
 
 let searchTimerInterval = null;
@@ -96,6 +273,53 @@ function clearSearchError() {
   if (preEl) {
     preEl.classList.add("hidden");
     preEl.textContent = "";
+  }
+}
+
+/* =========================================
+   Hotel ID Batch Search
+   ========================================= */
+function updateHotelIdCounter() {
+  const input = document.getElementById("hotelids");
+  const counter = document.getElementById("hotel-id-counter");
+  
+  if (!input || !counter) return;
+  
+  // Parse hotel IDs from input
+  const hotelIds = input.value
+    .split(",")
+    .map(id => id.trim())
+    .filter(id => id.length > 0);
+  
+  const count = hotelIds.length;
+  const maxCount = 100;
+  
+  // Update counter display
+  counter.textContent = `${count}/${maxCount}`;
+  
+  // Change color based on count
+  if (count === 0) {
+    counter.style.color = "#64748b";
+    counter.style.background = "#f1f5f9";
+  } else if (count < maxCount) {
+    counter.style.color = "#0284c7";
+    counter.style.background = "#e0f2fe";
+  } else if (count === maxCount) {
+    counter.style.color = "#16a34a";
+    counter.style.background = "#dcfce7";
+  } else {
+    counter.style.color = "#dc2626";
+    counter.style.background = "#fee2e2";
+  }
+  
+  // Auto-trigger batch search when exactly 100 codes are entered
+  if (count === maxCount) {
+    setTimeout(() => {
+      const confirmSearch = confirm(`You've entered 100 hotel codes. Start batch search now?`);
+      if (confirmSearch) {
+        searchHotels();
+      }
+    }, 300);
   }
 }
 
@@ -317,6 +541,72 @@ async function searchHotels(cachedBody = null) {
       };
     }
 
+    // Check if we have exactly 100 hotel codes - use batch search
+    if (body.hids && body.hids.length === 100) {
+      console.log("Detected 100 hotel codes - using batch search endpoint");
+      
+      const startTime = performance.now();
+      const batchBody = {
+        checkIn: body.checkIn,
+        checkOut: body.checkOut,
+        rooms: body.rooms,
+        currency: body.currency,
+        correlationId: body.correlationId,
+        hotelCodes: body.hids,
+        location: "custom",
+        env: body.env,
+        apiKey: body.apiKey
+      };
+
+      const res = await fetch(`${API_BASE}/batch-search`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(batchBody),
+      });
+
+      const data = await res.json();
+      const duration = Math.round(performance.now() - startTime);
+
+      // Record API response time FIRST, before checking for errors
+      recordApiTime('search', duration);
+
+      if (!res.ok || data.ok === false) {
+        const detail =
+          data && typeof data === "object"
+            ? `${data.status_code || res.status} ${data.reason || ""}`.trim()
+            : `${res.status}`;
+        showSearchError("Batch search failed. Check API response details.", detail, data);
+        displayHotels(null);
+        setSearchLoading(false);
+        return;
+      }
+
+      // Record individual batch times if available
+      if (data.batch_details && Array.isArray(data.batch_details)) {
+        data.batch_details.forEach(batch => {
+          if (batch.correlation_id) {
+            // Calculate approximate batch time (total time / number of batches)
+            const batchTime = Math.round(duration / data.batch_details.length);
+            recordBatchTime(batch.correlation_id, batchTime);
+          }
+        });
+      }
+
+      // Format batch response for display
+      const displayData = {
+        ...data,
+        hotels: data.hotels || data.data || []
+      };
+
+      displayHotels(displayData);
+      globalSearchBody = body;
+      sessionStorage.setItem("tj_global_search", JSON.stringify(body));
+      switchToResultsPage(body, duration, displayData);
+      setSearchLoading(false);
+      return;
+    }
+
+    // Standard search for less than 100 codes
     const startTime = performance.now();
     const res = await fetch(`${API_BASE}/search`, {
       method: "POST",
@@ -327,6 +617,9 @@ async function searchHotels(cachedBody = null) {
     const data = await res.json();
     const duration = Math.round(performance.now() - startTime);
 
+    // Record API response time FIRST, before checking for errors
+    recordApiTime('search', duration);
+
     if (!res.ok || data.ok === false) {
       const detail =
         data && typeof data === "object"
@@ -335,13 +628,6 @@ async function searchHotels(cachedBody = null) {
       showSearchError("Search failed. Check API response details.", detail, data);
       displayHotels(null);
       return;
-    }
-
-    // Set Timer UI
-    const timerUI = document.getElementById("search-timer");
-    if (timerUI) {
-      timerUI.innerHTML = formatDuration(duration);
-      timerUI.classList.remove("hidden");
     }
 
     displayHotels(data);
@@ -393,7 +679,15 @@ function displayHotels(data) {
 
   if (!results) return;
 
-  if (!data || !Array.isArray(data.hotels) || data.hotels.length === 0) {
+  // Handle batch search response format
+  let hotels = [];
+  if (data && data.hotels && Array.isArray(data.hotels)) {
+    hotels = data.hotels;
+  } else if (data && data.data && Array.isArray(data.data)) {
+    hotels = data.data;
+  }
+
+  if (!data || hotels.length === 0) {
     results.classList.add("empty");
     results.innerHTML = `
       <div class="empty-state">
@@ -407,7 +701,7 @@ function displayHotels(data) {
   }
 
   document.getElementById("results-filters-container").style.display = "flex";
-  document.getElementById("results-count").textContent = `(${data.hotels.length} Total)`;
+  document.getElementById("results-count").textContent = `(${hotels.length} Total)`;
 
   // Reset Results filters
   document.getElementById("r-filter-name").value = "";
@@ -419,9 +713,9 @@ function displayHotels(data) {
 
   results.classList.remove("empty");
   results.innerHTML = "";
-  if (meta) meta.textContent = `${data.hotels.length} option(s) returned`;
+  if (meta) meta.textContent = `${hotels.length} option(s) returned`;
 
-  data.hotels.forEach((hotel, index) => {
+  hotels.forEach((hotel, index) => {
     const option = hotel.options?.[0];
     if (!option) return;
 
@@ -636,7 +930,7 @@ function hideAllPages() {
 function switchToResultsPage(lastSearchBody, durationMs, data) {
   const resultsPage = document.getElementById("results-page");
   const summary = document.getElementById("results-summary");
-  const resultsTimer = document.getElementById("results-timer");
+  const searchInfoDisplay = document.getElementById("search-info-display");
 
   hideAllPages();
   if (resultsPage) {
@@ -644,14 +938,20 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
     resultsPage.classList.add("fade-in");
   }
 
+  // Smooth scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
   // Update URL
   if (window.location.pathname !== '/ui/results') {
     history.pushState({ view: 'results' }, '', '/ui/results');
   }
 
-  if (resultsTimer && durationMs) {
-    resultsTimer.innerHTML = formatDuration(durationMs);
-    resultsTimer.classList.remove("hidden");
+  // Display search info
+  if (searchInfoDisplay) {
+    const searchInfo = formatSearchInfo();
+    if (searchInfo) {
+      searchInfoDisplay.querySelector('span').textContent = searchInfo;
+    }
   }
 
   if (summary && lastSearchBody) {
@@ -711,6 +1011,9 @@ function backToResults() {
   if (resultsPage) {
     resultsPage.classList.remove("hidden");
     resultsPage.classList.add("fade-in");
+    
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Update URL
@@ -725,7 +1028,6 @@ async function fetchHotelDetails(hotelId) {
   const detailPage = document.getElementById("detail-page");
   const header = document.getElementById("hotel-detail-header");
   const resultsContainer = document.getElementById("detail-results");
-  const timerUI = document.getElementById("detail-timer");
   const errorBox = document.getElementById("detail-error");
 
   // Reset View
@@ -734,6 +1036,9 @@ async function fetchHotelDetails(hotelId) {
     detailPage.classList.remove("hidden");
     detailPage.classList.add("fade-in");
   }
+
+  // Smooth scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Update URL
   if (window.location.search !== `?hid=${hotelId}`) {
@@ -747,7 +1052,6 @@ async function fetchHotelDetails(hotelId) {
       <p>Fetching dynamic hotel details...</p>
     </div>
   `;
-  timerUI.classList.add("hidden");
   errorBox.classList.add("hidden");
 
   try {
@@ -769,13 +1073,18 @@ async function fetchHotelDetails(hotelId) {
     const startTime = performance.now();
 
     // Fetch static details in parallel
+    const staticStartTime = performance.now();
     fetch(`${API_BASE}/static-detail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(staticBody)
     })
       .then(res => res.json())
-      .then(data => renderStaticDetails(data))
+      .then(data => {
+        const staticDuration = Math.round(performance.now() - staticStartTime);
+        recordApiTime('staticDetail', staticDuration);
+        renderStaticDetails(data);
+      })
       .catch(err => console.error("Static details fetch failed:", err));
 
     const res = await fetch(`${API_BASE}/dynamic-detail`, {
@@ -798,8 +1107,17 @@ async function fetchHotelDetails(hotelId) {
       return;
     }
 
-    timerUI.innerHTML = formatDuration(durationMs);
-    timerUI.classList.remove("hidden");
+    // Record API response time
+    recordApiTime('detail', durationMs);
+
+    // Display search info
+    const detailSearchInfo = document.getElementById("detail-search-info");
+    if (detailSearchInfo) {
+      const searchInfo = formatSearchInfo();
+      if (searchInfo) {
+        detailSearchInfo.querySelector('span').textContent = searchInfo;
+      }
+    }
 
     // Show room filters once dynamic data loads
     const filters = document.getElementById("room-filters");
@@ -1337,6 +1655,18 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice, reviewHas
     if (!res.ok || data.ok === false) {
       renderReviewError(data.reason || "Review failed. Please check API configuration or response.", data);
       return;
+    }
+
+    // Record API response time
+    recordApiTime('review', responseMs);
+
+    // Display search info
+    const reviewSearchInfo = document.getElementById("review-search-info");
+    if (reviewSearchInfo) {
+      const searchInfo = formatSearchInfo();
+      if (searchInfo) {
+        reviewSearchInfo.querySelector('span').textContent = searchInfo;
+      }
     }
 
     renderReviewDetails(data, responseMs);
@@ -1966,7 +2296,9 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
       body: JSON.stringify(body),
     });
 
+    const t0 = performance.now();
     const data = await res.json();
+    const bookingResponseMs = Math.round(performance.now() - t0);
     if (!bookingEl) return;
 
     const typeLabel = bookingType === 'HOLD' ? 'Hold' : 'Voucher';
@@ -1985,6 +2317,9 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
         <pre style="margin-top:12px; font-size:0.78rem; background:#fdf2f2; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
       return;
     }
+
+    // Record API response time
+    recordApiTime('booking', bookingResponseMs);
 
     // ── Success! ─────────────────
     const isHold = bookingType === 'HOLD';
@@ -2021,6 +2356,7 @@ async function fetchAndRenderBookingDetail(bookingId) {
   const bdLoading = document.getElementById("bd-loading");
   const bdError = document.getElementById("bd-error");
   const bdContent = document.getElementById("bd-content");
+  const bookingSearchInfo = document.getElementById("booking-search-info");
 
   if (!bdLoading || !bdError || !bdContent) return;
 
@@ -2030,11 +2366,13 @@ async function fetchAndRenderBookingDetail(bookingId) {
   bdContent.classList.add("hidden");
 
   try {
+    const t0 = performance.now();
     const res = await fetch(`${API_BASE}/booking-detail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ bookingId }),
     });
+    const bookingDetailMs = Math.round(performance.now() - t0);
 
     const d = await res.json();
 
@@ -2044,6 +2382,17 @@ async function fetchAndRenderBookingDetail(bookingId) {
       bdError.innerHTML = `<div><i class="ph ph-warning"></i> <span>Failed to fetch booking details: ${d.message || d.reason || res.status}</span></div>`;
       bdError.classList.remove("hidden");
       return;
+    }
+
+    // Record API response time
+    recordApiTime('bookingDetail', bookingDetailMs);
+
+    // Display search info
+    if (bookingSearchInfo) {
+      const searchInfo = formatSearchInfo();
+      if (searchInfo) {
+        bookingSearchInfo.querySelector('span').textContent = searchInfo;
+      }
     }
 
     const order = d.order || {};
@@ -2408,14 +2757,14 @@ function initializeDates() {
 
   if (!checkinInput || !checkoutInput) return;
 
-  // Set default to exactly 6 months from today
+  // Set default to 6 months from today (check-in) and 6 months + 1 day (check-out) - one night only
   const today = new Date();
 
   const checkinDate = new Date(today);
-  checkinDate.setMonth(checkinDate.getMonth() + 6);
+  checkinDate.setMonth(checkinDate.getMonth() + 6); // 6 months from today
 
   const checkoutDate = new Date(checkinDate);
-  checkoutDate.setDate(checkoutDate.getDate() + 3); // Default 3 nights stay
+  checkoutDate.setDate(checkoutDate.getDate() + 1); // One night stay
 
   // Format as YYYY-MM-DD
   const formatIso = (date) => date.toISOString().split('T')[0];
@@ -2425,6 +2774,18 @@ function initializeDates() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Enable smooth scrolling and animations
+  document.documentElement.style.scrollBehavior = 'smooth';
+  
+  // Prevent layout shift by ensuring consistent rendering
+  document.body.style.willChange = 'auto';
+  
+  // Optimize animations for performance
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) {
+    document.documentElement.style.scrollBehavior = 'auto';
+  }
+  
   renderRecentBookings();
   const container = document.getElementById("rooms-container");
   if (container && container.children.length === 0) {
@@ -2548,6 +2909,19 @@ async function searchLocationHotels(location) {
     const data = await res.json();
     const duration = Math.round(performance.now() - startTime);
 
+    // Record API response time
+    recordApiTime('search', duration);
+
+    // Record individual batch times if available
+    if (data.batch_details && Array.isArray(data.batch_details)) {
+      data.batch_details.forEach(batch => {
+        if (batch.correlation_id) {
+          const batchTime = Math.round(duration / data.batch_details.length);
+          recordBatchTime(batch.correlation_id, batchTime);
+        }
+      });
+    }
+
     if (!res.ok || data.ok === false) {
       const detail =
         data && typeof data === "object"
@@ -2557,13 +2931,6 @@ async function searchLocationHotels(location) {
       displayHotels(null);
       setSearchLoading(false);
       return;
-    }
-
-    // Set Timer UI
-    const timerUI = document.getElementById("search-timer");
-    if (timerUI) {
-      timerUI.innerHTML = formatDuration(duration);
-      timerUI.classList.remove("hidden");
     }
 
     // Prepare display body for results page

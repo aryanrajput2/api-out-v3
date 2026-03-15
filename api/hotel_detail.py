@@ -26,9 +26,6 @@ def fetch_hotel_detail(data: dict):
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive",
     }
-    
-    if "apitest-hms" in env:
-        headers["Authorization"] = f"Bearer {api_key}"
 
     response = requests.post(url, headers=headers, json=payload)
 

@@ -180,12 +180,14 @@ h3 {
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.1);
   padding: 32px;
-  transition: var(--transition-smooth);
+  transition: all var(--transition-smooth);
+  will-change: transform, box-shadow, background;
 }
 
 .glass-panel:hover {
   box-shadow: var(--shadow-lg);
   background: var(--surface-hover);
+  transition: all var(--transition-smooth);
 }
 
 .hero-section {
@@ -247,8 +249,11 @@ select {
   font-size: 0.95rem;
   color: var(--text-main);
   outline: none;
-  transition: var(--transition-fast);
+  transition: all var(--transition-smooth);
   backdrop-filter: blur(10px);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 input:focus,
@@ -256,9 +261,15 @@ select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: #ffffff;
+  transition: all var(--transition-fast);
 }
 
 input::placeholder {
+  color: #cbd5e1;
+  transition: color var(--transition-smooth);
+}
+
+input:focus::placeholder {
   color: #cbd5e1;
 }
 
@@ -433,18 +444,21 @@ input::placeholder {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all var(--transition-smooth);
   box-shadow: 0 4px 12px var(--primary-glow);
+  will-change: transform, box-shadow, background;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px var(--primary-glow);
+  transition: all var(--transition-smooth);
 }
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
+  transition: transform 0.1s ease-out;
 }
 
 .btn-primary:disabled {
@@ -463,7 +477,7 @@ input::placeholder {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all var(--transition-smooth);
   box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
   padding: 10px 20px;
   border-radius: var(--radius-full);
@@ -473,6 +487,7 @@ input::placeholder {
   overflow: hidden;
   position: relative;
   z-index: 1;
+  will-change: transform, box-shadow, background-position;
 }
 
 .btn-premium::after {
@@ -485,21 +500,24 @@ input::placeholder {
   background: linear-gradient(135deg, #8b5cf6, #ec4899, #f43f5e);
   z-index: -1;
   opacity: 0;
-  transition: opacity 0.5s ease-in-out;
+  transition: opacity var(--transition-smooth);
 }
 
 .btn-premium:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
   background-position: right center;
+  transition: all var(--transition-smooth);
 }
 
 .btn-premium:hover::after {
   opacity: 1;
+  transition: opacity var(--transition-smooth);
 }
 
 .btn-premium:active:not(:disabled) {
   transform: translateY(1px) scale(0.98);
+  transition: transform 0.1s ease-out;
 }
 
 .btn-premium:disabled {
@@ -572,6 +590,7 @@ input::placeholder {
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
   position: relative;
   overflow: hidden;
+  will-change: transform, box-shadow, border-color, background;
 }
 
 .location-search-btn::before {
@@ -582,7 +601,7 @@ input::placeholder {
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
+  transition: left var(--transition-smooth);
 }
 
 .location-search-btn:hover {
@@ -590,15 +609,18 @@ input::placeholder {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
   box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
   transform: translateY(-2px);
+  transition: all var(--transition-smooth);
 }
 
 .location-search-btn:hover::before {
   left: 100%;
+  transition: left var(--transition-smooth);
 }
 
 .location-search-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  transition: all 0.1s ease-out;
 }
 
 .location-search-btn i {
@@ -608,6 +630,7 @@ input::placeholder {
 
 .location-search-btn:hover i {
   transform: scale(1.1);
+  transition: transform var(--transition-smooth);
 }
 
 /* =========================================
@@ -710,14 +733,16 @@ input::placeholder {
   flex-direction: column;
   gap: 16px;
   box-shadow: var(--shadow-sm);
-  transition: var(--transition-smooth);
+  transition: all var(--transition-smooth);
   animation: slideFadeInUp 0.4s ease-out backwards;
+  will-change: transform, box-shadow, border-color;
 }
 
 .hotel-card:hover {
   box-shadow: var(--shadow-md);
   border-color: #cbd5e1;
   transform: translateY(-2px);
+  transition: all var(--transition-smooth);
 }
 
 .hotel-header {
@@ -914,6 +939,56 @@ input::placeholder {
 }
 
 /* =========================================
+   API Response Times Display
+   ========================================= */
+.api-time-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+  color: #0d9488;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+  transition: all var(--transition-smooth);
+  animation: slideInDown 0.3s ease-out;
+}
+
+.api-time-badge:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+.api-time-badge i {
+  font-size: 1.1rem;
+  color: #0d9488;
+}
+
+/* Search Info Display */
+#search-info-display,
+#detail-search-info,
+#review-search-info,
+#booking-search-info {
+  animation: slideInDown 0.3s ease-out;
+  transition: all var(--transition-smooth);
+}
+
+#search-info-display:hover,
+#detail-search-info:hover,
+#review-search-info:hover,
+#booking-search-info:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateX(4px);
+}
+
+/* =========================================
    Utilities & Animations
    ========================================= */
 .hidden {
@@ -934,6 +1009,168 @@ input::placeholder {
 
 .delay-2 {
   animation-delay: 0.2s;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+input,
+select,
+textarea,
+a {
+  transition: all var(--transition-smooth) !important;
+}
+
+/* Smooth page transitions */
+.view-page {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Smooth input focus transitions */
+input:focus,
+select:focus,
+textarea:focus {
+  transition: all var(--transition-fast) !important;
+}
+
+/* Smooth hover effects on cards */
+.hotel-card,
+.glass-panel {
+  will-change: transform, box-shadow;
+}
+
+/* Smooth loading spinner */
+.loader {
+  will-change: transform;
+}
+
+/* Smooth text selection */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  transition: background var(--transition-smooth);
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4);
+  border-radius: 4px;
+  transition: background var(--transition-smooth);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6);
+}
+
+/* Smooth backdrop filter transitions */
+.glass-panel,
+.filters-glass-container {
+  will-change: backdrop-filter;
+}
+
+/* Smooth opacity transitions for hidden elements */
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-smooth);
+}
+
+/* Smooth transform for buttons on click */
+button:active {
+  transition: transform 0.1s ease-out;
+}
+
+/* Smooth color transitions */
+.data-pill,
+.timer-badge,
+.meta-tag {
+  transition: all var(--transition-smooth);
+}
+
+/* Smooth input placeholder transitions */
+input::placeholder {
+  transition: color var(--transition-smooth);
+}
+
+input:focus::placeholder {
+  color: #cbd5e1;
+}
+
+/* Smooth border transitions */
+input,
+select,
+.hotel-card,
+.glass-panel {
+  transition: border-color var(--transition-smooth);
+}
+
+/* Smooth shadow transitions */
+.btn-primary,
+.btn-premium,
+.hotel-card,
+.glass-panel {
+  transition: box-shadow var(--transition-smooth);
+}
+
+/* Smooth background transitions */
+.location-search-btn,
+.btn-outline,
+.btn-ghost {
+  transition: background var(--transition-smooth);
+}
+
+/* Smooth icon transitions */
+i {
+  transition: all var(--transition-smooth);
+}
+
+/* Smooth filter transitions */
+.filters-glass-container {
+  transition: all var(--transition-smooth);
+}
+
+/* Smooth room row animations */
+.room-row {
+  animation: slideFadeInUp 0.3s ease-out;
+  will-change: transform, opacity;
+}
+
+/* Smooth alert animations */
+.alert-box {
+  animation: slideInDown 0.3s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth modal/overlay transitions */
+.image-zoom-modal {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Smooth list item animations */
+.hotel-card {
+  animation: slideFadeInUp 0.4s ease-out backwards;
 }
 
 @keyframes fadeIn {

@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: tripjack-hotel-api
+    runtime: python
+    pythonVersion: 3.13
+    
+    # Build command
+    buildCommand: pip install -r requirements.txt
+    
+    # Start command
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    
+    # Environment variables
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13
+      - key: PORT
+        value: 8000
+    
+    # Auto-deploy on push to main branch
+    autoDeploy: true
+    
+    # Health check
+    healthCheckPath: /health
+    
+    # Disk size (free tier gets 1GB)
+    disk:
+      name: logs
+      mountPath: /var/data
+      sizeGB: 1

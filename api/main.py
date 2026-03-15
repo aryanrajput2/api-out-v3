@@ -13,6 +13,9 @@ from api.logger import log_request, log_response
 import asyncio
 import os
 
+# IP Whitelist - only enforced in development (set ENFORCE_IP_WHITELIST=true to enable)
+ENFORCE_IP_WHITELIST = os.getenv("ENFORCE_IP_WHITELIST", "false").lower() == "true"
+
 ALLOWED_IPS = {
     "127.0.0.1",        # Localhost (always allow)
     "65.2.62.247",      # Office IP 1
@@ -26,6 +29,11 @@ app = FastAPI()
 
 @app.middleware("http")
 async def ip_whitelist_middleware(request: Request, call_next):
+    # Skip IP check if not enforced (useful for Render/cloud deployments)
+    if not ENFORCE_IP_WHITELIST:
+        response = await call_next(request)
+        return response
+    
     # Depending on proxy setup, the real IP might be in headers
     client_ip = request.client.host if request.client else "127.0.0.1"
     forwarded_for = request.headers.get("X-Forwarded-For")

@@ -13,9 +13,6 @@ def cancel_booking(data: dict):
         "Content-Type": "application/json",
         "apikey": api_key,
     }
-    
-    if "apitest-hms" in env:
-        headers["Authorization"] = f"Bearer {api_key}"
 
     response = requests.post(url, headers=headers, json=data)
 

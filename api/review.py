@@ -13,9 +13,6 @@ def review_hotel(data: dict):
         "Content-Type": "application/json",
         "apikey": api_key,
     }
-    
-    if "apitest-hms" in env:
-        headers["Authorization"] = f"Bearer {api_key}"
 
     payload = {
         "optionId": data["optionId"],
