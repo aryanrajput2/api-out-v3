@@ -1,10 +1,31 @@
-t=2026-03-15T10:37:43+0530 lvl=info msg="no configuration paths supplied"
-t=2026-03-15T10:37:43+0530 lvl=info msg="using configuration at default config path" path="/Users/tripjack/Library/Application Support/ngrok/ngrok.yml"
-t=2026-03-15T10:37:43+0530 lvl=info msg="open config file" path="/Users/tripjack/Library/Application Support/ngrok/ngrok.yml" err=nil
-t=2026-03-15T10:37:43+0530 lvl=info msg="FIPS 140 mode" enabled=false
-t=2026-03-15T10:37:43+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
-t=2026-03-15T10:37:43+0530 lvl=info msg="client session established" obj=tunnels.session
-t=2026-03-15T10:37:43+0530 lvl=info msg="tunnel session started" obj=tunnels.session
-t=2026-03-15T10:37:44+0530 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:8000 url=https://dipsacaceous-exie-unconglutinated.ngrok-free.dev
-t=2026-03-15T10:37:48+0530 lvl=info msg=start pg=/api/tunnels id=4013c9e272df2723
-t=2026-03-15T10:37:48+0530 lvl=info msg=end pg=/api/tunnels id=4013c9e272df2723 status=200 dur=286.417µs
+t=2026-03-15T12:38:06+0530 lvl=info msg="no configuration paths supplied"
+t=2026-03-15T12:38:06+0530 lvl=info msg="using configuration at default config path" path="/Users/tripjack/Library/Application Support/ngrok/ngrok.yml"
+t=2026-03-15T12:38:06+0530 lvl=info msg="open config file" path="/Users/tripjack/Library/Application Support/ngrok/ngrok.yml" err=nil
+t=2026-03-15T12:38:06+0530 lvl=info msg="FIPS 140 mode" enabled=false
+t=2026-03-15T12:38:06+0530 lvl=info msg="starting web service" obj=web addr=127.0.0.1:4040 allow_hosts=[]
+t=2026-03-15T12:38:06+0530 lvl=info msg="client session established" obj=tunnels.session
+t=2026-03-15T12:38:06+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-03-15T12:38:07+0530 lvl=info msg="started tunnel" obj=tunnels name=command_line addr=http://localhost:8000 url=https://dipsacaceous-exie-unconglutinated.ngrok-free.dev
+t=2026-03-15T12:38:11+0530 lvl=info msg=start pg=/api/tunnels id=3ab83d66aa2e2d47
+t=2026-03-15T12:38:11+0530 lvl=info msg=end pg=/api/tunnels id=3ab83d66aa2e2d47 status=200 dur=267.708µs
+t=2026-03-15T12:48:53+0530 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=e4266b61f0f1 clientid=2bb833af3133523688159c979001151b
+t=2026-03-15T12:48:53+0530 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=08bb0d3d671d err="session closed"
+t=2026-03-15T12:48:53+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:48:53+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:48:54+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:48:56+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:49:00+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:49:08+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T12:49:24+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T13:10:04+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T13:54:03+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T14:19:17+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T14:46:51+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T15:22:00+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T15:22:30+0530 lvl=eror msg="failed to reconnect session" obj=tunnels.session err="failed to dial ngrok server with address \"connect.ngrok-agent.com:443\": dial tcp: lookup connect.ngrok-agent.com: no such host"
+t=2026-03-15T15:23:01+0530 lvl=info msg="client session established" obj=tunnels.session
+t=2026-03-15T15:23:01+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-03-15T15:49:58+0530 lvl=eror msg="session closed, starting reconnect loop" obj=tunnels.session obj=csess id=08bb0d3d671d err="read tcp 10.8.0.126:57597->3.108.208.206:443: read: connection reset by peer"
+t=2026-03-15T15:49:59+0530 lvl=info msg="client session established" obj=tunnels.session
+t=2026-03-15T15:49:59+0530 lvl=info msg="tunnel session started" obj=tunnels.session
+t=2026-03-15T15:50:05+0530 lvl=eror msg="heartbeat timeout, terminating session" obj=tunnels.session obj=csess id=034ddc2ea3b8 clientid=2bb833af3133523688159c979001151b

@@ -142,10 +142,15 @@
 
         <!-- Recent Bookings -->
         <div id="recent-bookings-container" class="glass-panel"
-          style="margin-bottom: 24px; padding: 24px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8); display: none;">
-          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px;">
-            <i class="ph ph-clock-counter-clockwise" style="font-size: 1.4rem; color: #10b981;"></i>
-            <h3 style="margin: 0; font-size: 1.1rem; color: #065f46;">Recent Bookings</h3>
+          style="margin-bottom: 24px; padding: 24px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(226, 232, 240, 0.8);">
+          <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px; justify-content: space-between;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <i class="ph ph-clock-counter-clockwise" style="font-size: 1.4rem; color: #10b981;"></i>
+              <h3 style="margin: 0; font-size: 1.1rem; color: #065f46;">Recent Bookings</h3>
+            </div>
+            <button type="button" class="btn-outline btn-sm" onclick="showManageBookingsPage()" style="display: none;" id="manage-bookings-btn">
+              <i class="ph ph-list"></i> Manage All
+            </button>
           </div>
           <div id="recent-bookings-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
             <!-- Rendered via JS -->
@@ -595,6 +600,34 @@
             </div>
 
           </div><!-- /bd-content -->
+        </div>
+      </section>
+
+      <!-- Page 6: Manage Bookings Page -->
+      <section id="manage-bookings-page" class="view-page hidden">
+        <div class="results-header">
+          <button type="button" class="btn-ghost" onclick="backToSearch()">
+            <i class="ph ph-arrow-left"></i> Back to Search
+          </button>
+          <div class="results-summary-box">
+            <h2>My Bookings</h2>
+            <p id="bookings-summary">View and manage all your recent bookings.</p>
+          </div>
+        </div>
+
+        <div class="glass-panel" style="padding: 24px;">
+          <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
+            <h3><i class="ph ph-receipt"></i> All Recent Bookings <span id="bookings-count" style="font-size: 0.9rem; margin-left: 8px; font-weight: 500; color: var(--text-muted);"></span></h3>
+          </div>
+
+          <div id="manage-bookings-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 20px;">
+            <!-- Rendered via JS -->
+          </div>
+
+          <div id="no-bookings-message" style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <i class="ph ph-inbox" style="font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 12px;"></i>
+            <p>No bookings yet. Start by searching for hotels!</p>
+          </div>
         </div>
       </section>
 

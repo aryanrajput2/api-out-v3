@@ -402,6 +402,11 @@ function loadConfigState() {
   const selectEl = document.getElementById("config-apikey-select");
   const customContainer = document.getElementById("custom-apikey-container");
 
+  // Save the API key to localStorage if not already set
+  if (!localStorage.getItem("tj_apikey")) {
+    localStorage.setItem("tj_apikey", savedApikey);
+  }
+
   if (PREDEFINED_KEYS.includes(savedApikey)) {
     if (selectEl) selectEl.value = savedApikey;
     if (customContainer) customContainer.style.display = "none";
@@ -410,6 +415,8 @@ function loadConfigState() {
     if (customContainer) customContainer.style.display = "grid";
     maskCustomKey(); // initialize masked
   }
+  
+  updateGlobalSecurityBadge();
 }
 
 function updateEnvBanners(envStr) {
@@ -477,11 +484,17 @@ function getConfigPayload() {
 function saveRecentBooking(bookingId) {
   if (!bookingId) return;
   try {
-    let recent = JSON.parse(localStorage.getItem('tj_recent_bookings') || '[]');
-    recent = recent.filter(id => id !== bookingId);
-    recent.unshift(bookingId);
-    if (recent.length > 5) recent = recent.slice(0, 5);
-    localStorage.setItem('tj_recent_bookings', JSON.stringify(recent));
+    let bookings = JSON.parse(localStorage.getItem('tj_recent_bookings_data') || '[]');
+    // Remove if already exists
+    bookings = bookings.filter(b => b.id !== bookingId);
+    // Add new booking at the beginning
+    bookings.unshift({
+      id: bookingId,
+      createdAt: new Date().toISOString()
+    });
+    // Keep only last 10 bookings
+    if (bookings.length > 10) bookings = bookings.slice(0, 10);
+    localStorage.setItem('tj_recent_bookings_data', JSON.stringify(bookings));
     renderRecentBookings();
   } catch (e) { }
 }
@@ -489,21 +502,30 @@ function saveRecentBooking(bookingId) {
 function renderRecentBookings() {
   const container = document.getElementById('recent-bookings-container');
   const list = document.getElementById('recent-bookings-list');
+  const manageBtn = document.getElementById('manage-bookings-btn');
   if (!container || !list) return;
 
   try {
-    let recent = JSON.parse(localStorage.getItem('tj_recent_bookings') || '[]');
-    if (recent.length === 0) {
-      container.style.display = 'none';
+    let bookings = JSON.parse(localStorage.getItem('tj_recent_bookings_data') || '[]');
+    if (bookings.length === 0) {
+      list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; padding: 8px 0;"><i class="ph ph-info"></i> No recent bookings yet. Make a booking to see it here.</div>';
+      if (manageBtn) manageBtn.style.display = 'none';
       return;
     }
 
-    container.style.display = 'block';
-    list.innerHTML = recent.map(id => `
-      <a href="#" onclick="event.preventDefault(); window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${id}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${id}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #fff; border: 1px solid #d1d5db; border-radius: 999px; color: var(--text-main); font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='var(--text-main)';">
-        <i class="ph ph-receipt" style="color: var(--primary);"></i> ${id}
-      </a>
-    `).join('');
+    if (manageBtn) manageBtn.style.display = 'inline-flex';
+    list.innerHTML = bookings.slice(0, 5).map(booking => {
+      const date = new Date(booking.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: '2-digit' });
+      return `
+        <a href="#" onclick="event.preventDefault(); window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${booking.id}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${booking.id}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; color: var(--text-main); font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);" onmouseover="this.style.borderColor='var(--primary)'; this.style.color='var(--primary)';" onmouseout="this.style.borderColor='#d1d5db'; this.style.color='var(--text-main)';">
+          <i class="ph ph-receipt" style="color: var(--primary);"></i> 
+          <div style="text-align: left;">
+            <div style="font-weight: 600;">${booking.id}</div>
+            <div style="font-size: 0.75rem; opacity: 0.7;">${date}</div>
+          </div>
+        </a>
+      `;
+    }).join('');
   } catch (e) { }
 }
 
@@ -1461,18 +1483,42 @@ function renderHotelDetails(data) {
     const commission = option.commercial?.commission ? option.commercial.commission.toFixed(2) : "0.00";
 
     let penaltiesHtml = "";
+    
     if (option.cancellation?.penalties?.length > 0) {
       const penaltyRows = option.cancellation.penalties.map(p => {
-        const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-        const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-        return `<div style="font-size:0.8rem; color: #b91c1c; display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-        <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
-                </div>`;
+        const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—";
+        const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—";
+        const penaltyAmount = p.amount ? `${currency} ${p.amount.toFixed(2)}` : "—";
+        const borderColor = isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        return `<tr style="border-bottom:1px solid ${borderColor};">
+          <td style="padding:10px 12px; font-size:0.8rem; color:${isRefundable ? '#166534' : '#7f1d1d'};">${fromDate}</td>
+          <td style="padding:10px 12px; font-size:0.8rem; color:${isRefundable ? '#166534' : '#7f1d1d'};">${toDate}</td>
+          <td style="padding:10px 12px; text-align:center; font-size:0.8rem; font-weight:700; color:${isRefundable ? '#16a34a' : '#dc2626'};">${penaltyAmount}</td>
+        </tr>`;
       }).join("");
-      penaltiesHtml = `<div style="margin-top:12px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius-sm); padding:10px 14px;">
-        <div style="font-size:0.8rem; font-weight:600; color:#991b1b; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
-                         ${penaltyRows}
-                       </div>`;
+      
+      const bgColor = isRefundable ? 'rgba(34, 197, 94, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+      const borderColor = isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      const headerBg = isRefundable ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+      const headerBorder = isRefundable ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+      const headerColor = isRefundable ? '#166534' : '#991b1b';
+      const title = isRefundable ? 'Refundable - Cancellation Policy' : 'Non-Refundable - Cancellation Policy';
+      
+      penaltiesHtml = `<div style="margin-top:12px; background:${bgColor}; border:1px solid ${borderColor}; border-radius:var(--radius-sm); padding:10px 14px; overflow-x:auto;">
+        <div style="font-size:0.8rem; font-weight:600; color:${headerColor}; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">${title}</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.8rem;">
+          <thead>
+            <tr style="background:${headerBg}; border-bottom:1px solid ${headerBorder};">
+              <th style="padding:8px 12px; text-align:left; font-weight:600; color:${headerColor}; font-size:0.7rem; text-transform:uppercase;">From</th>
+              <th style="padding:8px 12px; text-align:left; font-weight:600; color:${headerColor}; font-size:0.7rem; text-transform:uppercase;">To</th>
+              <th style="padding:8px 12px; text-align:center; font-weight:600; color:${headerColor}; font-size:0.7rem; text-transform:uppercase;">Penalty</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${penaltyRows}
+          </tbody>
+        </table>
+      </div>`;
     }
 
     // Add dataset attributes for filtering
@@ -1828,17 +1874,39 @@ function renderReviewDetails(data, responseMs) {
   let penaltiesHtml = "";
   if (option.cancellation?.penalties?.length > 0) {
     const penaltyRows = option.cancellation.penalties.map(p => {
-      const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-      const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-      return `<div style="font-size:0.85rem; color: #b91c1c; display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-                <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
-              </div>`;
+      const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—";
+      const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—";
+      const penaltyAmount = p.amount ? `${currency} ${p.amount.toFixed(2)}` : "—";
+      const borderColor = isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      return `<tr style="border-bottom:1px solid ${borderColor};">
+        <td style="padding:10px 12px; font-size:0.85rem; color:${isRefundable ? '#166534' : '#7f1d1d'};">${fromDate}</td>
+        <td style="padding:10px 12px; font-size:0.85rem; color:${isRefundable ? '#166534' : '#7f1d1d'};">${toDate}</td>
+        <td style="padding:10px 12px; text-align:center; font-size:0.85rem; font-weight:700; color:${isRefundable ? '#16a34a' : '#dc2626'};">${penaltyAmount}</td>
+      </tr>`;
     }).join("");
 
+    const bgColor = isRefundable ? 'rgba(34, 197, 94, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+    const borderColor = isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+    const headerBg = isRefundable ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+    const headerBorder = isRefundable ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+    const headerColor = isRefundable ? '#166534' : '#991b1b';
+    const title = isRefundable ? 'Refundable - Cancellation Policy' : 'Non-Refundable - Cancellation Policy';
+
     penaltiesHtml = `
-      <div style="margin-top:16px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius-sm); padding:16px;">
-        <div style="font-size:0.9rem; font-weight:600; color:#991b1b; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
-        ${penaltyRows}
+      <div style="margin-top:16px; background:${bgColor}; border:1px solid ${borderColor}; border-radius:var(--radius-sm); padding:16px; overflow-x:auto;">
+        <div style="font-size:0.9rem; font-weight:600; color:${headerColor}; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">${title}</div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:${headerBg}; border-bottom:1px solid ${headerBorder};">
+              <th style="padding:10px 12px; text-align:left; font-weight:600; color:${headerColor}; font-size:0.75rem; text-transform:uppercase;">From Date</th>
+              <th style="padding:10px 12px; text-align:left; font-weight:600; color:${headerColor}; font-size:0.75rem; text-transform:uppercase;">To Date</th>
+              <th style="padding:10px 12px; text-align:center; font-weight:600; color:${headerColor}; font-size:0.75rem; text-transform:uppercase;">Penalty Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${penaltyRows}
+          </tbody>
+        </table>
       </div>`;
   } else if (isRefundable) {
     penaltiesHtml = `
@@ -2507,11 +2575,47 @@ async function fetchAndRenderBookingDetail(bookingId) {
     // Cancellation
     const cancCont = document.getElementById("bd-cancellation");
     if (cnp.pd?.length) {
-      cancCont.innerHTML = cnp.pd.map(p => `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:0.85rem;">
-          <span style="color:#7f1d1d; font-weight:500;">${fmtDate(p.fdt)} → ${fmtDate(p.tdt)}</span>
-          <span style="font-weight:700; color:${parseFloat(p.am) === 0 ? '#16a34a' : '#dc2626'};">${parseFloat(p.am) === 0 ? '✓ Free Cancel' : fmtAmt(p.am)}</span>
-        </div>`).join('');
+      const isRefundable = cnp.isRefundable;
+      const tableRows = cnp.pd.map(p => {
+        const isFreeCancel = parseFloat(p.am) === 0;
+        const penaltyColor = isRefundable ? '#16a34a' : '#ef4444';
+        const penaltyBg = isRefundable ? '#ecfdf5' : '#fef2f2';
+        const textColor = isRefundable ? '#166534' : '#7f1d1d';
+        return `
+          <tr style="border-bottom:1px solid ${isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'};">
+            <td style="padding:12px 14px; font-size:0.85rem; color:${textColor}; font-weight:500;">${fmtDate(p.fdt)}</td>
+            <td style="padding:12px 14px; font-size:0.85rem; color:${textColor}; font-weight:500;">${fmtDate(p.tdt)}</td>
+            <td style="padding:12px 14px; text-align:center;">
+              <span style="background:${penaltyBg}; color:${penaltyColor}; padding:6px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; display:inline-block;">
+                ${isFreeCancel ? '✓ Free Cancel' : fmtAmt(p.am)}
+              </span>
+            </td>
+          </tr>`;
+      }).join('');
+      
+      const bgColor = isRefundable ? 'rgba(34, 197, 94, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+      const borderColor = isRefundable ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+      const headerBg = isRefundable ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+      const headerBorder = isRefundable ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+      const headerColor = isRefundable ? '#166534' : '#991b1b';
+      const title = isRefundable ? 'Refundable - Cancellation Policy' : 'Non-Refundable - Cancellation Policy';
+      
+      cancCont.innerHTML = `
+        <div style="background:${bgColor}; border:1px solid ${borderColor}; border-radius:8px; padding:16px; overflow-x:auto;">
+          <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${headerColor}; margin-bottom:12px;">${title}</div>
+          <table style="width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden;">
+            <thead>
+              <tr style="background:${headerBg}; border-bottom:2px solid ${headerBorder};">
+                <th style="padding:12px 14px; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${headerColor};">From Date</th>
+                <th style="padding:12px 14px; text-align:left; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${headerColor};">To Date</th>
+                <th style="padding:12px 14px; text-align:center; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:${headerColor};">Penalty Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>`;
       document.getElementById("bd-cancellation-section").classList.remove("hidden");
     } else {
       document.getElementById("bd-cancellation-section").classList.add("hidden");
@@ -2771,6 +2875,76 @@ function initializeDates() {
 
   checkinInput.value = formatIso(checkinDate);
   checkoutInput.value = formatIso(checkoutDate);
+}
+
+/* =========================================
+   Manage Bookings Page
+   ========================================= */
+function showManageBookingsPage() {
+  hideAllPages();
+  document.getElementById("manage-bookings-page").classList.remove("hidden");
+  renderManageBookings();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderManageBookings() {
+  const list = document.getElementById('manage-bookings-list');
+  const noMsg = document.getElementById('no-bookings-message');
+  const count = document.getElementById('bookings-count');
+  
+  if (!list || !noMsg) return;
+
+  try {
+    let bookings = JSON.parse(localStorage.getItem('tj_recent_bookings_data') || '[]');
+    
+    if (bookings.length === 0) {
+      list.style.display = 'none';
+      noMsg.style.display = 'block';
+      count.textContent = '(0)';
+      return;
+    }
+
+    list.style.display = 'grid';
+    noMsg.style.display = 'none';
+    count.textContent = `(${bookings.length})`;
+
+    list.innerHTML = bookings.map(booking => {
+      const date = new Date(booking.createdAt);
+      const formattedDate = date.toLocaleDateString(undefined, { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      return `
+        <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: pointer;" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'; this.style.transform='translateY(0)';" onclick="window.history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail?id=${booking.id}'); showBookingDetailPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); fetchAndRenderBookingDetail('${booking.id}');">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="background: linear-gradient(135deg, #3b82f6, #06b6d4); color: #fff; width: 48px; height: 48px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+              <i class="ph ph-receipt"></i>
+            </div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 700; font-size: 0.95rem; color: #1f2937; margin-bottom: 4px; word-break: break-all;">
+                ${booking.id}
+              </div>
+              <div style="font-size: 0.8rem; color: #6b7280; display: flex; align-items: center; gap: 4px;">
+                <i class="ph ph-calendar"></i> ${formattedDate}
+              </div>
+              <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #f3f4f6;">
+                <span style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                  <i class="ph ph-arrow-right"></i> View Details
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    console.error('Error rendering bookings:', e);
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
