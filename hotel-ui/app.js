@@ -5,6 +5,112 @@ try {
   if (saved) globalSearchBody = JSON.parse(saved);
 } catch (e) { console.warn("Failed to restore search body", e); }
 
+/* =========================================
+   Liquid Background Animation (Click Triggered)
+   ========================================= */
+let liquidAnimationActive = false;
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Add click listener to entire document for liquid animation
+  document.addEventListener('click', (e) => {
+    // Don't trigger on certain elements to avoid excessive animations
+    const target = e.target;
+    if (!target.closest('input, textarea, select')) {
+      triggerLiquidAnimation();
+    }
+  });
+});
+
+function triggerLiquidAnimation() {
+  if (liquidAnimationActive) return; // Prevent overlapping animations
+  
+  liquidAnimationActive = true;
+  const body = document.body;
+  
+  // Add active class to trigger animation
+  body.classList.add('liquid-active');
+  
+  // Remove class after animation completes
+  setTimeout(() => {
+    body.classList.remove('liquid-active');
+    liquidAnimationActive = false;
+  }, 1400);
+}
+
+// Login credentials
+const VALID_EMAIL = "aryan.singh@tripjack.com";
+const VALID_PASSWORD = "123@abc";
+
+/* =========================================
+   Login Functions
+   ========================================= */
+function handleLogin(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errorDiv = document.getElementById("login-error");
+  const errorText = document.getElementById("login-error-text");
+
+  // Validate credentials
+  if (email === VALID_EMAIL && password === VALID_PASSWORD) {
+    // Store login state
+    localStorage.setItem("tj_user_logged_in", "true");
+    localStorage.setItem("tj_user_email", email);
+    
+    // Hide login page and show search page
+    hideAllPages();
+    document.getElementById("search-page").classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Clear form
+    document.getElementById("login-form").reset();
+    errorDiv.style.display = "none";
+  } else {
+    // Show error
+    errorText.textContent = "Invalid email or password. Please try again.";
+    errorDiv.style.display = "flex";
+  }
+}
+
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById("login-password");
+  const toggleIcon = document.getElementById("password-toggle-icon");
+  
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    toggleIcon.className = "ph ph-eye-slash";
+  } else {
+    passwordInput.type = "password";
+    toggleIcon.className = "ph ph-eye";
+  }
+}
+
+function checkLoginStatus() {
+  const isLoggedIn = localStorage.getItem("tj_user_logged_in") === "true";
+  const logoutBtn = document.getElementById("logout-btn");
+  
+  if (!isLoggedIn) {
+    // Show login page
+    hideAllPages();
+    document.getElementById("login-page").classList.remove("hidden");
+    if (logoutBtn) logoutBtn.style.display = "none";
+  } else {
+    // Show search page
+    hideAllPages();
+    document.getElementById("search-page").classList.remove("hidden");
+    if (logoutBtn) logoutBtn.style.display = "flex";
+  }
+}
+
+function logout() {
+  localStorage.removeItem("tj_user_logged_in");
+  localStorage.removeItem("tj_user_email");
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) logoutBtn.style.display = "none";
+  checkLoginStatus();
+}
+
 const OPTION_TYPES = {
   SRSM: { name: "Same Room Same Mealplan", desc: "All rooms are the same room type AND all have the same meal plan." },
   SRCM: { name: "Same Room Cross Mealplan", desc: "All rooms are the same room type BUT meal plans differ across rooms." },
@@ -129,6 +235,8 @@ function displayApiTimes(container) {
     console.log("No API times to display");
   }
   
+  // Also update results page API times display
+  updateResultsPageApiTimes();
   // Also update search page API times display
   updateSearchPageApiTimes();
 }
@@ -163,6 +271,39 @@ function updateSearchPageApiTimes() {
     console.log("Search page API times displayed:", apiResponseTimes);
   } else {
     searchApiTimesContainer.style.display = 'none';
+  }
+}
+
+function updateResultsPageApiTimes() {
+  // Update the results page API times display
+  const resultsApiTimesContainer = document.getElementById("results-api-times-container");
+  if (!resultsApiTimesContainer) return;
+
+  let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">';
+  let hasAnyTime = false;
+  
+  if (apiResponseTimes.search) {
+    html += `<div class="api-time-badge"><i class="ph ph-magnifying-glass"></i> Search: ${formatDuration(apiResponseTimes.search)}</div>`;
+    hasAnyTime = true;
+  }
+  
+  // Show batch times if they exist
+  if (Object.keys(apiResponseTimes.batchTimes).length > 0) {
+    Object.entries(apiResponseTimes.batchTimes).forEach(([batchId, ms]) => {
+      html += `<div class="api-time-badge"><i class="ph ph-stack"></i> ${batchId}: ${formatDuration(ms)}</div>`;
+      hasAnyTime = true;
+    });
+  }
+  
+  html += '</div>';
+  
+  // Only show container if there are times to display
+  if (hasAnyTime) {
+    resultsApiTimesContainer.innerHTML = html;
+    resultsApiTimesContainer.style.display = 'block';
+    console.log("Results page API times displayed:", apiResponseTimes);
+  } else {
+    resultsApiTimesContainer.style.display = 'none';
   }
 }
 
@@ -561,6 +702,18 @@ async function searchHotels(cachedBody = null) {
         env: config.env,
         apiKey: config.apiKey
       };
+      
+      // Add optional nationality if selected
+      const nationality = document.getElementById("nationality")?.value;
+      if (nationality) {
+        body.nationality = nationality;
+      }
+      
+      // Add optional timeoutMs if provided
+      const timeoutMs = document.getElementById("timeoutMs")?.value;
+      if (timeoutMs) {
+        body.timeoutMs = parseInt(timeoutMs, 10);
+      }
     }
 
     // Check if we have exactly 100 hotel codes - use batch search
@@ -793,6 +946,7 @@ function displayHotels(data) {
     card.dataset.gst = gstType.toLowerCase();
     card.dataset.refundable = isRefundable ? "true" : "false";
     card.dataset.pan = option.compliance?.panRequired ? "true" : "false";
+    card.dataset.passport = option.compliance?.passportRequired ? "true" : "false";
     card.dataset.price = totalPrice;
 
     card.innerHTML = `
@@ -850,6 +1004,9 @@ function displayHotels(data) {
             <span class="price-label">Total</span>
             <span class="price-total">${currency} ${totalPrice}</span>
           </div>
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 0.8rem; color: #64748b; font-style: italic;">
+            ${amountToWords(parseFloat(totalPrice), currency)}
+          </div>
         </div>
         
         <button class="btn-premium" onclick="fetchHotelDetails('${hotel.hotelId}')">
@@ -871,50 +1028,66 @@ function applySearchFilters() {
   const priceSort = document.getElementById("r-filter-price").value;
 
   const resultsContainer = document.getElementById("results");
+  
+  // Store cards BEFORE clearing
   let cards = Array.from(resultsContainer.querySelectorAll(".hotel-card"));
+  
+  // Show loading state
+  resultsContainer.innerHTML = `
+    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px;">
+      <div class="loader" style="border-color: var(--primary); border-top-color: transparent; width: 40px; height: 40px;"></div>
+      <div style="text-align: center;">
+        <p style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Applying Filter...</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Please wait while we sort and filter your options</p>
+      </div>
+    </div>
+  `;
 
-  // Sort cards
-  if (priceSort === "low_to_high") {
-    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-  } else if (priceSort === "high_to_low") {
-    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-  } else {
-    cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
-  }
-
-  // Re-append in sorted order (also helps apply default CSS layout)
-  cards.forEach(card => resultsContainer.appendChild(card));
-
-  let visibleCount = 0;
-
-  cards.forEach(card => {
-    const ds = card.dataset;
-    let isMatch = true;
-
-    // Search input (Name, OptionID, RoomID, HotelID)
-    if (searchTerm) {
-      if (!ds.hotelName.includes(searchTerm) &&
-        !ds.roomName.includes(searchTerm) &&
-        !ds.optionId.includes(searchTerm) &&
-        !ds.hotelId.includes(searchTerm) &&
-        !ds.roomId.includes(searchTerm)) {
-        isMatch = false;
-      }
-    }
-    // Dropdowns
-    if (mealFilter && ds.meal !== mealFilter) isMatch = false;
-    if (gstFilter && ds.gst !== gstFilter) isMatch = false;
-    if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
-    if (panFilter && ds.pan !== panFilter) isMatch = false;
-
-    if (isMatch) {
-      card.style.display = "flex";
-      card.classList.add("fade-in");
-      visibleCount++;
+  // Use setTimeout to allow UI to update before processing
+  setTimeout(() => {
+    // Sort cards
+    if (priceSort === "low_to_high") {
+      cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+    } else if (priceSort === "high_to_low") {
+      cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
     } else {
-      card.style.display = "none";
-      card.classList.remove("fade-in");
+      cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
     }
+
+    // Clear container and re-add sorted cards
+    resultsContainer.innerHTML = '';
+    cards.forEach(card => resultsContainer.appendChild(card));
+
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const ds = card.dataset;
+      let isMatch = true;
+
+      // Search input (Name, OptionID, RoomID, HotelID)
+      if (searchTerm) {
+        if (!ds.hotelName.includes(searchTerm) &&
+          !ds.roomName.includes(searchTerm) &&
+          !ds.optionId.includes(searchTerm) &&
+          !ds.hotelId.includes(searchTerm) &&
+          !ds.roomId.includes(searchTerm)) {
+          isMatch = false;
+        }
+      }
+      // Dropdowns
+      if (mealFilter && ds.meal !== mealFilter) isMatch = false;
+      if (gstFilter && ds.gst !== gstFilter) isMatch = false;
+      if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
+      if (panFilter && ds.pan !== panFilter) isMatch = false;
+
+      if (isMatch) {
+        card.style.display = "flex";
+        card.classList.add("fade-in");
+        visibleCount++;
+      } else {
+        card.style.display = "none";
+        card.classList.remove("fade-in");
+      }
   });
 
   const countSpan = document.getElementById("results-count");
@@ -936,10 +1109,11 @@ function applySearchFilters() {
   } else if (existingEmpty) {
     existingEmpty.remove();
   }
+  }, 300); // Small delay to show loading state
 }
 
 function hideAllPages() {
-  const pages = ["search-page", "results-page", "detail-page", "review-page", "booking-detail-page"];
+  const pages = ["login-page", "search-page", "results-page", "detail-page", "review-page", "booking-detail-page", "manage-bookings-page"];
   pages.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -1529,11 +1703,20 @@ function renderHotelDetails(data) {
     card.dataset.gst = gstType.toLowerCase();
     card.dataset.refundable = isRefundable ? "true" : "false";
     card.dataset.pan = option.compliance?.panRequired ? "true" : "false";
+    card.dataset.passport = option.compliance?.passportRequired ? "true" : "false";
     card.dataset.price = totalPrice;
 
     const refundPill = isRefundable
       ? `<span class="data-pill pill-success"><i class="ph ph-check-circle"></i> Refundable</span>`
       : `<span class="data-pill pill-danger"><i class="ph ph-warning-circle"></i> Non - Refundable</span>`;
+
+    // Room availability badge
+    const roomLeft = option.roomLeft ?? 0;
+    const roomAvailabilityColor = roomLeft > 5 ? '#10b981' : roomLeft > 0 ? '#f59e0b' : '#ef4444';
+    const roomAvailabilityBg = roomLeft > 5 ? 'rgba(16, 185, 129, 0.1)' : roomLeft > 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+    const roomAvailabilityPill = roomLeft > 0 
+      ? `<span class="data-pill" style="background: ${roomAvailabilityBg}; color: ${roomAvailabilityColor}; border: 1px solid ${roomAvailabilityColor}33;"><i class="ph ph-door"></i> ${roomLeft} Room${roomLeft !== 1 ? 's' : ''} Left</span>`
+      : `<span class="data-pill pill-danger"><i class="ph ph-warning-circle"></i> No Rooms Available</span>`;
 
     card.innerHTML = `
         <div class="room-details-section">
@@ -1547,6 +1730,7 @@ function renderHotelDetails(data) {
           <span class="data-pill pill-warning" ${optionTypeTitle}><i class="ph ph-tag"></i> ${optionTypeData.name}</span>
           <span class="data-pill pill-primary"><i class="ph ph-fork-knife"></i> ${mealBasis}</span>
           ${refundPill}
+          ${roomAvailabilityPill}
           <span class="data-pill pill-neutral"><i class="ph ph-coins"></i> Currency: ${currency}</span>
           <span class="data-pill pill-neutral">GST: ${gstType}</span>
           <span class="data-pill pill-neutral">PAN Req: ${panRequired}</span>
@@ -1582,6 +1766,9 @@ function renderHotelDetails(data) {
               <span class="price-label">Total</span>
               <span class="price-total">${currency} ${totalPrice}</span>
             </div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; font-size: 0.8rem; color: #64748b; font-style: italic;">
+              ${amountToWords(parseFloat(totalPrice), currency)}
+            </div>
           </div>
 
           <button class="btn-premium" onclick="reviewRoom('${option.optionId}', '${data.correlationId}', ${option.pricing?.totalPrice ?? 0}, '${reviewHash}', '${hotel.hotelId}')">
@@ -1600,53 +1787,72 @@ function applyRoomFilters() {
   const gstFilter = document.getElementById("filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("filter-refund").value;
   const panFilter = document.getElementById("filter-pan").value;
+  const passportFilter = document.getElementById("filter-passport").value;
   const priceSort = document.getElementById("filter-price").value;
 
   const resultsContainer = document.getElementById("detail-results");
+  
+  // Store cards BEFORE clearing
   let cards = Array.from(document.querySelectorAll(".detail-option-card"));
+  
+  // Show loading state
+  resultsContainer.innerHTML = `
+    <div style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; gap: 16px;">
+      <div class="loader" style="border-color: var(--primary); border-top-color: transparent; width: 40px; height: 40px;"></div>
+      <div style="text-align: center;">
+        <p style="font-size: 1rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Applying Filter...</p>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">Please wait while we sort and filter your options</p>
+      </div>
+    </div>
+  `;
 
-  if (priceSort === "low_to_high") {
-    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-  } else if (priceSort === "high_to_low") {
-    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-  } else {
-    cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
-  }
-
-  cards.forEach(card => resultsContainer.appendChild(card));
-
-  let visibleCount = 0;
-
-  cards.forEach(card => {
-    const ds = card.dataset;
-    let isMatch = true;
-
-    // Search input (Name, OptionID, or RoomID)
-    if (searchTerm) {
-      if (!ds.roomName.includes(searchTerm) && !ds.optionId.includes(searchTerm) && !ds.roomId.includes(searchTerm)) {
-        isMatch = false;
-      }
-    }
-    // Dropdowns
-    if (mealFilter && ds.meal !== mealFilter) isMatch = false;
-    if (gstFilter && ds.gst !== gstFilter) isMatch = false;
-    if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
-    if (panFilter && ds.pan !== panFilter) isMatch = false;
-
-    if (isMatch) {
-      card.style.display = "flex";
-      card.classList.add("fade-in");
-      visibleCount++;
+  // Use setTimeout to allow UI to update before processing
+  setTimeout(() => {
+    if (priceSort === "low_to_high") {
+      cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+    } else if (priceSort === "high_to_low") {
+      cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
     } else {
-      card.style.display = "none";
-      card.classList.remove("fade-in");
+      cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
     }
-  });
 
-  const countSpan = document.getElementById("detail-room-count");
-  if (countSpan) {
-    countSpan.textContent = `(${visibleCount} Visible / ${cards.length} Total)`;
-  }
+    // Clear container and re-add sorted cards
+    resultsContainer.innerHTML = '';
+    cards.forEach(card => resultsContainer.appendChild(card));
+
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const ds = card.dataset;
+      let isMatch = true;
+
+      // Search input (Name, OptionID, or RoomID)
+      if (searchTerm) {
+        if (!ds.roomName.includes(searchTerm) && !ds.optionId.includes(searchTerm) && !ds.roomId.includes(searchTerm)) {
+          isMatch = false;
+        }
+      }
+      // Dropdowns
+      if (mealFilter && ds.meal !== mealFilter) isMatch = false;
+      if (gstFilter && ds.gst !== gstFilter) isMatch = false;
+      if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
+      if (panFilter && ds.pan !== panFilter) isMatch = false;
+      if (passportFilter && ds.passport !== passportFilter) isMatch = false;
+
+      if (isMatch) {
+        card.style.display = "flex";
+        card.classList.add("fade-in");
+        visibleCount++;
+      } else {
+        card.style.display = "none";
+        card.classList.remove("fade-in");
+      }
+    });
+
+    const countSpan = document.getElementById("detail-room-count");
+    if (countSpan) {
+      countSpan.textContent = `(${visibleCount} Visible / ${cards.length} Total)`;
+    }
 
   // Handle empty block
   let existingEmpty = document.getElementById("d-filter-empty");
@@ -1662,6 +1868,7 @@ function applyRoomFilters() {
   } else if (existingEmpty) {
     existingEmpty.remove();
   }
+  }, 300); // Small delay to show loading state
 }
 
 async function reviewRoom(optionId, correlationId, searchDisplayPrice, reviewHash, hotelId) {
@@ -2129,9 +2336,13 @@ function renderReviewDetails(data, responseMs) {
           
           <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 16px 0;" />
           
-          <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 24px;">
+          <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">Total Price</span>
             <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${currency} ${totalPrice}</span>
+          </div>
+          
+          <div style="padding: 10px 12px; background: #f8fafc; border-left: 3px solid var(--primary); border-radius: 4px; font-size: 0.85rem; color: #64748b; font-style: italic; margin-bottom: 16px;">
+            ${amountToWords(parseFloat(totalPrice), currency)}
           </div>
 
           <!-- Two booking action buttons -->
@@ -2529,9 +2740,18 @@ async function fetchAndRenderBookingDetail(bookingId) {
     `;
 
     // Payment Summary
+    const totalAmount = parseFloat(order.amount);
+    const amountInWords = amountToWords(totalAmount);
+    
     document.getElementById("bd-payment-info").innerHTML = `
-      <div style="display:flex; gap:32px; flex-wrap:wrap;">
-        <div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Total Amount</div><div style="font-size:1.25rem; font-weight:800; color:var(--primary);">${fmtAmt(order.amount)}</div></div>
+      <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
+        <div>
+          <div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Total Amount</div>
+          <div style="font-size:1.25rem; font-weight:800; color:var(--primary); margin-bottom:6px;">${fmtAmt(order.amount)}</div>
+          <div style="font-size:0.8rem; color:#64748b; font-style:italic; background:#f8fafc; padding:6px 10px; border-radius:6px; border-left:3px solid var(--primary);">
+            ${amountInWords}
+          </div>
+        </div>
         ${order.markup ? `<div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Markup</div><div style="font-size:1rem; font-weight:600; color:#f59e0b;">${fmtAmt(order.markup)}</div></div>` : ''}
         <div><div style="font-size:0.75rem; color:#64748b; margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Created On</div><div style="font-size:0.9rem; font-weight:600; color:#334155;">${fmtDate(order.createdOn)}</div></div>
       </div>
@@ -2878,6 +3098,73 @@ function initializeDates() {
 }
 
 /* =========================================
+   Number to Words Conversion
+   ========================================= */
+function numberToWords(num) {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+  const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+  const scales = ['', 'Thousand', 'Lakh', 'Crore'];
+
+  function convertHundreds(n) {
+    let result = '';
+    const hundred = Math.floor(n / 100);
+    const remainder = n % 100;
+
+    if (hundred > 0) {
+      result += ones[hundred] + ' Hundred';
+    }
+
+    if (remainder > 0) {
+      if (result) result += ' ';
+      if (remainder < 10) {
+        result += ones[remainder];
+      } else if (remainder < 20) {
+        result += teens[remainder - 10];
+      } else {
+        const ten = Math.floor(remainder / 10);
+        const one = remainder % 10;
+        result += tens[ten];
+        if (one > 0) {
+          result += ' ' + ones[one];
+        }
+      }
+    }
+
+    return result;
+  }
+
+  if (num === 0) return 'Zero';
+
+  let words = '';
+  let scaleIndex = 0;
+
+  while (num > 0) {
+    if (num % 1000 !== 0) {
+      words = convertHundreds(num % 1000) + (scales[scaleIndex] ? ' ' + scales[scaleIndex] : '') + (words ? ' ' + words : '');
+    }
+    num = Math.floor(num / 1000);
+    scaleIndex++;
+  }
+
+  return words.trim();
+}
+
+function amountToWords(amount, currency = 'INR') {
+  const parts = amount.toString().split('.');
+  const rupees = parseInt(parts[0]);
+  const paise = parseInt(parts[1] || 0);
+
+  let words = numberToWords(rupees) + ' ' + currency;
+  
+  if (paise > 0) {
+    words += ' and ' + numberToWords(paise) + ' Paise';
+  }
+
+  return words;
+}
+
+/* =========================================
    Manage Bookings Page
    ========================================= */
 function showManageBookingsPage() {
@@ -2948,6 +3235,9 @@ function renderManageBookings() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Check login status first
+  checkLoginStatus();
+  
   // Enable smooth scrolling and animations
   document.documentElement.style.scrollBehavior = 'smooth';
   
@@ -3071,6 +3361,18 @@ async function searchLocationHotels(location) {
       apiKey: config.apiKey
     };
 
+    // Add optional nationality if selected
+    const nationality = document.getElementById("nationality")?.value;
+    if (nationality) {
+      batchBody.nationality = nationality;
+    }
+    
+    // Add optional timeoutMs if provided
+    const timeoutMs = document.getElementById("timeoutMs")?.value;
+    if (timeoutMs) {
+      batchBody.timeoutMs = parseInt(timeoutMs, 10);
+    }
+
     console.log(`Sending batch search for ${hotelCodes.length} hotels in batches of 100...`);
 
     const startTime = performance.now();
@@ -3118,6 +3420,16 @@ async function searchLocationHotels(location) {
       env: config.env,
       apiKey: config.apiKey
     };
+
+    // Add optional nationality if selected
+    if (nationality) {
+      displayBody.nationality = nationality;
+    }
+    
+    // Add optional timeoutMs if provided
+    if (timeoutMs) {
+      displayBody.timeoutMs = parseInt(timeoutMs, 10);
+    }
 
     // Format batch response for display (ensure it has hotels array)
     const displayData = {

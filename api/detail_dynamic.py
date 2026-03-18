@@ -4,15 +4,27 @@ from requests import JSONDecodeError
 from config import API_KEY, BASE_URL
 
 
-def dynamic_detail(option_id: str):
-    url = f"{BASE_URL}hms/v3/hotel/option/detail"
+def dynamic_detail(data: dict):
+    env = data.get("env", BASE_URL).rstrip("/")
+    api_key = data.get("apiKey", API_KEY)
+    url = f"{env}/hms/v3/hotel/option/detail"
 
     headers = {
         "Content-Type": "application/json",
-        "apikey": API_KEY,
+        "apikey": api_key,
     }
 
-    payload = {"optionId": option_id}
+    payload = {
+        "optionId": data.get("optionId")
+    }
+    
+    # Add optional nationality if provided
+    if data.get("nationality"):
+        payload["nationality"] = data["nationality"]
+        print(f"✓ Nationality added to detail request: {data['nationality']}")
+    
+    print(f"📤 Sending dynamic detail request to: {url}")
+    print(f"📦 Payload: {payload}")
 
     response = requests.post(url, headers=headers, json=payload)
 

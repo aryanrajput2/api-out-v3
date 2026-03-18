@@ -67,15 +67,103 @@
             style="font-family: monospace; font-weight: 600; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0; letter-spacing: 1px;">...</span>
         </div>
       </div>
+
+      <!-- Logout Button -->
+      <button id="logout-btn" onclick="logout()" style="display: none; padding: 10px 16px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(239, 68, 68, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.3)';">
+        <i class="ph ph-sign-out"></i> Logout
+      </button>
     </header>
 
     <main>
-      <!-- API Response Times Display -->
-      <div id="api-times-container" style="margin-bottom: 24px; padding: 16px 20px; background: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(236, 253, 245, 0.95) 100%); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); backdrop-filter: blur(10px); animation: slideInDown 0.3s ease-out; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
-      </div>
+      <!-- Page 0: Login Page -->
+      <section id="login-page" class="view-page fade-in">
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px;">
+          <div style="width: 100%; max-width: 420px;">
+            
+            <!-- Logo Section -->
+            <div style="text-align: center; margin-bottom: 40px;">
+              <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, #3b82f6, #06b6d4); border-radius: 16px; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);">
+                <i class="ph ph-sign-in" style="font-size: 2.5rem; color: white;"></i>
+              </div>
+              <h1 style="margin: 0 0 8px 0; font-size: 1.8rem; font-weight: 800; color: #1e293b;">Welcome Back</h1>
+              <p style="margin: 0; color: #64748b; font-size: 0.95rem;">Sign in to your Tripjack account</p>
+            </div>
+
+            <!-- Login Form -->
+            <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 20px 25px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
+              
+              <form id="login-form" onsubmit="handleLogin(event)">
+                
+                <!-- Email Input -->
+                <div style="margin-bottom: 20px;">
+                  <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="ph ph-envelope" style="margin-right: 6px;"></i> Email Address
+                  </label>
+                  <input type="email" id="login-email" placeholder="Enter your email" 
+                    style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; background: #f8fafc; outline: none; transition: all 0.2s; box-sizing: border-box;"
+                    onfocus="this.style.borderColor='#3b82f6'; this.style.background='#fff';"
+                    onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc';"
+                    required />
+                </div>
+
+                <!-- Password Input -->
+                <div style="margin-bottom: 24px;">
+                  <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    <i class="ph ph-lock" style="margin-right: 6px;"></i> Password
+                  </label>
+                  <div style="position: relative;">
+                    <input type="password" id="login-password" placeholder="••••••••" 
+                      style="width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.95rem; background: #f8fafc; outline: none; transition: all 0.2s; box-sizing: border-box;"
+                      onfocus="this.style.borderColor='#3b82f6'; this.style.background='#fff';"
+                      onblur="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc';"
+                      required />
+                    <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.2rem; padding: 4px;">
+                      <i class="ph ph-eye" id="password-toggle-icon"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; font-size: 0.85rem;">
+                  <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #64748b;">
+                    <input type="checkbox" id="remember-me" style="cursor: pointer; width: 16px; height: 16px;" />
+                    Remember me
+                  </label>
+                  <a href="#" style="color: #3b82f6; text-decoration: none; font-weight: 600; transition: color 0.2s;" onmouseover="this.style.color='#06b6d4';" onmouseout="this.style.color='#3b82f6';">
+                    Forgot password?
+                  </a>
+                </div>
+
+                <!-- Login Button -->
+                <button type="submit" style="width: 100%; padding: 12px 16px; background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); text-transform: uppercase; letter-spacing: 0.5px;">
+                  <i class="ph ph-sign-in" style="margin-right: 8px;"></i> Sign In
+                </button>
+
+                <!-- Error Message -->
+                <div id="login-error" style="display: none; margin-top: 16px; padding: 12px 14px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px; color: #991b1b; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                  <i class="ph ph-warning-circle"></i>
+                  <span id="login-error-text"></span>
+                </div>
+
+              </form>
+
+            </div>
+
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 24px; color: #64748b; font-size: 0.85rem;">
+              <p style="margin: 0;">© 2026 Tripjack Hotels. All rights reserved.</p>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       <!-- Page 1: Search -->
       <section id="search-page" class="view-page fade-in">
+
+        <!-- API Response Times Display -->
+        <div id="api-times-container" style="margin-bottom: 24px; padding: 16px 20px; background: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(236, 253, 245, 0.95) 100%); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); backdrop-filter: blur(10px); animation: slideInDown 0.3s ease-out; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);">
+        </div>
 
         <div class="hero-section">
           <h2>Find your perfect stay</h2>
@@ -235,6 +323,33 @@
               </div>
             </div>
 
+            <div class="input-grid">
+              <!-- Nationality -->
+              <div class="input-group">
+                <label for="nationality">
+                  <i class="ph ph-passport"></i> Nationality
+                </label>
+                <div class="select-wrapper">
+                  <select id="nationality">
+                    <option value="">Select Nationality</option>
+                    <option value="106" selected>India (106)</option>
+                    <option value="1">USA (1)</option>
+                    <option value="138">UAE (138)</option>
+                    <option value="196">Australia (196)</option>
+                  </select>
+                  <i class="ph ph-caret-down select-icon"></i>
+                </div>
+              </div>
+
+              <!-- Timeout (ms) -->
+              <div class="input-group">
+                <label for="timeoutMs">
+                  <i class="ph ph-hourglass"></i> Timeout (ms)
+                </label>
+                <input type="number" id="timeoutMs" placeholder="e.g. 13000" value="13000" min="1000" max="60000" />
+              </div>
+            </div>
+
             <div class="rooms-section">
               <div class="rooms-header">
                 <div>
@@ -281,6 +396,10 @@
             <p id="results-summary">Showing hotels for your last search.</p>
             <p id="search-info-display" style="font-size: 0.95rem; color: var(--text-main); margin-top: 12px; display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%); padding: 12px 16px; border-radius: var(--radius-md); border-left: 4px solid var(--primary); font-weight: 500;"><i class="ph ph-info" style="color: var(--primary); font-size: 1.2rem;"></i> <span></span></p>
           </div>
+        </div>
+
+        <!-- API Response Times Display -->
+        <div id="results-api-times-container" style="margin-bottom: 24px; padding: 16px 20px; background: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(236, 253, 245, 0.95) 100%); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-md); backdrop-filter: blur(10px); animation: slideInDown 0.3s ease-out; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15); display: none;">
         </div>
 
         <!-- Hotels List -->
@@ -417,6 +536,14 @@
                   <option value="">PAN: All</option>
                   <option value="true">PAN Required</option>
                   <option value="false">PAN Not Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-passport icon-left"></i>
+                <select id="filter-passport" onchange="applyRoomFilters()">
+                  <option value="">Passport: All</option>
+                  <option value="true">Passport Required</option>
+                  <option value="false">Passport Not Required</option>
                 </select>
               </div>
               <div class="input-group filter-group" style="width: 180px;">

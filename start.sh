@@ -15,22 +15,61 @@ pkill -f itcyou 2>/dev/null || true
 # Prompt user for tunnel preference
 echo ""
 echo "Choose tunnel service:"
-echo "  1) ngrok (default)"
+echo "  1) ngrok"
 echo "  2) it.cyou"
+echo "  3) Local only (no tunnel) [default]"
 echo ""
-read -p "Enter choice (1 or 2) [default: 1]: " TUNNEL_CHOICE
-TUNNEL_CHOICE=${TUNNEL_CHOICE:-1}
+read -p "Enter choice (1, 2, or 3) [default: 3]: " TUNNEL_CHOICE
+TUNNEL_CHOICE=${TUNNEL_CHOICE:-3}
 
 TUNNEL_URL=""
 
-if [ "$TUNNEL_CHOICE" = "2" ]; then
+if [ "$TUNNEL_CHOICE" = "1" ]; then
+    # Use ngrok
+    echo ""
+    echo "Starting ngrok tunnel..."
+    
+    # Use direct path to ngrok
+    NGROK_CMD="/opt/homebrew/bin/ngrok"
+    
+    if [ -x "$NGROK_CMD" ]; then
+        echo "Found ngrok at: $NGROK_CMD"
+        nohup $NGROK_CMD http 8000 --log=stdout > ngrok.log 2>&1 &
+        NGROK_PID=$!
+        echo "ngrok started (PID: $NGROK_PID)"
+        
+        # Wait for tunnel to establish
+        echo "  Waiting for ngrok tunnel to establish..."
+        sleep 10
+        
+        # Try multiple times to get the URL from ngrok API
+        for i in {1..15}; do
+            TUNNEL_URL=$(curl -s localhost:4040/api/tunnels 2>/dev/null | python3 -c "import sys, json; data=sys.stdin.read(); print(json.loads(data)['tunnels'][0]['public_url'] if data else '')" 2>/dev/null)
+            if [ -n "$TUNNEL_URL" ]; then
+                echo "✅ ngrok tunnel established!"
+                break
+            fi
+            echo "  Retrying... ($i/15)"
+            sleep 1
+        done
+        
+        if [ -z "$TUNNEL_URL" ]; then
+            echo "  ⚠️  ngrok URL not ready yet — check ngrok.log for details."
+            sleep 2
+        fi
+    else
+        echo "  ❌ ngrok not found at $NGROK_CMD"
+        echo "  Falling back to local development..."
+    fi
+    
+elif [ "$TUNNEL_CHOICE" = "2" ]; then
     # Use it.cyou
     echo ""
     echo "Starting it.cyou tunnel..."
     
     # Check if itcyou is installed
     if ! command -v itcyou &> /dev/null; then
-        echo "  ❌ itcyou not found. Installing..."
+        echo "  Installing itcyou..."
         curl -fsSL https://it.cyou/install.sh | sh
     fi
     
@@ -42,10 +81,10 @@ if [ "$TUNNEL_CHOICE" = "2" ]; then
     
     # Wait for tunnel to establish
     echo "  Waiting for it.cyou tunnel to establish..."
-    sleep 3
+    sleep 5
     
     # Extract URL from log
-    for i in {1..10}; do
+    for i in {1..15}; do
         if grep -q "Tunnel URL" itcyou.log 2>/dev/null; then
             TUNNEL_URL=$(grep "Tunnel URL" itcyou.log | head -1 | awk '{print $NF}')
             break
@@ -56,48 +95,6 @@ if [ "$TUNNEL_CHOICE" = "2" ]; then
     if [ -z "$TUNNEL_URL" ]; then
         TUNNEL_URL="https://${SUBDOMAIN}.it.cyou"
     fi
-    
-else
-    # Use ngrok (default)
-    echo ""
-    echo "Starting ngrok tunnel..."
-    
-    # Find ngrok executable
-    NGROK_CMD="ngrok"
-    if [ ! -x "$(command -v ngrok)" ]; then
-        # Try common Homebrew path as fallback if not in PATH
-        if [ -x "/opt/homebrew/bin/ngrok" ]; then
-            NGROK_CMD="/opt/homebrew/bin/ngrok"
-        else
-            echo "  ❌ ngrok not found in PATH or /opt/homebrew/bin/"
-            echo "  Please install ngrok or ensure it's in your PATH."
-            NGROK_CMD=""
-        fi
-    fi
-    
-    if [ -n "$NGROK_CMD" ]; then
-        nohup $NGROK_CMD http 8000 --log=stdout > ngrok.log 2>&1 &
-        NGROK_PID=$!
-        echo "ngrok started (PID: $NGROK_PID)"
-        
-        # Wait a moment then print the public URL
-        echo "  Waiting for ngrok tunnel to establish..."
-        sleep 5
-        
-        # Try multiple times to get the URL
-        for i in {1..5}; do
-            TUNNEL_URL=$(curl -s localhost:4040/api/tunnels 2>/dev/null | python3 -c "import sys, json; data=sys.stdin.read(); print(json.loads(data)['tunnels'][0]['public_url'] if data else '')" 2>/dev/null)
-            if [ -n "$TUNNEL_URL" ]; then
-                break
-            fi
-            sleep 2
-        done
-        
-        if [ -z "$TUNNEL_URL" ]; then
-            echo "  ⚠️  ngrok URL not ready yet — check ngrok.log for details."
-            echo "  You can manually check the URL by running: curl localhost:4040/api/tunnels"
-        fi
-    fi
 fi
 
 # Display tunnel info
@@ -106,6 +103,14 @@ if [ -n "$TUNNEL_URL" ]; then
     echo "========================================"
     echo "  ✅ PUBLIC URL: $TUNNEL_URL"
     echo "  🌐 UI: $TUNNEL_URL/ui"
+    echo "========================================"
+    echo ""
+else
+    echo ""
+    echo "========================================"
+    echo "  🏠 LOCAL DEVELOPMENT MODE"
+    echo "  🌐 UI: http://localhost:8000/ui"
+    echo "  📡 API: http://localhost:8000"
     echo "========================================"
     echo ""
 fi

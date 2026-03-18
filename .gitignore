@@ -56,3 +56,7 @@ Server_logs/
 
 # Render
 .render/
+
+# Railway
+.railway/
+.railwayrc

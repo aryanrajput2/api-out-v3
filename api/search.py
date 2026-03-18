@@ -17,6 +17,19 @@ def search_hotels(data: dict):
         "correlationId": data["correlationId"],
         "hids": data["hids"],
     }
+    
+    # Add optional nationality if provided
+    if data.get("nationality"):
+        payload["nationality"] = data["nationality"]
+        print(f"✓ Nationality added: {data['nationality']}")
+    
+    # Add optional timeoutMs if provided
+    if data.get("timeoutMs"):
+        payload["timeoutMs"] = data["timeoutMs"]
+        print(f"✓ TimeoutMs added: {data['timeoutMs']}")
+    
+    print(f"📤 Sending search request to: {url}")
+    print(f"📦 Payload: {payload}")
 
     # Headers as in curl/Postman
     headers = {

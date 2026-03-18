@@ -9,6 +9,7 @@ from api.cancel import cancel_booking
 from api.hotel_detail import fetch_hotel_detail
 from api.hotel_static_detail import fetch_hotel_static_detail
 from api.batch_search import search_hotels_batch
+from api.booking_storage import add_booking, get_recent_bookings, get_booking, delete_booking
 from api.logger import log_request, log_response
 import asyncio
 import os
@@ -203,4 +204,73 @@ async def batch_search(request: Request, data: dict):
     log_request(request, "/batch-search", data)
     result = await search_hotels_batch(data)
     log_response(request, "/batch-search", 200, result)
+    return result
+
+
+# =========================================
+# Booking Storage Endpoints
+# =========================================
+
+@app.post("/save-booking")
+def save_booking_endpoint(request: Request, data: dict):
+    """Save a booking to persistent text file storage"""
+    log_request(request, "/save-booking", data)
+    
+    booking_id = data.get("bookingId") or data.get("id")
+    booking_data = data.get("data", {})
+    
+    if not booking_id:
+        result = {"ok": False, "message": "Missing booking ID"}
+        log_response(request, "/save-booking", 400, result)
+        return result
+    
+    success = add_booking(booking_id, booking_data)
+    result = {
+        "ok": success,
+        "message": "Booking saved successfully" if success else "Failed to save booking",
+        "bookingId": booking_id
+    }
+    log_response(request, "/save-booking", 200 if success else 500, result)
+    return result
+
+@app.get("/recent-bookings")
+def get_recent_bookings_endpoint(request: Request, limit: int = 10):
+    """Get recent bookings from persistent text file storage"""
+    log_request(request, "/recent-bookings")
+    
+    bookings = get_recent_bookings(limit)
+    result = {
+        "ok": True,
+        "bookings": bookings,
+        "total": len(bookings)
+    }
+    log_response(request, "/recent-bookings", 200, result)
+    return result
+
+@app.get("/booking/{booking_id}")
+def get_booking_endpoint(request: Request, booking_id: str):
+    """Get a specific booking from persistent text file storage"""
+    log_request(request, f"/booking/{booking_id}")
+    
+    booking = get_booking(booking_id)
+    if not booking:
+        result = {"ok": False, "message": "Booking not found"}
+        log_response(request, f"/booking/{booking_id}", 404, result)
+        return result
+    
+    result = {"ok": True, "booking": booking}
+    log_response(request, f"/booking/{booking_id}", 200, result)
+    return result
+
+@app.delete("/booking/{booking_id}")
+def delete_booking_endpoint(request: Request, booking_id: str):
+    """Delete a booking from persistent text file storage"""
+    log_request(request, f"/booking/{booking_id}")
+    
+    success = delete_booking(booking_id)
+    result = {
+        "ok": success,
+        "message": "Booking deleted successfully" if success else "Failed to delete booking"
+    }
+    log_response(request, f"/booking/{booking_id}", 200 if success else 500, result)
     return result

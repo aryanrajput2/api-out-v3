@@ -17,6 +17,14 @@ def fetch_hotel_detail(data: dict):
         "correlationId": data["correlationId"],
         "hid": data["hid"],
     }
+    
+    # Add optional nationality if provided
+    if data.get("nationality"):
+        payload["nationality"] = data["nationality"]
+        print(f"✓ Nationality added to hotel detail request: {data['nationality']}")
+    
+    print(f"📤 Sending hotel detail request to: {url}")
+    print(f"📦 Payload: {payload}")
 
     headers = {
         "Content-Type": "application/json",
