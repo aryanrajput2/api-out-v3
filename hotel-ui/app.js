@@ -64,35 +64,19 @@ function setSearchLoading(isLoading) {
 function showSearchError(message, details, rawError) {
   const el = document.getElementById("search-error");
   const msgEl = el?.querySelector(".message");
-  const preEl = el?.querySelector(".raw-error");
   if (!el || !msgEl) return;
 
   el.classList.remove("hidden");
   msgEl.textContent = message + (details ? ` (${details})` : "");
-
-  if (preEl) {
-    if (rawError) {
-      preEl.textContent = typeof rawError === "object" ? JSON.stringify(rawError, null, 2) : String(rawError);
-      preEl.classList.remove("hidden");
-    } else {
-      preEl.classList.add("hidden");
-      preEl.textContent = "";
-    }
-  }
 }
 
 function clearSearchError() {
   const el = document.getElementById("search-error");
   const msgEl = el?.querySelector(".message");
-  const preEl = el?.querySelector(".raw-error");
   if (!el || !msgEl) return;
 
   el.classList.add("hidden");
   msgEl.textContent = "";
-  if (preEl) {
-    preEl.classList.add("hidden");
-    preEl.textContent = "";
-  }
 }
 
 /* =========================================
@@ -381,7 +365,6 @@ function displayHotels(data) {
     const card = document.createElement("div");
     card.className = "hotel-card fade-in";
     card.style.animationDelay = `${index * 0.05}s`;
-    card.dataset.originalIndex = index;
 
     // Basic Info
     const name = hotel.name || "Unknown Hotel";
@@ -489,7 +472,7 @@ function displayHotels(data) {
           </div>
         </div>
         
-        <button class="btn-premium" onclick="fetchHotelDetails('${hotel.hotelId}')">
+        <button class="btn-premium" onclick="fetchHotelDetails('${hotel.hotelId}', '${option.optionId}')">
           View Rooms <i class="ph ph-arrow-right"></i>
         </button>
       </div>
@@ -505,23 +488,10 @@ function applySearchFilters() {
   const gstFilter = document.getElementById("r-filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("r-filter-refund").value;
   const panFilter = document.getElementById("r-filter-pan").value;
-  const priceSort = document.getElementById("r-filter-price").value;
+  const priceFilter = parseFloat(document.getElementById("r-filter-price").value);
 
   const resultsContainer = document.getElementById("results");
-  let cards = Array.from(resultsContainer.querySelectorAll(".hotel-card"));
-
-  // Sort cards
-  if (priceSort === "low_to_high") {
-    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-  } else if (priceSort === "high_to_low") {
-    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-  } else {
-    cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
-  }
-
-  // Re-append in sorted order (also helps apply default CSS layout)
-  cards.forEach(card => resultsContainer.appendChild(card));
-
+  const cards = resultsContainer.querySelectorAll(".hotel-card");
   let visibleCount = 0;
 
   cards.forEach(card => {
@@ -543,6 +513,7 @@ function applySearchFilters() {
     if (gstFilter && ds.gst !== gstFilter) isMatch = false;
     if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
     if (panFilter && ds.pan !== panFilter) isMatch = false;
+    if (!isNaN(priceFilter) && parseFloat(ds.price) > priceFilter) isMatch = false;
 
     if (isMatch) {
       card.style.display = "flex";
@@ -665,7 +636,7 @@ function backToResults() {
   }
 }
 
-async function fetchHotelDetails(hotelId) {
+async function fetchHotelDetails(hotelId, optionId) {
   if (!globalSearchBody) return;
 
   const searchPage = document.getElementById("search-page");
@@ -709,6 +680,7 @@ async function fetchHotelDetails(hotelId) {
     const body = {
       ...globalSearchBody,
       hid: hotelId,
+      optionId: optionId,
       env: config.env,
       apiKey: config.apiKey
     };
@@ -808,10 +780,9 @@ function renderHotelDetails(data) {
   document.getElementById("filter-price").value = "";
 
   // Render each option as a card inside the detail list
-  hotel.options.forEach((option, index) => {
+  hotel.options.forEach(option => {
     const card = document.createElement("div");
     card.className = "hotel-card detail-option-card fade-in";
-    card.dataset.originalIndex = index;
 
     // Fallback UI mapping (reuse same logic as search options)
     const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; margin-left:6px; background:rgba(255,255,255,0.6);"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
@@ -935,21 +906,9 @@ function applyRoomFilters() {
   const gstFilter = document.getElementById("filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("filter-refund").value;
   const panFilter = document.getElementById("filter-pan").value;
-  const priceSort = document.getElementById("filter-price").value;
+  const priceFilter = parseFloat(document.getElementById("filter-price").value);
 
-  const resultsContainer = document.getElementById("detail-results");
-  let cards = Array.from(document.querySelectorAll(".detail-option-card"));
-
-  if (priceSort === "low_to_high") {
-    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
-  } else if (priceSort === "high_to_low") {
-    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
-  } else {
-    cards.sort((a, b) => parseInt(a.dataset.originalIndex) - parseInt(b.dataset.originalIndex));
-  }
-
-  cards.forEach(card => resultsContainer.appendChild(card));
-
+  const cards = document.querySelectorAll(".detail-option-card");
   let visibleCount = 0;
 
   cards.forEach(card => {
@@ -967,6 +926,7 @@ function applyRoomFilters() {
     if (gstFilter && ds.gst !== gstFilter) isMatch = false;
     if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
     if (panFilter && ds.pan !== panFilter) isMatch = false;
+    if (!isNaN(priceFilter) && parseFloat(ds.price) > priceFilter) isMatch = false;
 
     if (isMatch) {
       card.style.display = "flex";
@@ -984,6 +944,7 @@ function applyRoomFilters() {
   }
 
   // Handle empty block
+  const resultsContainer = document.getElementById("detail-results");
   let existingEmpty = document.getElementById("d-filter-empty");
   if (visibleCount === 0) {
     if (!existingEmpty) {
