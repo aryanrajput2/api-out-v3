@@ -73,14 +73,14 @@ body {
   transition: opacity 0.5s ease;
 }
 
-/* Background aesthetic blobs - Liquid Design */
+/* Background aesthetic blobs */
 .bg-blur {
   position: fixed;
+  /* Changed to fixed to stay during scroll */
   border-radius: 50%;
-  filter: blur(80px);
+  filter: blur(100px);
   z-index: -1;
   opacity: 0.4;
-  will-change: transform, opacity, filter;
 }
 
 .bg-blur.top-left {
@@ -88,8 +88,8 @@ body {
   left: -100px;
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(139, 92, 246, 0.3));
-  animation: liquidFloat 12s ease-in-out infinite;
+  background: rgba(99, 102, 241, 0.3);
+  /* Indigo */
 }
 
 .bg-blur.bottom-right {
@@ -97,93 +97,8 @@ body {
   right: -50px;
   width: 500px;
   height: 500px;
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.35), rgba(34, 197, 94, 0.25));
-  animation: liquidFloat 14s ease-in-out infinite reverse;
-}
-
-/* Continuous liquid floating animation */
-@keyframes liquidFloat {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-  25% {
-    transform: translate(40px, -50px) scale(1.08);
-    opacity: 0.45;
-    filter: blur(85px);
-  }
-  50% {
-    transform: translate(-30px, 40px) scale(0.92);
-    opacity: 0.38;
-    filter: blur(75px);
-  }
-  75% {
-    transform: translate(50px, 30px) scale(1.12);
-    opacity: 0.46;
-    filter: blur(90px);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-}
-
-/* Click-triggered liquid pulse animation */
-@keyframes liquidPulse {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-  30% {
-    transform: translate(80px, -80px) scale(1.3);
-    opacity: 0.6;
-    filter: blur(100px);
-  }
-  60% {
-    transform: translate(40px, -40px) scale(1.15);
-    opacity: 0.5;
-    filter: blur(90px);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-}
-
-@keyframes liquidPulseReverse {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-  30% {
-    transform: translate(-100px, 100px) scale(1.35);
-    opacity: 0.6;
-    filter: blur(100px);
-  }
-  60% {
-    transform: translate(-50px, 50px) scale(1.2);
-    opacity: 0.5;
-    filter: blur(90px);
-  }
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.4;
-    filter: blur(80px);
-  }
-}
-
-/* Active state - triggered on click */
-body.liquid-active .bg-blur.top-left {
-  animation: liquidPulse 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-}
-
-body.liquid-active .bg-blur.bottom-right {
-  animation: liquidPulseReverse 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  background: rgba(56, 189, 248, 0.25);
+  /* Sky blue */
 }
 
 /* =========================================
@@ -265,14 +180,12 @@ h3 {
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.1);
   padding: 32px;
-  transition: all var(--transition-smooth);
-  will-change: transform, box-shadow, background;
+  transition: var(--transition-smooth);
 }
 
 .glass-panel:hover {
   box-shadow: var(--shadow-lg);
   background: var(--surface-hover);
-  transition: all var(--transition-smooth);
 }
 
 .hero-section {
@@ -334,11 +247,8 @@ select {
   font-size: 0.95rem;
   color: var(--text-main);
   outline: none;
-  transition: all var(--transition-smooth);
+  transition: var(--transition-fast);
   backdrop-filter: blur(10px);
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
 }
 
 input:focus,
@@ -346,15 +256,9 @@ select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   background: #ffffff;
-  transition: all var(--transition-fast);
 }
 
 input::placeholder {
-  color: #cbd5e1;
-  transition: color var(--transition-smooth);
-}
-
-input:focus::placeholder {
   color: #cbd5e1;
 }
 
@@ -529,21 +433,18 @@ input:focus::placeholder {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all var(--transition-smooth);
+  transition: var(--transition-fast);
   box-shadow: 0 4px 12px var(--primary-glow);
-  will-change: transform, box-shadow, background;
 }
 
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 16px var(--primary-glow);
-  transition: all var(--transition-smooth);
 }
 
 .btn-primary:active:not(:disabled) {
   transform: translateY(0);
-  transition: transform 0.1s ease-out;
 }
 
 .btn-primary:disabled {
@@ -562,7 +463,7 @@ input:focus::placeholder {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all var(--transition-smooth);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
   padding: 10px 20px;
   border-radius: var(--radius-full);
@@ -572,7 +473,6 @@ input:focus::placeholder {
   overflow: hidden;
   position: relative;
   z-index: 1;
-  will-change: transform, box-shadow, background-position;
 }
 
 .btn-premium::after {
@@ -585,24 +485,21 @@ input:focus::placeholder {
   background: linear-gradient(135deg, #8b5cf6, #ec4899, #f43f5e);
   z-index: -1;
   opacity: 0;
-  transition: opacity var(--transition-smooth);
+  transition: opacity 0.5s ease-in-out;
 }
 
 .btn-premium:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
   background-position: right center;
-  transition: all var(--transition-smooth);
 }
 
 .btn-premium:hover::after {
   opacity: 1;
-  transition: opacity var(--transition-smooth);
 }
 
 .btn-premium:active:not(:disabled) {
   transform: translateY(1px) scale(0.98);
-  transition: transform 0.1s ease-out;
 }
 
 .btn-premium:disabled {
@@ -658,64 +555,6 @@ input:focus::placeholder {
 .btn-ghost:hover {
   background: rgba(15, 23, 42, 0.05);
   color: var(--text-main);
-}
-
-/* Location Search Buttons */
-.location-search-btn {
-  flex: 1;
-  min-width: 160px;
-  padding: 14px 16px;
-  border: 2px solid #e2e8f0;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(239, 246, 255, 0.6) 0%, rgba(248, 250, 252, 0.6) 100%);
-  color: var(--text-main);
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-smooth);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-  position: relative;
-  overflow: hidden;
-  will-change: transform, box-shadow, border-color, background;
-}
-
-.location-search-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left var(--transition-smooth);
-}
-
-.location-search-btn:hover {
-  border-color: var(--primary);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
-  transition: all var(--transition-smooth);
-}
-
-.location-search-btn:hover::before {
-  left: 100%;
-  transition: left var(--transition-smooth);
-}
-
-.location-search-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-  transition: all 0.1s ease-out;
-}
-
-.location-search-btn i {
-  color: var(--primary);
-  transition: transform var(--transition-smooth);
-}
-
-.location-search-btn:hover i {
-  transform: scale(1.1);
-  transition: transform var(--transition-smooth);
 }
 
 /* =========================================
@@ -818,16 +657,14 @@ input:focus::placeholder {
   flex-direction: column;
   gap: 16px;
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-smooth);
+  transition: var(--transition-smooth);
   animation: slideFadeInUp 0.4s ease-out backwards;
-  will-change: transform, box-shadow, border-color;
 }
 
 .hotel-card:hover {
   box-shadow: var(--shadow-md);
   border-color: #cbd5e1;
   transform: translateY(-2px);
-  transition: all var(--transition-smooth);
 }
 
 .hotel-header {
@@ -1024,56 +861,6 @@ input:focus::placeholder {
 }
 
 /* =========================================
-   API Response Times Display
-   ========================================= */
-.api-time-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-  color: #0d9488;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 8px 14px;
-  border-radius: var(--radius-full);
-  font-size: 0.85rem;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
-  transition: all var(--transition-smooth);
-  animation: slideInDown 0.3s ease-out;
-}
-
-.api-time-badge:hover {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-  transform: translateY(-1px);
-}
-
-.api-time-badge i {
-  font-size: 1.1rem;
-  color: #0d9488;
-}
-
-/* Search Info Display */
-#search-info-display,
-#detail-search-info,
-#review-search-info,
-#booking-search-info {
-  animation: slideInDown 0.3s ease-out;
-  transition: all var(--transition-smooth);
-}
-
-#search-info-display:hover,
-#detail-search-info:hover,
-#review-search-info:hover,
-#booking-search-info:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%) !important;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-  transform: translateX(4px);
-}
-
-/* =========================================
    Utilities & Animations
    ========================================= */
 .hidden {
@@ -1096,168 +883,6 @@ input:focus::placeholder {
   animation-delay: 0.2s;
 }
 
-/* Smooth transitions for all interactive elements */
-button,
-input,
-select,
-textarea,
-a {
-  transition: all var(--transition-smooth) !important;
-}
-
-/* Smooth page transitions */
-.view-page {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* Smooth scroll behavior */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Smooth input focus transitions */
-input:focus,
-select:focus,
-textarea:focus {
-  transition: all var(--transition-fast) !important;
-}
-
-/* Smooth hover effects on cards */
-.hotel-card,
-.glass-panel {
-  will-change: transform, box-shadow;
-}
-
-/* Smooth loading spinner */
-.loader {
-  will-change: transform;
-}
-
-/* Smooth text selection */
-::selection {
-  background: rgba(59, 130, 246, 0.3);
-  transition: background var(--transition-smooth);
-}
-
-/* Smooth scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.05);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(59, 130, 246, 0.4);
-  border-radius: 4px;
-  transition: background var(--transition-smooth);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(59, 130, 246, 0.6);
-}
-
-/* Smooth backdrop filter transitions */
-.glass-panel,
-.filters-glass-container {
-  will-change: backdrop-filter;
-}
-
-/* Smooth opacity transitions for hidden elements */
-.hidden {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-smooth);
-}
-
-/* Smooth transform for buttons on click */
-button:active {
-  transition: transform 0.1s ease-out;
-}
-
-/* Smooth color transitions */
-.data-pill,
-.timer-badge,
-.meta-tag {
-  transition: all var(--transition-smooth);
-}
-
-/* Smooth input placeholder transitions */
-input::placeholder {
-  transition: color var(--transition-smooth);
-}
-
-input:focus::placeholder {
-  color: #cbd5e1;
-}
-
-/* Smooth border transitions */
-input,
-select,
-.hotel-card,
-.glass-panel {
-  transition: border-color var(--transition-smooth);
-}
-
-/* Smooth shadow transitions */
-.btn-primary,
-.btn-premium,
-.hotel-card,
-.glass-panel {
-  transition: box-shadow var(--transition-smooth);
-}
-
-/* Smooth background transitions */
-.location-search-btn,
-.btn-outline,
-.btn-ghost {
-  transition: background var(--transition-smooth);
-}
-
-/* Smooth icon transitions */
-i {
-  transition: all var(--transition-smooth);
-}
-
-/* Smooth filter transitions */
-.filters-glass-container {
-  transition: all var(--transition-smooth);
-}
-
-/* Smooth room row animations */
-.room-row {
-  animation: slideFadeInUp 0.3s ease-out;
-  will-change: transform, opacity;
-}
-
-/* Smooth alert animations */
-.alert-box {
-  animation: slideInDown 0.3s ease-out;
-}
-
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Smooth modal/overlay transitions */
-.image-zoom-modal {
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* Smooth list item animations */
-.hotel-card {
-  animation: slideFadeInUp 0.4s ease-out backwards;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1265,16 +890,6 @@ i {
 
   to {
     opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
   }
 }
 
