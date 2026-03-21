@@ -237,6 +237,8 @@ async function searchHotels() {
     const currency = document.getElementById("currency").value || "INR";
     const correlationInput = document.getElementById("correlationId").value.trim();
     const correlationId = correlationInput || `ui-${Date.now().toString(36).toUpperCase()}`;
+    const nationality = document.getElementById("nationality").value || "106";
+    const timeoutMs = parseInt(document.getElementById("timeoutMs").value || "13000", 10);
 
     let hotelids = document.getElementById("hotelids").value.split(",");
     hotelids = hotelids.map((id) => parseInt(id.trim(), 10)).filter(Boolean);
@@ -251,6 +253,8 @@ async function searchHotels() {
       currency,
       correlationId,
       hids: hotelids,
+      nationality,
+      timeoutMs,
       env: config.env,
       apiKey: config.apiKey
     };

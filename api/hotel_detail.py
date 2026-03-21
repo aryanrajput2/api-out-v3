@@ -23,6 +23,11 @@ def fetch_hotel_detail(data: dict):
         payload["nationality"] = data["nationality"]
         print(f"✓ Nationality added to hotel detail request: {data['nationality']}")
     
+    # Add optional timeoutMs if provided
+    if data.get("timeoutMs"):
+        payload["timeoutMs"] = data["timeoutMs"]
+        print(f"✓ TimeoutMs added to hotel detail request: {data['timeoutMs']}")
+    
     print(f"📤 Sending hotel detail request to: {url}")
     print(f"📦 Payload: {payload}")
 

@@ -189,6 +189,33 @@
               </div>
             </div>
 
+            <div class="input-grid">
+              <!-- Nationality -->
+              <div class="input-group">
+                <label for="nationality">
+                  <i class="ph ph-passport"></i> Nationality
+                </label>
+                <div class="select-wrapper">
+                  <select id="nationality">
+                    <option value="">Select Nationality</option>
+                    <option value="106" selected>India (106)</option>
+                    <option value="1">USA (1)</option>
+                    <option value="138">UAE (138)</option>
+                    <option value="196">Australia (196)</option>
+                  </select>
+                  <i class="ph ph-caret-down select-icon"></i>
+                </div>
+              </div>
+
+              <!-- Timeout (ms) -->
+              <div class="input-group">
+                <label for="timeoutMs">
+                  <i class="ph ph-hourglass"></i> Timeout (ms)
+                </label>
+                <input type="number" id="timeoutMs" placeholder="e.g. 13000" value="13000" min="1000" max="60000" />
+              </div>
+            </div>
+
             <div class="rooms-section">
               <div class="rooms-header">
                 <div>
