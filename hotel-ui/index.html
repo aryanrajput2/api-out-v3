@@ -164,23 +164,29 @@
               <input type="text" id="hotelids" placeholder="e.g. 100000002784, 100000003248" required />
               
               <!-- Quick Batch Search Buttons -->
-              <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
-                <button type="button" class="location-search-btn" onclick="searchLocationHotels('mumbai')">
-                  <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                    <i class="ph ph-map-pin" style="font-size: 1.2rem;"></i>
-                    <div style="text-align: left;">
-                      <div style="font-weight: 600; font-size: 0.95rem;">Mumbai</div>
-                      <div style="font-size: 0.75rem; opacity: 0.8;">200 Hotels</div>
-                    </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('mumbai')" title="Search 200 hotels in Mumbai">
+                  <div class="batch-btn-icon">
+                    <i class="ph ph-buildings"></i>
+                  </div>
+                  <div class="batch-btn-content">
+                    <div class="batch-btn-title">Mumbai</div>
+                    <div class="batch-btn-subtitle">200 Hotels</div>
+                  </div>
+                  <div class="batch-btn-arrow">
+                    <i class="ph ph-arrow-right"></i>
                   </div>
                 </button>
-                <button type="button" class="location-search-btn" onclick="searchLocationHotels('dubai')">
-                  <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-                    <i class="ph ph-map-pin" style="font-size: 1.2rem;"></i>
-                    <div style="text-align: left;">
-                      <div style="font-weight: 600; font-size: 0.95rem;">Dubai</div>
-                      <div style="font-size: 0.75rem; opacity: 0.8;">50 Hotels</div>
-                    </div>
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('dubai')" title="Search 50 hotels in Dubai">
+                  <div class="batch-btn-icon">
+                    <i class="ph ph-buildings"></i>
+                  </div>
+                  <div class="batch-btn-content">
+                    <div class="batch-btn-title">Dubai</div>
+                    <div class="batch-btn-subtitle">50 Hotels</div>
+                  </div>
+                  <div class="batch-btn-arrow">
+                    <i class="ph ph-arrow-right"></i>
                   </div>
                 </button>
               </div>
