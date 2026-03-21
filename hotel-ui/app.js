@@ -1,6 +1,76 @@
 const API_BASE = window.location.origin;
 let globalSearchBody = null; // Store the last search used for dynamic-detail
 
+// Login credentials
+const VALID_EMAIL = "aryan.singh@tripjack.com";
+const VALID_PASSWORD = "123@abc";
+
+/* =========================================
+   Login & Logout Functions
+   ========================================= */
+function handleLogin(event) {
+  event.preventDefault();
+  
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errorEl = document.getElementById("login-error");
+  const errorText = document.getElementById("login-error-text");
+  
+  if (email === VALID_EMAIL && password === VALID_PASSWORD) {
+    localStorage.setItem("tj_user_logged_in", "true");
+    localStorage.setItem("tj_user_email", email);
+    checkLoginStatus();
+  } else {
+    errorEl.classList.remove("hidden");
+    errorText.textContent = "Invalid email or password";
+  }
+}
+
+function togglePasswordVisibility() {
+  const input = document.getElementById("login-password");
+  const icon = document.getElementById("password-toggle-icon");
+  
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("ph-eye");
+    icon.classList.add("ph-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("ph-eye-slash");
+    icon.classList.add("ph-eye");
+  }
+}
+
+function checkLoginStatus() {
+  const isLoggedIn = localStorage.getItem("tj_user_logged_in") === "true";
+  const logoutBtn = document.getElementById("logout-btn");
+  
+  if (!isLoggedIn) {
+    // Show login page
+    document.getElementById("login-page").classList.remove("hidden");
+    document.getElementById("search-page").classList.add("hidden");
+    if (logoutBtn) logoutBtn.style.display = "none";
+  } else {
+    // Show search page
+    document.getElementById("login-page").classList.add("hidden");
+    document.getElementById("search-page").classList.remove("hidden");
+    if (logoutBtn) logoutBtn.style.display = "flex";
+  }
+}
+
+function logout() {
+  localStorage.removeItem("tj_user_logged_in");
+  localStorage.removeItem("tj_user_email");
+  const logoutBtn = document.getElementById("logout-btn");
+  if (logoutBtn) logoutBtn.style.display = "none";
+  checkLoginStatus();
+}
+
+// Check login status on page load
+window.addEventListener("DOMContentLoaded", () => {
+  checkLoginStatus();
+});
+
 const OPTION_TYPES = {
   SRSM: { name: "Same Room Same Mealplan", desc: "All rooms are the same room type AND all have the same meal plan." },
   SRCM: { name: "Same Room Cross Mealplan", desc: "All rooms are the same room type BUT meal plans differ across rooms." },
