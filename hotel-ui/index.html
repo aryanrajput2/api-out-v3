@@ -162,6 +162,28 @@
                 <span class="hint">(Comma separated)</span>
               </label>
               <input type="text" id="hotelids" placeholder="e.g. 100000002784, 100000003248" required />
+              
+              <!-- Quick Batch Search Buttons -->
+              <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+                <button type="button" class="location-search-btn" onclick="searchLocationHotels('mumbai')">
+                  <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <i class="ph ph-map-pin" style="font-size: 1.2rem;"></i>
+                    <div style="text-align: left;">
+                      <div style="font-weight: 600; font-size: 0.95rem;">Mumbai</div>
+                      <div style="font-size: 0.75rem; opacity: 0.8;">200 Hotels</div>
+                    </div>
+                  </div>
+                </button>
+                <button type="button" class="location-search-btn" onclick="searchLocationHotels('dubai')">
+                  <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                    <i class="ph ph-map-pin" style="font-size: 1.2rem;"></i>
+                    <div style="text-align: left;">
+                      <div style="font-weight: 600; font-size: 0.95rem;">Dubai</div>
+                      <div style="font-size: 0.75rem; opacity: 0.8;">50 Hotels</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
             </div>
 
             <div class="input-grid">

@@ -297,6 +297,89 @@ async function searchHotels() {
   }
 }
 
+// Location-based Batch Search
+async function searchLocationHotels(location) {
+  clearSearchError();
+  setSearchLoading(true);
+
+  try {
+    // First, load the hotel codes for the location
+    const codesResponse = await fetch(`${API_BASE}/hotel-codes/${location}`);
+    const codesData = await codesResponse.json();
+
+    if (!codesData.ok) {
+      showSearchError(`Failed to load ${location} hotel codes.`, codesData.message);
+      setSearchLoading(false);
+      return;
+    }
+
+    const hotelCodes = codesData.hotel_codes;
+    console.log(`Loaded ${hotelCodes.length} hotel codes for ${location}`);
+
+    // Now perform batch search with the loaded codes
+    const checkin = document.getElementById("checkin").value;
+    const checkout = document.getElementById("checkout").value;
+    const currency = document.getElementById("currency").value || "INR";
+    const correlationInput = document.getElementById("correlationId").value.trim();
+    const correlationId = correlationInput || `ui-${Date.now().toString(36).toUpperCase()}`;
+    const nationality = document.getElementById("nationality").value || "106";
+    const timeoutMs = parseInt(document.getElementById("timeoutMs").value || "13000", 10);
+
+    const rooms = readRoomsFromUi();
+    const config = getConfigPayload();
+
+    const body = {
+      checkIn: checkin,
+      checkOut: checkout,
+      rooms,
+      currency,
+      correlationId,
+      hotelCodes,
+      location,
+      nationality,
+      timeoutMs,
+      env: config.env,
+      apiKey: config.apiKey
+    };
+
+    const startTime = performance.now();
+    const res = await fetch(`${API_BASE}/batch-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+    const duration = Math.round(performance.now() - startTime);
+
+    if (!res.ok || data.ok === false) {
+      const detail =
+        data && typeof data === "object"
+          ? `${data.status_code || res.status} ${data.reason || ""}`.trim()
+          : `${res.status}`;
+      showSearchError(`Batch search for ${location} failed.`, detail, data);
+      displayHotels(null);
+      return;
+    }
+
+    // Set Timer UI
+    const timerUI = document.getElementById("search-timer");
+    if (timerUI) {
+      timerUI.innerHTML = formatDuration(duration);
+      timerUI.classList.remove("hidden");
+    }
+
+    displayHotels(data);
+    globalSearchBody = body; // Cache for detail queries
+    switchToResultsPage(body, duration, data);
+  } catch (err) {
+    showSearchError(`Unexpected error while searching ${location} hotels.`, err?.message);
+    displayHotels(null);
+  } finally {
+    setSearchLoading(false);
+  }
+}
+
 function readRoomsFromUi() {
   const container = document.getElementById("rooms-container");
   if (!container) return [{ adults: 2 }];
