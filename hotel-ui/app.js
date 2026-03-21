@@ -575,13 +575,15 @@ function applySearchFilters() {
   const gstFilter = document.getElementById("r-filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("r-filter-refund").value;
   const panFilter = document.getElementById("r-filter-pan").value;
-  const priceFilter = parseFloat(document.getElementById("r-filter-price").value);
+  const passportFilter = document.getElementById("r-filter-passport").value;
+  const priceSort = document.getElementById("r-filter-price").value;
 
   const resultsContainer = document.getElementById("results");
-  const cards = resultsContainer.querySelectorAll(".hotel-card");
+  let cards = Array.from(resultsContainer.querySelectorAll(".hotel-card"));
   let visibleCount = 0;
 
-  cards.forEach(card => {
+  // Filter cards
+  cards = cards.filter(card => {
     const ds = card.dataset;
     let isMatch = true;
 
@@ -600,7 +602,7 @@ function applySearchFilters() {
     if (gstFilter && ds.gst !== gstFilter) isMatch = false;
     if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
     if (panFilter && ds.pan !== panFilter) isMatch = false;
-    if (!isNaN(priceFilter) && parseFloat(ds.price) > priceFilter) isMatch = false;
+    if (passportFilter && ds.passport !== passportFilter) isMatch = false;
 
     if (isMatch) {
       card.style.display = "flex";
@@ -610,11 +612,26 @@ function applySearchFilters() {
       card.style.display = "none";
       card.classList.remove("fade-in");
     }
+    
+    return isMatch;
+  });
+
+  // Sort by price if selected
+  if (priceSort === "low_to_high") {
+    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+  } else if (priceSort === "high_to_low") {
+    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+  }
+
+  // Re-append sorted cards
+  cards.forEach(card => {
+    resultsContainer.appendChild(card);
   });
 
   const countSpan = document.getElementById("results-count");
   if (countSpan) {
-    countSpan.textContent = `(${visibleCount} Visible / ${cards.length} Total)`;
+    const totalCards = resultsContainer.querySelectorAll(".hotel-card").length;
+    countSpan.textContent = `(${visibleCount} Visible / ${totalCards} Total)`;
   }
 
   // Handle Empty Block
@@ -993,12 +1010,14 @@ function applyRoomFilters() {
   const gstFilter = document.getElementById("filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("filter-refund").value;
   const panFilter = document.getElementById("filter-pan").value;
-  const priceFilter = parseFloat(document.getElementById("filter-price").value);
+  const passportFilter = document.getElementById("filter-passport").value;
+  const priceSort = document.getElementById("filter-price").value;
 
-  const cards = document.querySelectorAll(".detail-option-card");
+  let cards = Array.from(document.querySelectorAll(".detail-option-card"));
   let visibleCount = 0;
 
-  cards.forEach(card => {
+  // Filter cards
+  cards = cards.filter(card => {
     const ds = card.dataset;
     let isMatch = true;
 
@@ -1013,7 +1032,7 @@ function applyRoomFilters() {
     if (gstFilter && ds.gst !== gstFilter) isMatch = false;
     if (refundFilter && ds.refundable !== refundFilter) isMatch = false;
     if (panFilter && ds.pan !== panFilter) isMatch = false;
-    if (!isNaN(priceFilter) && parseFloat(ds.price) > priceFilter) isMatch = false;
+    if (passportFilter && ds.passport !== passportFilter) isMatch = false;
 
     if (isMatch) {
       card.style.display = "flex";
@@ -1023,15 +1042,30 @@ function applyRoomFilters() {
       card.style.display = "none";
       card.classList.remove("fade-in");
     }
+    
+    return isMatch;
+  });
+
+  // Sort by price if selected
+  if (priceSort === "low_to_high") {
+    cards.sort((a, b) => parseFloat(a.dataset.price) - parseFloat(b.dataset.price));
+  } else if (priceSort === "high_to_low") {
+    cards.sort((a, b) => parseFloat(b.dataset.price) - parseFloat(a.dataset.price));
+  }
+
+  // Re-append sorted cards
+  const resultsContainer = document.getElementById("detail-results");
+  cards.forEach(card => {
+    resultsContainer.appendChild(card);
   });
 
   const countSpan = document.getElementById("detail-room-count");
   if (countSpan) {
-    countSpan.textContent = `(${visibleCount} Visible / ${cards.length} Total)`;
+    const totalCards = document.querySelectorAll(".detail-option-card").length;
+    countSpan.textContent = `(${visibleCount} Visible / ${totalCards} Total)`;
   }
 
   // Handle empty block
-  const resultsContainer = document.getElementById("detail-results");
   let existingEmpty = document.getElementById("d-filter-empty");
   if (visibleCount === 0) {
     if (!existingEmpty) {

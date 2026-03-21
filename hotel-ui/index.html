@@ -339,10 +339,21 @@
                   <option value="false">PAN Not Required</option>
                 </select>
               </div>
-              <div class="input-group filter-group" style="width: 140px;">
-                <i class="ph ph-currency-circle-dollar icon-left"></i>
-                <input type="number" id="r-filter-price" placeholder="Max Price" onkeyup="applySearchFilters()"
-                  onchange="applySearchFilters()">
+              <div class="input-group filter-group">
+                <i class="ph ph-passport icon-left"></i>
+                <select id="r-filter-passport" onchange="applySearchFilters()">
+                  <option value="">Passport: All</option>
+                  <option value="true">Passport Required</option>
+                  <option value="false">Passport Not Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group" style="width: 180px;">
+                <i class="ph ph-sort-ascending icon-left"></i>
+                <select id="r-filter-price" onchange="applySearchFilters()">
+                  <option value="">Sort: Default</option>
+                  <option value="low_to_high">Price: Low to High</option>
+                  <option value="high_to_low">Price: High to Low</option>
+                </select>
               </div>
             </div>
           </div>
@@ -420,10 +431,21 @@
                   <option value="false">PAN Not Required</option>
                 </select>
               </div>
-              <div class="input-group filter-group" style="width: 140px;">
-                <i class="ph ph-currency-circle-dollar icon-left"></i>
-                <input type="number" id="filter-price" placeholder="Max Price" onkeyup="applyRoomFilters()"
-                  onchange="applyRoomFilters()">
+              <div class="input-group filter-group">
+                <i class="ph ph-passport icon-left"></i>
+                <select id="filter-passport" onchange="applyRoomFilters()">
+                  <option value="">Passport: All</option>
+                  <option value="true">Passport Required</option>
+                  <option value="false">Passport Not Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group" style="width: 180px;">
+                <i class="ph ph-sort-ascending icon-left"></i>
+                <select id="filter-price" onchange="applyRoomFilters()">
+                  <option value="">Sort: Default</option>
+                  <option value="low_to_high">Price: Low to High</option>
+                  <option value="high_to_low">Price: High to Low</option>
+                </select>
               </div>
             </div>
           </div>
