@@ -843,7 +843,7 @@ async function fetchHotelDetails(hotelId, optionId) {
   resultsContainer.innerHTML = `
     <div class="empty-state">
       <div class="loader" style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;"></div>
-      <p>Fetching dynamic hotel details...</p>
+      <p>Fetching hotel details...</p>
     </div>
   `;
   timerUI.classList.add("hidden");
@@ -851,29 +851,45 @@ async function fetchHotelDetails(hotelId, optionId) {
 
   try {
     const config = getConfigPayload();
-    const body = {
+    const dynamicBody = {
       ...globalSearchBody,
       hid: hotelId,
       optionId: optionId,
       env: config.env,
       apiKey: config.apiKey
     };
-    delete body.hids; // Detail API takes hid, not an array of hids
+    delete dynamicBody.hids;
+
+    const staticBody = {
+      hid: hotelId,
+      env: config.env,
+      apiKey: config.apiKey
+    };
 
     const startTime = performance.now();
-    const res = await fetch(`${API_BASE}/dynamic-detail`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
 
-    const data = await res.json();
+    // Fetch both dynamic and static details in parallel
+    const [dynamicRes, staticRes] = await Promise.all([
+      fetch(`${API_BASE}/dynamic-detail`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dynamicBody)
+      }),
+      fetch(`${API_BASE}/static-detail`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(staticBody)
+      })
+    ]);
+
+    const dynamicData = await dynamicRes.json();
+    const staticData = await staticRes.json();
     const durationMs = Math.round(performance.now() - startTime);
 
-    if (!res.ok || data.ok === false) {
+    if (!dynamicRes.ok || dynamicData.ok === false) {
       errorBox.classList.remove("hidden");
       errorBox.querySelector(".message").textContent = "Failed to load hotel details.";
-      const rawHtml = JSON.stringify(data, null, 2);
+      const rawHtml = JSON.stringify(dynamicData, null, 2);
       const pre = errorBox.querySelector(".raw-error");
       pre.textContent = rawHtml;
       pre.classList.remove("hidden");
@@ -884,11 +900,58 @@ async function fetchHotelDetails(hotelId, optionId) {
     timerUI.innerHTML = formatDuration(durationMs);
     timerUI.classList.remove("hidden");
 
-    renderHotelDetails(data);
+    // Combine static and dynamic data
+    const combinedData = {
+      ...dynamicData,
+      staticDetails: staticData
+    };
+
+    renderHotelDetails(combinedData);
   } catch (err) {
     errorBox.classList.remove("hidden");
     errorBox.querySelector(".message").textContent = err.message;
     resultsContainer.innerHTML = "";
+  }
+}
+
+// Image Zoom Functions
+function openImageZoom(imageUrl) {
+  const modal = document.createElement("div");
+  modal.id = "image-zoom-modal";
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+  `;
+  
+  modal.innerHTML = `
+    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
+      <img src="${imageUrl}" alt="Hotel" style="max-width: 100%; max-height: 100%; border-radius: 8px;">
+      <button onclick="closeImageZoom()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.onclick = (e) => {
+    if (e.target === modal) closeImageZoom();
+  };
+}
+
+function closeImageZoom() {
+  const modal = document.getElementById("image-zoom-modal");
+  if (modal) {
+    modal.style.animation = "fadeOut 0.3s ease-out";
+    setTimeout(() => modal.remove(), 300);
   }
 }
 
@@ -937,9 +1000,71 @@ function renderHotelDetails(data) {
     </div>
   `;
 
+  // Display static details if available
+  if (data.staticDetails && data.staticDetails.ok) {
+    const staticData = data.staticDetails.data || data.staticDetails;
+    let staticHTML = "";
+
+    // Images/Gallery
+    if (staticData.images && staticData.images.length > 0) {
+      staticHTML += `
+        <div style="margin-top: 24px; margin-bottom: 24px;">
+          <h3 style="margin-bottom: 12px;"><i class="ph ph-image"></i> Gallery</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+      `;
+      staticData.images.slice(0, 6).forEach(img => {
+        staticHTML += `
+          <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="openImageZoom('${img}')">
+            <img src="${img}" alt="Hotel" style="width: 100%; height: 150px; object-fit: cover;">
+          </div>
+        `;
+      });
+      staticHTML += `</div></div>`;
+    }
+
+    // Description
+    if (staticData.description) {
+      staticHTML += `
+        <div style="margin-bottom: 24px; padding: 16px; background: rgba(59, 130, 246, 0.05); border-radius: 8px; border-left: 4px solid var(--primary);">
+          <h3 style="margin-top: 0;"><i class="ph ph-info"></i> About</h3>
+          <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">${staticData.description}</p>
+        </div>
+      `;
+    }
+
+    // Amenities
+    if (staticData.amenities && staticData.amenities.length > 0) {
+      staticHTML += `
+        <div style="margin-bottom: 24px;">
+          <h3 style="margin-bottom: 12px;"><i class="ph ph-star"></i> Amenities</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      `;
+      staticData.amenities.forEach(amenity => {
+        staticHTML += `<span class="data-pill pill-primary"><i class="ph ph-check-circle"></i> ${amenity}</span>`;
+      });
+      staticHTML += `</div></div>`;
+    }
+
+    // Address & Contact
+    if (staticData.address || staticData.phone || staticData.email) {
+      staticHTML += `
+        <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 8px;">
+          <h3 style="margin-top: 0;"><i class="ph ph-map-pin"></i> Contact Info</h3>
+      `;
+      if (staticData.address) staticHTML += `<p style="margin: 4px 0;"><strong>Address:</strong> ${staticData.address}</p>`;
+      if (staticData.phone) staticHTML += `<p style="margin: 4px 0;"><strong>Phone:</strong> ${staticData.phone}</p>`;
+      if (staticData.email) staticHTML += `<p style="margin: 4px 0;"><strong>Email:</strong> ${staticData.email}</p>`;
+      staticHTML += `</div>`;
+    }
+
+    if (staticHTML) {
+      resultsContainer.innerHTML = staticHTML;
+    }
+  }
+
   if (!hotel.options || hotel.options.length === 0) {
     document.getElementById("detail-room-count").textContent = "(0 Total)";
-    resultsContainer.innerHTML = `<div class="empty-state"><i class="ph ph-bed"></i><p>No room options currently available.</p></div>`;
+    resultsContainer.innerHTML += `<div class="empty-state"><i class="ph ph-bed"></i><p>No room options currently available.</p></div>`;
     return;
   }
 
@@ -951,6 +1076,7 @@ function renderHotelDetails(data) {
   document.getElementById("filter-gst").value = "";
   document.getElementById("filter-refund").value = "";
   document.getElementById("filter-pan").value = "";
+  document.getElementById("filter-passport").value = "";
   document.getElementById("filter-price").value = "";
 
   // Render each option as a card inside the detail list
