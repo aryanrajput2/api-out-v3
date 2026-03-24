@@ -18,7 +18,6 @@ def load_bookings():
             data = json.load(f)
             return data if isinstance(data, list) else []
     except Exception as e:
-        print(f"Error loading bookings: {e}")
         return []
 
 def save_bookings(bookings):
@@ -28,7 +27,6 @@ def save_bookings(bookings):
             json.dump(bookings, f, indent=2)
         return True
     except Exception as e:
-        print(f"Error saving bookings: {e}")
         return False
 
 def add_booking(booking_id, booking_data=None):
@@ -41,11 +39,32 @@ def add_booking(booking_id, booking_data=None):
     # Remove if already exists (to avoid duplicates)
     bookings = [b for b in bookings if b.get('id') != booking_id]
     
-    # Add new booking at the beginning
+    # Extract response times from booking data
+    response_times = booking_data.get('responseTimes', {}) if booking_data else {}
+    
+    # Calculate total response time
+    total_ms = 0
+    if response_times.get('search'):
+        total_ms += response_times['search']
+    if response_times.get('batchSearch') and isinstance(response_times['batchSearch'], list):
+        total_ms += sum(response_times['batchSearch'])
+    if response_times.get('staticDetail'):
+        total_ms += response_times['staticDetail']
+    if response_times.get('dynamicDetail'):
+        total_ms += response_times['dynamicDetail']
+    if response_times.get('review'):
+        total_ms += response_times['review']
+    if response_times.get('book'):
+        total_ms += response_times['book']
+    if response_times.get('bookingDetail'):
+        total_ms += response_times['bookingDetail']
+    
+    # Add new booking at the beginning - store ID, creation date, and response times
     new_booking = {
         'id': booking_id,
         'createdAt': datetime.now().isoformat(),
-        'data': booking_data or {}
+        'responseTimes': response_times,
+        'totalResponseTime': total_ms
     }
     bookings.insert(0, new_booking)
     

@@ -57,15 +57,10 @@ async def search_hotels_batch(data: dict):
         # Add optional nationality if provided
         if data.get("nationality"):
             payload["nationality"] = data["nationality"]
-            print(f"✓ Batch {batch_number}: Nationality added: {data['nationality']}")
         
         # Add optional timeoutMs if provided
         if data.get("timeoutMs"):
             payload["timeoutMs"] = data["timeoutMs"]
-            print(f"✓ Batch {batch_number}: TimeoutMs added: {data['timeoutMs']}")
-        
-        print(f"📤 Batch {batch_number}: Sending to {url}")
-        print(f"📦 Batch {batch_number} Payload: {payload}")
         
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=60)

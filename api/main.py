@@ -48,9 +48,6 @@ async def ip_whitelist_middleware(request: Request, call_next):
     
     # Check against whitelist or local network
     if client_ip not in ALLOWED_IPS and not is_local_network:
-        # Print the blocked IP out to your terminal running `start.sh` so you can see it
-        print(f"\n🚨 [BLOCKED] Someone tried to access from IP: {client_ip}🚨\n")
-        
         return JSONResponse(
             status_code=403,
             content={
@@ -274,3 +271,39 @@ def delete_booking_endpoint(request: Request, booking_id: str):
     }
     log_response(request, f"/booking/{booking_id}", 200 if success else 500, result)
     return result
+
+
+# =========================================
+# Frontend Logging Endpoint
+# =========================================
+
+@app.post("/log")
+def frontend_log(request: Request, data: dict):
+    """Receive and save frontend logs to a file"""
+    try:
+        timestamp = data.get("timestamp", "")
+        message = data.get("message", "")
+        log_data = data.get("data", {})
+        
+        # Create logs directory if it doesn't exist
+        os.makedirs("frontend_logs", exist_ok=True)
+        
+        # Get current date for log file name
+        from datetime import datetime
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        log_file = f"frontend_logs/{current_date}.log"
+        
+        # Format log entry
+        log_entry = f"[{timestamp}] {message}"
+        if log_data:
+            import json
+            log_entry += f" | {json.dumps(log_data)}"
+        log_entry += "\n"
+        
+        # Append to log file
+        with open(log_file, "a") as f:
+            f.write(log_entry)
+        
+        return {"ok": True, "message": "Log saved"}
+    except Exception as e:
+        return {"ok": False, "message": str(e)}

@@ -21,15 +21,10 @@ def fetch_hotel_detail(data: dict):
     # Add optional nationality if provided
     if data.get("nationality"):
         payload["nationality"] = data["nationality"]
-        print(f"✓ Nationality added to hotel detail request: {data['nationality']}")
     
     # Add optional timeoutMs if provided
     if data.get("timeoutMs"):
         payload["timeoutMs"] = data["timeoutMs"]
-        print(f"✓ TimeoutMs added to hotel detail request: {data['timeoutMs']}")
-    
-    print(f"📤 Sending hotel detail request to: {url}")
-    print(f"📦 Payload: {payload}")
 
     headers = {
         "Content-Type": "application/json",

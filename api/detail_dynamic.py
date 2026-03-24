@@ -21,10 +21,6 @@ def dynamic_detail(data: dict):
     # Add optional nationality if provided
     if data.get("nationality"):
         payload["nationality"] = data["nationality"]
-        print(f"✓ Nationality added to detail request: {data['nationality']}")
-    
-    print(f"📤 Sending dynamic detail request to: {url}")
-    print(f"📦 Payload: {payload}")
 
     response = requests.post(url, headers=headers, json=payload)
 

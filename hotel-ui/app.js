@@ -1,9 +1,167 @@
 const API_BASE = window.location.origin;
 let globalSearchBody = null; // Store the last search used for dynamic-detail
 
+// Track response times for the entire booking journey
+let journeyResponseTimes = {
+  search: null,
+  batchSearch: [],
+  staticDetail: null,
+  dynamicDetail: null,
+  review: null,
+  book: null,
+  bookingDetail: null
+};
+
+// Function to display response times in UI
+function displayResponseTimes() {
+  console.log('displayResponseTimes: Called');
+  
+  let totalMs = 0;
+  let hasAnyTime = false;
+  let html = '';
+  
+  // Search time
+  if (journeyResponseTimes.search) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.search;
+    const seconds = (journeyResponseTimes.search / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Search</div><div style="font-size: 1.8rem; font-weight: 900; color: #3b82f6;">${seconds}s</div></div>`;
+  }
+  
+  // Batch search times
+  if (journeyResponseTimes.batchSearch && journeyResponseTimes.batchSearch.length > 0) {
+    hasAnyTime = true;
+    journeyResponseTimes.batchSearch.forEach((time, idx) => {
+      totalMs += time;
+      const seconds = (time / 1000).toFixed(2);
+      html += `<div style="background: white; border: 2px solid #8b5cf6; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Batch Search ${idx + 1}</div><div style="font-size: 1.8rem; font-weight: 900; color: #8b5cf6;">${seconds}s</div></div>`;
+    });
+  }
+  
+  // Static detail time
+  if (journeyResponseTimes.staticDetail) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.staticDetail;
+    const seconds = (journeyResponseTimes.staticDetail / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #06b6d4; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Static Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #06b6d4;">${seconds}s</div></div>`;
+  }
+  
+  // Dynamic detail time
+  if (journeyResponseTimes.dynamicDetail) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.dynamicDetail;
+    const seconds = (journeyResponseTimes.dynamicDetail / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Dynamic Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #10b981;">${seconds}s</div></div>`;
+  }
+  
+  // Review time
+  if (journeyResponseTimes.review) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.review;
+    const seconds = (journeyResponseTimes.review / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #f59e0b; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Review</div><div style="font-size: 1.8rem; font-weight: 900; color: #f59e0b;">${seconds}s</div></div>`;
+  }
+  
+  // Book time
+  if (journeyResponseTimes.book) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.book;
+    const seconds = (journeyResponseTimes.book / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #ef4444; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Book</div><div style="font-size: 1.8rem; font-weight: 900; color: #ef4444;">${seconds}s</div></div>`;
+  }
+  
+  // Booking detail time
+  if (journeyResponseTimes.bookingDetail) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.bookingDetail;
+    const seconds = (journeyResponseTimes.bookingDetail / 1000).toFixed(2);
+    html += `<div style="background: white; border: 2px solid #ec4899; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Booking Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #ec4899;">${seconds}s</div></div>`;
+  }
+  
+  if (hasAnyTime) {
+    const list = document.getElementById('response-times-list');
+    if (list) {
+      list.innerHTML = html;
+      list.style.display = 'grid !important';
+      list.style.gridTemplateColumns = 'repeat(auto-fit, minmax(160px, 1fr))';
+      list.style.gap = '12px';
+      list.style.padding = '16px 0';
+      list.style.visibility = 'visible';
+      list.style.opacity = '1';
+    }
+    
+    const section = document.getElementById('response-times-section');
+    if (section) {
+      section.style.display = 'block !important';
+      section.style.visibility = 'visible !important';
+      section.style.opacity = '1 !important';
+      section.style.marginTop = '24px';
+      section.style.minHeight = '200px';
+      section.style.overflow = 'visible';
+    }
+    
+    const totalDisplay = document.getElementById('response-times-total');
+    const totalTimeDisplay = document.getElementById('total-time-display');
+    if (totalDisplay && totalTimeDisplay) {
+      totalDisplay.style.display = 'block !important';
+      totalDisplay.style.visibility = 'visible !important';
+      totalDisplay.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+      totalDisplay.style.borderRadius = '12px';
+      totalDisplay.style.padding = '20px';
+      totalDisplay.style.marginTop = '16px';
+      totalDisplay.style.textAlign = 'center';
+      totalDisplay.style.color = 'white';
+      totalDisplay.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.2)';
+      totalTimeDisplay.textContent = formatTimeDisplay(totalMs);
+      totalTimeDisplay.style.fontSize = '2rem';
+      totalTimeDisplay.style.fontWeight = '900';
+      totalTimeDisplay.style.color = 'white';
+    }
+    
+    console.log('✅ Response times displayed - Total:', formatTimeDisplay(totalMs));
+    console.log('✅ Section visible:', section.offsetHeight > 0);
+    console.log('✅ List visible:', list.offsetHeight > 0);
+  } else {
+    const section = document.getElementById('response-times-section');
+    if (section) {
+      section.style.display = 'none';
+    }
+  }
+}
+
+// Helper function to format time display
+function formatTimeDisplay(ms) {
+  if (ms < 1000) return `${ms}ms`;
+  const seconds = (ms / 1000).toFixed(2);
+  return `${seconds}s`;
+}
+
 // Login credentials
 const VALID_EMAIL = "aryan.singh@tripjack.com";
 const VALID_PASSWORD = "123@abc";
+
+/* =========================================
+   Logging Utility - Logs to File Instead of Console
+   ========================================= */
+async function logToFile(message, data = null) {
+  try {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+      timestamp,
+      message,
+      data: data || null
+    };
+    
+    // Send log to backend to save to file
+    await fetch(`${API_BASE}/log`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(logEntry)
+    }).catch(() => {}); // Silently fail if logging endpoint doesn't exist
+  } catch (e) {
+    // Silently fail
+  }
+}
 
 /* =========================================
    Login & Logout Functions
@@ -66,10 +224,265 @@ function logout() {
   checkLoginStatus();
 }
 
-// Check login status on page load
 window.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
+  setDefaultDates();
+  loadRecentBookings();
+  
+  const currentPath = window.location.pathname;
+  
+  if (currentPath === '/ui/detail' || currentPath === '/ui/review') {
+    const savedState = sessionStorage.getItem('tj_page_state');
+    
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        
+        if (state.page === 'detail' && currentPath === '/ui/detail') {
+          globalSearchBody = state.searchBody;
+          window.globalDetailData = state.detailData;
+          
+          const searchPage = document.getElementById("search-page");
+          const resultsPage = document.getElementById("results-page");
+          const detailPage = document.getElementById("detail-page");
+          
+          if (searchPage) searchPage.classList.add("hidden");
+          if (resultsPage) resultsPage.classList.add("hidden");
+          if (detailPage) {
+            detailPage.classList.remove("hidden");
+            detailPage.classList.add("fade-in");
+          }
+          
+          const hotelId = state.requestedHotelId;
+          const optionId = state.requestedOptionId;
+          if (hotelId && optionId) {
+            fetchHotelDetails(hotelId, optionId);
+          } else {
+            renderHotelDetails(state.detailData);
+          }
+        } else if (state.page === 'review' && currentPath === '/ui/review') {
+          globalSearchBody = state.searchBody;
+          window._lastReviewData = state.reviewData;
+          
+          const searchPage = document.getElementById("search-page");
+          const resultsPage = document.getElementById("results-page");
+          const detailPage = document.getElementById("detail-page");
+          const reviewPage = document.getElementById("review-page");
+          
+          if (searchPage) searchPage.classList.add("hidden");
+          if (resultsPage) resultsPage.classList.add("hidden");
+          if (detailPage) detailPage.classList.add("hidden");
+          if (reviewPage) {
+            reviewPage.classList.remove("hidden");
+            reviewPage.classList.add("fade-in");
+          }
+          
+          const optionId = state.requestedOptionId;
+          const correlationId = state.requestedCorrelationId;
+          if (optionId && correlationId) {
+            reviewRoom(optionId, correlationId, null);
+          } else {
+            renderReviewDetails(state.reviewData, state.responseMs || 0);
+          }
+        }
+      } catch (e) {
+        // Silent fail
+      }
+    } else {
+      window.location.replace('/ui/search');
+    }
+  } else if (currentPath === '/ui/results') {
+    const savedState = sessionStorage.getItem('tj_page_state');
+    
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state.page === 'results') {
+          globalSearchBody = state.searchBody;
+          displayHotels(state.resultsData);
+          switchToResultsPage(state.searchBody, state.duration || 0, state.resultsData);
+        }
+      } catch (e) {
+        // Silent fail
+      }
+    }
+  } else {
+    sessionStorage.removeItem('tj_page_state');
+  }
 });
+
+// Function to set default dates (today and tomorrow for 1 night stay)
+function setDefaultDates() {
+  const checkinInput = document.getElementById("checkin");
+  const checkoutInput = document.getElementById("checkout");
+  
+  if (checkinInput && checkoutInput) {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Format dates as YYYY-MM-DD for input[type="date"]
+    const formatDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+    
+    checkinInput.value = formatDate(today);
+    checkoutInput.value = formatDate(tomorrow);
+    
+    // Set minimum date to today
+    checkinInput.min = formatDate(today);
+    checkoutInput.min = formatDate(tomorrow);
+    
+    // Add event listener to automatically update checkout when checkin changes
+    checkinInput.addEventListener('change', function() {
+      const selectedCheckin = new Date(this.value);
+      const nextDay = new Date(selectedCheckin);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
+      checkoutInput.value = formatDate(nextDay);
+      checkoutInput.min = formatDate(nextDay);
+    });
+  }
+}
+
+// Load and display recent bookings on search page
+async function loadRecentBookings() {
+  try {
+    console.log('loadRecentBookings: Starting...');
+    console.log('loadRecentBookings: API_BASE =', API_BASE);
+    
+    const url = `${API_BASE}/recent-bookings`;
+    console.log('loadRecentBookings: Fetching from URL:', url);
+    
+    const response = await fetch(url);
+    console.log('loadRecentBookings: Response status:', response.status);
+    
+    const data = await response.json();
+    console.log('loadRecentBookings: Response data:', data);
+    
+    const section = document.getElementById('recent-bookings-section');
+    console.log('loadRecentBookings: Section element:', section);
+    
+    if (!data.ok) {
+      console.log('loadRecentBookings: data.ok is false');
+      if (section) section.style.display = 'none';
+      return;
+    }
+    
+    if (!data.bookings) {
+      console.log('loadRecentBookings: data.bookings is undefined');
+      if (section) section.style.display = 'none';
+      return;
+    }
+    
+    if (data.bookings.length === 0) {
+      console.log('loadRecentBookings: No bookings in array');
+      if (section) section.style.display = 'none';
+      return;
+    }
+    
+    const bookings = data.bookings;
+    const list = document.getElementById('recent-bookings-list');
+    const count = document.getElementById('bookings-count');
+    
+    console.log('loadRecentBookings: Found', bookings.length, 'bookings');
+    console.log('loadRecentBookings: List element:', list);
+    console.log('loadRecentBookings: Count element:', count);
+    
+    if (!list || !count) {
+      console.log('loadRecentBookings: Missing list or count element');
+      return;
+    }
+    
+    count.textContent = `(${bookings.length})`;
+    list.innerHTML = '';
+    
+    bookings.forEach((booking, index) => {
+      console.log('loadRecentBookings: Processing booking', index, ':', booking);
+      
+      const createdDate = new Date(booking.createdAt);
+      const formattedDate = createdDate.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric'
+      });
+      const formattedTime = createdDate.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+      const fullDateTime = `${formattedDate} ${formattedTime}`;
+      
+      const isRecent = index < 5;
+      const bookingCard = document.createElement('div');
+      bookingCard.style.cssText = `
+        background: linear-gradient(135deg, ${isRecent ? '#f0fdf4' : '#f8fafc'} 0%, ${isRecent ? '#dcfce7' : '#f1f5f9'} 100%);
+        border: 1px solid ${isRecent ? 'rgba(34, 197, 94, 0.3)' : 'rgba(226, 232, 240, 0.8)'};
+        border-radius: 12px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      `;
+      
+      bookingCard.onmouseover = function() {
+        this.style.transform = 'translateY(-4px)';
+        this.style.boxShadow = `0 8px 24px ${isRecent ? 'rgba(34, 197, 94, 0.15)' : 'rgba(59, 130, 246, 0.15)'}`;
+      };
+      
+      bookingCard.onmouseout = function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = 'none';
+      };
+      
+      bookingCard.onclick = () => viewBookingDetail(booking.id);
+      
+      const statusColor = isRecent ? '#16a34a' : '#64748b';
+      
+      bookingCard.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div style="flex: 1;">
+            <div style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 4px;">Booking ID</div>
+            <div style="font-family: monospace; font-size: 0.9rem; font-weight: 700; color: #0f172a;">${booking.id}</div>
+          </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 6px; color: #64748b; font-size: 0.8rem; margin-bottom: 12px;">
+          <i class="ph ph-calendar" style="font-size: 0.9rem;"></i>
+          <span>${fullDateTime}</span>
+        </div>
+        
+        ${booking.totalResponseTime ? `
+          <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 0.8rem;">
+            <div style="color: #64748b; font-weight: 600; margin-bottom: 4px;">Total Response Time</div>
+            <div style="color: #3b82f6; font-weight: 700; font-size: 1rem;">${(booking.totalResponseTime / 1000).toFixed(2)}s</div>
+          </div>
+        ` : ''}
+        
+        <button onclick="event.stopPropagation(); viewBookingDetail('${booking.id}')" style="width: 100%; padding: 10px; background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i class="ph ph-arrow-right"></i> View
+        </button>
+      `;
+      
+      list.appendChild(bookingCard);
+      console.log('loadRecentBookings: Added booking card for', booking.id);
+    });
+    
+    if (section) {
+      section.style.display = 'block';
+      console.log('loadRecentBookings: Section displayed');
+    }
+  } catch (err) {
+    console.error('loadRecentBookings: ERROR -', err);
+    console.error('loadRecentBookings: Error stack:', err.stack);
+    const section = document.getElementById('recent-bookings-section');
+    if (section) section.style.display = 'none';
+  }
+}
 
 const OPTION_TYPES = {
   SRSM: { name: "Same Room Same Mealplan", desc: "All rooms are the same room type AND all have the same meal plan." },
@@ -147,6 +560,154 @@ function clearSearchError() {
 
   el.classList.add("hidden");
   msgEl.textContent = "";
+}
+
+/* =========================================
+   Search Criteria Display Functions
+   ========================================= */
+function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = false) {
+  if (!searchBody) {
+    console.error('ERROR: searchBody is null/undefined');
+    return '';
+  }
+
+  // Calculate stay duration
+  let stayNights = 1;
+  let checkInFormatted = '';
+  let checkOutFormatted = '';
+  
+  if (searchBody.checkIn && searchBody.checkOut) {
+    const start = new Date(searchBody.checkIn);
+    const end = new Date(searchBody.checkOut);
+    stayNights = Math.round((end - start) / (1000 * 60 * 60 * 24));
+    
+    checkInFormatted = start.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric'
+    });
+    checkOutFormatted = end.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  // Calculate guest details
+  let totalAdults = 0;
+  let totalChildren = 0;
+  let childAges = [];
+  
+  searchBody.rooms?.forEach((room) => {
+    totalAdults += room.adults || 0;
+    totalChildren += room.children || 0;
+    if (room.childAge) childAges.push(...room.childAge);
+  });
+
+  const roomCount = searchBody.rooms?.length || 0;
+  const currency = searchBody.currency || "INR";
+
+  // Location information
+  let locationText = '';
+  if (location) {
+    locationText = location.charAt(0).toUpperCase() + location.slice(1);
+  }
+
+  // Create modern, beautiful search criteria box
+  return `
+    <div id="search-criteria-box" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 2px solid transparent; background-clip: padding-box; border-radius: 16px; padding: 0; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.08); position: relative; overflow: hidden; animation: slideInUp 0.5s ease-out;">
+      
+      <!-- Decorative gradient border effect -->
+      <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%); background-size: 200% 100%; animation: gradientShift 3s ease infinite;"></div>
+      
+      <!-- Header Section -->
+      <div style="padding: 20px 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%); border-bottom: 1px solid rgba(59, 130, 246, 0.1);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); position: relative;">
+            <i class="ph ph-magnifying-glass"></i>
+            <div style="position: absolute; inset: -2px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; opacity: 0.3; filter: blur(8px); z-index: -1;"></div>
+          </div>
+          <div style="flex: 1;">
+            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #1e293b; letter-spacing: -0.02em;">Your Search Criteria</h4>
+            <p style="margin: 2px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 500;">Booking details at a glance</p>
+          </div>
+          <div style="padding: 6px 12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="ph ph-check-circle" style="margin-right: 4px;"></i> Active
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+        ${locationText ? `
+          <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+            <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+              <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);">
+                <i class="ph ph-map-pin" style="color: white; font-size: 0.95rem;"></i>
+              </div>
+            </div>
+            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Location</div>
+            <div style="font-weight: 700; color: #0f172a; font-size: 1rem; letter-spacing: -0.01em;">${locationText}</div>
+          </div>
+        ` : ''}
+        
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);">
+              <i class="ph ph-calendar" style="color: white; font-size: 0.95rem;"></i>
+            </div>
+          </div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Dates</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem; letter-spacing: -0.01em;">${checkInFormatted} - ${checkOutFormatted}</div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);">
+              <i class="ph ph-moon" style="color: white; font-size: 0.95rem;"></i>
+            </div>
+          </div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Nights</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 1.1rem; letter-spacing: -0.01em;">${stayNights}</div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);">
+              <i class="ph ph-users" style="color: white; font-size: 0.95rem;"></i>
+            </div>
+          </div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Guests</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem; letter-spacing: -0.01em;">${totalAdults}A${totalChildren > 0 ? `, ${totalChildren}C` : ''}</div>
+          ${childAges.length > 0 ? `<div style="font-size: 0.7rem; color: #64748b; margin-top: 4px; font-weight: 500;">Ages: ${childAges.join(', ')}</div>` : ''}
+        </div>
+
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);">
+              <i class="ph ph-door" style="color: white; font-size: 0.95rem;"></i>
+            </div>
+          </div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Rooms</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 1.1rem; letter-spacing: -0.01em;">${roomCount}</div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);">
+              <i class="ph ph-currency-circle-dollar" style="color: white; font-size: 0.95rem;"></i>
+            </div>
+          </div>
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Currency</div>
+          <div style="font-weight: 700; color: #0f172a; font-size: 1rem; letter-spacing: -0.01em;">${currency}</div>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 /* =========================================
@@ -330,6 +891,7 @@ async function searchHotels() {
     };
 
     const startTime = performance.now();
+    
     const res = await fetch(`${API_BASE}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -338,6 +900,12 @@ async function searchHotels() {
 
     const data = await res.json();
     const duration = Math.round(performance.now() - startTime);
+    
+    console.log('API_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.search = duration;
+    displayResponseTimes();
 
     if (!res.ok || data.ok === false) {
       const detail =
@@ -384,7 +952,6 @@ async function searchLocationHotels(location) {
     }
 
     const hotelCodes = codesData.hotel_codes;
-    console.log(`Loaded ${hotelCodes.length} hotel codes for ${location}`);
 
     // Now perform batch search with the loaded codes
     const checkin = document.getElementById("checkin").value;
@@ -421,6 +988,12 @@ async function searchLocationHotels(location) {
 
     const data = await res.json();
     const duration = Math.round(performance.now() - startTime);
+    
+    console.log('API_BATCH_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.batchSearch.push(duration);
+    displayResponseTimes();
 
     if (!res.ok || data.ok === false) {
       const detail =
@@ -721,6 +1294,16 @@ function applySearchFilters() {
 }
 
 function switchToResultsPage(lastSearchBody, durationMs, data) {
+  // SAVE STATE TO SESSIONSTORE FOR PAGE REFRESH
+  const stateToSave = {
+    page: 'results',
+    searchBody: lastSearchBody,
+    resultsData: data,
+    duration: durationMs,
+    timestamp: Date.now()
+  };
+  sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
+  
   const searchPage = document.getElementById("search-page");
   const resultsPage = document.getElementById("results-page");
   const summary = document.getElementById("results-summary");
@@ -746,48 +1329,99 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
   }
 
   if (summary && lastSearchBody) {
-    let stayNights = 1;
-    if (lastSearchBody.checkIn && lastSearchBody.checkOut) {
-      const start = new Date(lastSearchBody.checkIn);
-      const end = new Date(lastSearchBody.checkOut);
-      stayNights = Math.round((end - start) / (1000 * 60 * 60 * 24));
-    }
-
-    let totalAdults = 0;
-    let totalChildren = 0;
-    let childAges = [];
-    lastSearchBody.rooms?.forEach((r) => {
-      totalAdults += r.adults || 0;
-      totalChildren += r.children || 0;
-      if (r.childAge) childAges.push(...r.childAge);
-    });
-
-    let guestStr = `${totalAdults} Adult(s)`;
-    if (totalChildren > 0) {
-      guestStr += `, ${totalChildren} Child(ren)`;
-      if (childAges.length > 0) {
-        guestStr += ` (Ages: ${childAges.join(", ")})`;
-      }
-    }
-
-    const searchedIds = lastSearchBody.hids?.length || 0;
+    const searchedIds = lastSearchBody.hids?.length || lastSearchBody.hotelCodes?.length || 0;
     const returnedHotels = data?.hotels?.length || 0;
-    const roomCount = lastSearchBody.rooms?.length || 0;
-    const currency = lastSearchBody.currency || "INR";
-
-    summary.innerHTML = `
-      Searched <strong>${searchedIds}</strong> hotel(s), found <strong>${returnedHotels}</strong> hotel(s) in result.<br>
-      <span style="display:inline-block; margin-top:8px;">
-        <strong>${roomCount}</strong> Room(s) for <strong>${guestStr}</strong> &middot; 
-        <strong>${stayNights}</strong> Night(s) (${lastSearchBody.checkIn} &rarr; ${lastSearchBody.checkOut}) &middot; 
-        <strong>${currency}</strong>
-      </span>
+    const location = lastSearchBody.location || null;
+    
+    // Beautiful and modern results summary at the top
+    const resultsSummaryHtml = `
+      <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #c6f6d5 100%); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
+        <!-- Decorative background elements -->
+        <div style="position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        
+        <div style="display: flex; align-items: flex-start; gap: 20px; position: relative; z-index: 1;">
+          <!-- Icon Container -->
+          <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3); animation: pulse 2s ease-in-out infinite;">
+            <i class="ph ph-check-circle"></i>
+          </div>
+          
+          <!-- Content -->
+          <div style="flex: 1;">
+            <h3 style="margin: 0 0 12px 0; font-size: 1.4rem; font-weight: 800; color: #065f46; letter-spacing: -0.5px;">Search Results</h3>
+            
+            <!-- Stats Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+              <!-- Stat 1: Hotel Codes Hit -->
+              <div style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+                  <i class="ph ph-target"></i>
+                </div>
+                <div>
+                  <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #92400e;">Hit</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #059669;">${searchedIds}</div>
+                </div>
+              </div>
+              
+              <!-- Stat 2: Hotels Returned -->
+              <div style="background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+                  <i class="ph ph-buildings"></i>
+                </div>
+                <div>
+                  <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e3a8a;">Response</div>
+                  <div style="font-size: 1.1rem; font-weight: 800; color: #059669;">${returnedHotels}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Description -->
+            <div style="background: rgba(255, 255, 255, 0.5); border-left: 3px solid #10b981; border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; color: #047857; line-height: 1.5;">
+              <span style="font-weight: 600;">You hit</span> <strong style="color: #059669; font-size: 0.95rem;">${searchedIds} hotel code${searchedIds !== 1 ? 's' : ''}</strong> 
+              <span style="font-weight: 600;">and in the response it is coming</span> 
+              <strong style="color: #059669; font-size: 0.95rem;">${returnedHotels} hotel${returnedHotels !== 1 ? 's' : ''}</strong>
+              ${location ? ` <span style="font-weight: 600;">in</span> <strong style="text-transform: capitalize; color: #059669;">${location}</strong>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+      </style>
     `;
+
+    summary.innerHTML = resultsSummaryHtml;
+    
+    // Add search criteria below the "Matching Hotels" heading
+    const searchCriteriaHtml = generateSearchCriteriaDisplay(lastSearchBody, location, false);
+    
+    // Insert search criteria after the panel-header
+    const panelHeader = document.querySelector('.panel-header');
+    if (panelHeader) {
+      // Remove any existing search criteria
+      const existingCriteria = document.getElementById('search-criteria-box');
+      if (existingCriteria) {
+        existingCriteria.remove();
+      }
+      
+      // Create a wrapper div for search criteria
+      const criteriaDiv = document.createElement('div');
+      criteriaDiv.id = 'search-criteria-box';
+      criteriaDiv.innerHTML = searchCriteriaHtml;
+      
+      // Insert after panel-header
+      panelHeader.parentNode.insertBefore(criteriaDiv, panelHeader.nextSibling);
+    }
   }
 }
 
 function backToSearch() {
   // Clear any existing search to guarantee fresh UI state
+  sessionStorage.removeItem('tj_page_state');
   window.location.href = '/ui/search';
 }
 
@@ -811,7 +1445,10 @@ function backToResults() {
 }
 
 async function fetchHotelDetails(hotelId, optionId) {
-  if (!globalSearchBody) return;
+  
+  if (!globalSearchBody) {
+    return;
+  }
 
   const searchPage = document.getElementById("search-page");
   const resultsPage = document.getElementById("results-page");
@@ -840,7 +1477,14 @@ async function fetchHotelDetails(hotelId, optionId) {
   }
 
   header.innerHTML = `<h2 class="hotel-name">Loading Details...</h2>`;
-  resultsContainer.innerHTML = `
+  
+  // Add search criteria display to detail page at the top
+  let searchCriteriaHtml = '';
+  if (globalSearchBody) {
+    searchCriteriaHtml = generateSearchCriteriaDisplay(globalSearchBody, globalSearchBody.location, false);
+  }
+  
+  resultsContainer.innerHTML = searchCriteriaHtml + `
     <div class="empty-state">
       <div class="loader" style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;"></div>
       <p>Fetching hotel details...</p>
@@ -868,32 +1512,50 @@ async function fetchHotelDetails(hotelId, optionId) {
 
     const startTime = performance.now();
 
-    // Fetch both dynamic and static details in parallel
-    const [dynamicRes, staticRes] = await Promise.all([
-      fetch(`${API_BASE}/dynamic-detail`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dynamicBody)
-      }),
-      fetch(`${API_BASE}/static-detail`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(staticBody)
-      })
-    ]);
+    // Fetch static details first and show immediately
+    const staticRes = await fetch(`${API_BASE}/static-detail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(staticBody)
+    });
+
+    const staticData = await staticRes.json();
+    const staticDurationMs = Math.round(performance.now() - startTime);
+    
+    console.log('API_STATIC_DETAIL_REQUEST', { duration: staticDurationMs, status: staticRes.status, ok: staticData.ok });
+    
+    // Track response time
+    journeyResponseTimes.staticDetail = staticDurationMs;
+    displayResponseTimes();
+
+    // Show static content immediately
+    if (staticData && staticData.ok !== false) {
+      renderStaticDetailsOnly(staticData, staticDurationMs);
+    }
+
+    // Then fetch dynamic details
+    const dynamicRes = await fetch(`${API_BASE}/dynamic-detail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dynamicBody)
+    });
 
     const dynamicData = await dynamicRes.json();
-    const staticData = await staticRes.json();
     const durationMs = Math.round(performance.now() - startTime);
+    
+    console.log('API_DYNAMIC_DETAIL_REQUEST', { duration: durationMs, status: dynamicRes.status, ok: dynamicData.ok });
+    
+    // Track response time
+    journeyResponseTimes.dynamicDetail = durationMs;
+    displayResponseTimes();
 
     if (!dynamicRes.ok || dynamicData.ok === false) {
       errorBox.classList.remove("hidden");
-      errorBox.querySelector(".message").textContent = "Failed to load hotel details.";
+      errorBox.querySelector(".message").textContent = "Failed to load room options.";
       const rawHtml = JSON.stringify(dynamicData, null, 2);
       const pre = errorBox.querySelector(".raw-error");
       pre.textContent = rawHtml;
       pre.classList.remove("hidden");
-      resultsContainer.innerHTML = "";
       return;
     }
 
@@ -906,11 +1568,26 @@ async function fetchHotelDetails(hotelId, optionId) {
       staticDetails: staticData
     };
 
+    // Store detail data globally for review requests
+    window.globalDetailData = combinedData;
+    // Also store the hotelId that was used for the detail request
+    window.globalDetailData.requestedHotelId = hotelId;
+
+    // SAVE STATE TO SESSIONSTORE FOR PAGE REFRESH
+    const stateToSave = {
+      page: 'detail',
+      searchBody: globalSearchBody,
+      detailData: combinedData,
+      requestedHotelId: hotelId,
+      requestedOptionId: optionId,
+      timestamp: Date.now()
+    };
+    sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
+
     renderHotelDetails(combinedData);
   } catch (err) {
     errorBox.classList.remove("hidden");
     errorBox.querySelector(".message").textContent = err.message;
-    resultsContainer.innerHTML = "";
   }
 }
 
@@ -924,44 +1601,420 @@ function openImageZoom(imageUrl) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
+    background: rgba(0, 0, 0, 0.95);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 10000;
     animation: fadeIn 0.3s ease-out;
+    backdrop-filter: blur(10px);
   `;
   
   modal.innerHTML = `
-    <div style="position: relative; max-width: 90vw; max-height: 90vh;">
-      <img src="${imageUrl}" alt="Hotel" style="max-width: 100%; max-height: 100%; border-radius: 8px;">
-      <button onclick="closeImageZoom()" style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center;">
-        <i class="ph ph-x"></i>
+    <div style="position: relative; max-width: 95vw; max-height: 95vh; display: flex; align-items: center; justify-content: center;">
+      <img src="${imageUrl}" alt="Hotel" style="max-width: 100%; max-height: 95vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: zoomIn 0.4s ease-out;">
+      
+      <!-- Close Button -->
+      <button onclick="closeImageZoom()" style="position: absolute; top: -50px; right: -50px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4); transition: all 0.3s ease; z-index: 10001;" onmouseover="this.style.transform='scale(1.1) rotate(90deg)'; this.style.boxShadow='0 6px 24px rgba(239, 68, 68, 0.6)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 4px 16px rgba(239, 68, 68, 0.4)';">
+        <i class="ph ph-x" style="font-weight: bold;"></i>
       </button>
+      
+      <!-- Image Info Badge -->
+      <div style="position: absolute; bottom: -60px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; color: #334155; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;">
+        <i class="ph ph-info" style="color: var(--primary); font-size: 1.1rem;"></i>
+        Click outside or press ESC to close
+      </div>
     </div>
   `;
   
   document.body.appendChild(modal);
+  
+  // Close on click outside
   modal.onclick = (e) => {
     if (e.target === modal) closeImageZoom();
   };
+  
+  // Close on ESC key
+  const escHandler = (e) => {
+    if (e.key === 'Escape') {
+      closeImageZoom();
+      document.removeEventListener('keydown', escHandler);
+    }
+  };
+  document.addEventListener('keydown', escHandler);
+  
+  // Prevent body scroll
+  document.body.style.overflow = 'hidden';
 }
 
 function closeImageZoom() {
   const modal = document.getElementById("image-zoom-modal");
   if (modal) {
     modal.style.animation = "fadeOut 0.3s ease-out";
-    setTimeout(() => modal.remove(), 300);
+    setTimeout(() => {
+      modal.remove();
+      document.body.style.overflow = '';
+    }, 300);
   }
 }
 
-function renderHotelDetails(data) {
+function renderStaticDetailsOnly(staticData, durationMs) {
   const header = document.getElementById("hotel-detail-header");
   const resultsContainer = document.getElementById("detail-results");
-  resultsContainer.innerHTML = ""; // Clear loader
+  const timerUI = document.getElementById("detail-timer");
 
-  // Tripjack sometimes returns a flat root object with `hotelId` and `options`,
-  // OR wraps it in `data.hotel` / `data.hotels`.
+  // Handle different response structures
+  let staticInfo = null;
+  
+  if (staticData.data && typeof staticData.data === 'object') {
+    staticInfo = staticData.data;
+  } else if (staticData.hotel && typeof staticData.hotel === 'object') {
+    staticInfo = staticData.hotel;
+  } else if (staticData.tjHotelId || staticData.name || staticData.amenities) {
+    staticInfo = staticData;
+  }
+
+  if (!staticInfo) return;
+
+  // Update header with static info
+  const name = staticInfo.name || "Hotel";
+  const city = staticInfo.locale?.address?.city || "";
+  const region = staticInfo.locale?.address?.region || "";
+  const country = staticInfo.locale?.address?.country || "";
+  const fullAddress = staticInfo.locale?.address?.fulladdr || "";
+  const starRating = staticInfo.star_rating || 0;
+  const propertyType = staticInfo.property_type?.name || staticInfo.property_type || "";
+  
+  // Build address display
+  let addressDisplay = '';
+  if (fullAddress) {
+    addressDisplay = fullAddress;
+  } else if (city || region || country) {
+    const parts = [city, region, country].filter(Boolean);
+    addressDisplay = parts.join(', ');
+  }
+  
+  header.innerHTML = `
+    <div style="animation: slideDown 0.6s ease-out;">
+      <h2 class="hotel-name" style="font-size: 2.2rem; margin: 0 0 12px 0; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        ${name}
+      </h2>
+      
+      <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+        ${starRating ? `
+          <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
+            <i class="ph-fill ph-star"></i> ${starRating} Star Hotel
+          </div>
+        ` : ''}
+        ${propertyType ? `
+          <div style="background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+            <i class="ph ph-building"></i> ${propertyType}
+          </div>
+        ` : ''}
+      </div>
+      
+      ${addressDisplay ? `
+        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.15); margin-bottom: 16px;">
+          <i class="ph ph-map-pin" style="font-size: 1.5rem; color: var(--primary); margin-top: 2px; flex-shrink: 0;"></i>
+          <div>
+            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Address</div>
+            <p style="margin: 0; color: #334155; font-size: 1rem; line-height: 1.5; font-weight: 500;">${addressDisplay}</p>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // Clear and prepare container - but preserve search criteria if it exists
+  const existingSearchCriteria = resultsContainer.querySelector('#search-criteria-box');
+  const searchCriteriaHtml = existingSearchCriteria ? existingSearchCriteria.outerHTML : '';
+  
+  resultsContainer.innerHTML = searchCriteriaHtml;
+
+  // Build static content HTML
+  let staticHTML = "";
+
+  // Hero Gallery with animations - First image large, others small
+  if (staticInfo.images && Array.isArray(staticInfo.images) && staticInfo.images.length > 0) {
+    const validImages = [];
+    staticInfo.images.forEach((img) => {
+      let imageUrl = '';
+      if (typeof img === 'string') {
+        imageUrl = img;
+      } else if (img && typeof img === 'object') {
+        if (img.links?.original?.href) {
+          imageUrl = img.links.original.href;
+        } else if (img.url) {
+          imageUrl = img.url;
+        } else if (img.imageUrl) {
+          imageUrl = img.imageUrl;
+        }
+      }
+      if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0) {
+        validImages.push(imageUrl);
+      }
+    });
+
+    if (validImages.length > 0) {
+      window.galleryImages = validImages;
+      
+      staticHTML += `
+        <div style="margin-bottom: 28px; animation: fadeInUp 0.8s ease-out;">
+          <h3 style="margin: 0 0 16px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-main);">
+            <i class="ph ph-images" style="font-size: 1.4rem; color: var(--primary);"></i> 
+            Hotel Gallery 
+            <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">(${validImages.length} photo${validImages.length !== 1 ? 's' : ''})</span>
+          </h3>
+          
+          <!-- Main Image with Click to Zoom -->
+          <div style="margin-bottom: 16px; position: relative;">
+            <div class="gallery-main" data-idx="0" style="width: 100%; height: 400px; border-radius: 16px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.15); position: relative;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='scale(1.01)'; this.querySelector('.zoom-overlay').style.opacity='1';" onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'; this.querySelector('.zoom-overlay').style.opacity='0';">
+              <img id="main-gallery-image" src="${validImages[0]}" alt="Hotel main image" style="width: 100%; height: 100%; object-fit: cover;">
+              <div class="zoom-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+                <div style="background: white; color: var(--text-main); padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
+                  <i class="ph ph-magnifying-glass-plus" style="font-size: 1.3rem;"></i>
+                  Click to view full size
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Thumbnail Grid -->
+          ${validImages.length > 1 ? `
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; max-height: 240px; overflow-y: auto; padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.1);">
+              ${validImages.map((img, idx) => `
+                <div class="gallery-thumb" data-idx="${idx}" style="aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid ${idx === 0 ? 'var(--primary)' : 'transparent'}; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); position: relative;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='scale(1.08)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.3)'; this.querySelector('.thumb-overlay').style.opacity='1';" onmouseout="this.style.borderColor='${idx === 0 ? 'var(--primary)' : 'transparent'}'; this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'; this.querySelector('.thumb-overlay').style.opacity='0';">
+                  <img src="${img}" alt="Hotel image ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;">
+                  <div class="thumb-overlay" style="position: absolute; inset: 0; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+                    <i class="ph ph-eye" style="color: white; font-size: 1.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+  }
+
+  // About Section - More compact
+  if (staticInfo.name || staticInfo.property_type) {
+    staticHTML += `
+      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.1s both;">
+        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(139, 92, 246, 0.06) 100%); border-radius: 12px; padding: 16px; border: 1px solid rgba(59, 130, 246, 0.15);">
+          <h3 style="margin: 0 0 8px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+            <i class="ph ph-info" style="font-size: 1.3rem; color: var(--primary);"></i> About
+          </h3>
+          <p style="margin: 0 0 8px 0; color: var(--text-muted); line-height: 1.5; font-size: 0.9rem;">
+            ${staticInfo.name}
+          </p>
+          ${staticInfo.property_type ? `
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500;">
+              <i class="ph ph-building" style="font-size: 1rem;"></i> ${staticInfo.property_type.name || staticInfo.property_type}
+            </span>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // Amenities Section - Simple and modern
+  if (staticInfo.amenities && typeof staticInfo.amenities === 'object') {
+    const amenitiesArray = Object.values(staticInfo.amenities);
+    if (amenitiesArray.length > 0) {
+      const uniqueAmenities = {};
+      amenitiesArray.forEach(amenity => {
+        const amenityText = typeof amenity === 'string' ? amenity : (amenity.name || amenity.id);
+        if (amenityText) uniqueAmenities[amenityText] = true;
+      });
+      
+      const amenityList = Object.keys(uniqueAmenities);
+      const showCount = 8;
+      const hasMore = amenityList.length > showCount;
+      
+      staticHTML += `
+        <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.2s both;">
+          <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+            <i class="ph ph-sparkle" style="font-size: 1.3rem; color: var(--primary);"></i> Amenities
+          </h3>
+          <div id="amenities-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">
+            ${amenityList.slice(0, showCount).map((amenity, idx) => `
+              <div style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='var(--primary)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
+                <i class="ph ph-check-circle" style="font-size: 1rem; color: #10b981;"></i>
+                <span>${amenity}</span>
+              </div>
+            `).join('')}
+          </div>
+          ${hasMore ? `
+            <div style="margin-top: 12px;">
+              <button id="show-more-amenities" onclick="toggleAmenities()" style="background: white; border: 1px solid #e2e8f0; color: #475569; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='#f8fafc'; this.style.borderColor='var(--primary)'; this.style.color='var(--primary)';" onmouseout="this.style.background='white'; this.style.borderColor='#e2e8f0'; this.style.color='#475569';">
+                <i class="ph ph-plus"></i> Show ${amenityList.length - showCount} more amenities
+              </button>
+            </div>
+            <div id="hidden-amenities" style="display: none; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px;">
+              ${amenityList.slice(showCount).map((amenity, idx) => `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='var(--primary)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)';">
+                  <i class="ph ph-check-circle" style="font-size: 1rem; color: #10b981;"></i>
+                  <span>${amenity}</span>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      // Store amenity data globally for the toggle function
+      window.amenityData = { total: amenityList.length, showCount };
+    }
+  }
+
+  // Contact Info Section - Simple and modern
+  if (staticInfo.locale) {
+    const addr = staticInfo.locale.address || {};
+    staticHTML += `
+      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.3s both;">
+        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+          <i class="ph ph-map-pin" style="font-size: 1.3rem; color: var(--primary);"></i> Location
+        </h3>
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+          ${addr.fulladdr ? `
+            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+              <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Address</div>
+              <p style="margin: 0; color: #334155; font-size: 0.9rem; line-height: 1.4;">${addr.fulladdr}</p>
+            </div>
+          ` : ''}
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+            ${addr.city ? `
+              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
+                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">City</div>
+                <div style="font-size: 0.85rem; font-weight: 500; color: #334155;">${addr.city}</div>
+              </div>
+            ` : ''}
+            ${addr.region ? `
+              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
+                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Region</div>
+                <div style="font-size: 0.85rem; font-weight: 500; color: #334155;">${addr.region}</div>
+              </div>
+            ` : ''}
+            ${staticInfo.locale.coordinates ? `
+              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
+                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Coordinates</div>
+                <div style="font-size: 0.8rem; font-weight: 500; color: #334155;">${staticInfo.locale.coordinates.lat}, ${staticInfo.locale.coordinates.long}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Policies Section - Simple and modern
+  if (staticInfo.policies?.checkInCheckOut) {
+    const policy = staticInfo.policies.checkInCheckOut;
+    staticHTML += `
+      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.4s both;">
+        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+          <i class="ph ph-clock" style="font-size: 1.3rem; color: var(--primary);"></i> Check-in & Check-out
+        </h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+          <!-- Check-in Card -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.1)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <i class="ph ph-sign-in" style="font-size: 1rem; color: #3b82f6;"></i>
+              <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</div>
+            </div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 2px;">${policy.checkin_from || 'N/A'}</div>
+            ${policy.checkin_till ? `<div style="font-size: 0.7rem; color: #64748b;">Until ${policy.checkin_till}</div>` : ''}
+            ${policy.checkin_min_age ? `<div style="font-size: 0.65rem; color: #64748b; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f1f5f9;">Min Age: ${policy.checkin_min_age} years</div>` : ''}
+          </div>
+          
+          <!-- Check-out Card -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#f59e0b'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.1)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+              <i class="ph ph-sign-out" style="font-size: 1rem; color: #f59e0b;"></i>
+              <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</div>
+            </div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 2px;">${policy.checkout_from || 'N/A'}</div>
+            <div style="font-size: 0.7rem; color: #64748b;">Before this time</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Add gallery click handlers
+  const staticDiv = document.createElement("div");
+  staticDiv.innerHTML = staticHTML;
+  resultsContainer.appendChild(staticDiv);
+
+  // Add click handlers for main image and thumbnails
+  const mainImage = staticDiv.querySelector('.gallery-main');
+  if (mainImage) {
+    mainImage.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-idx'), 10);
+      if (window.galleryImages && window.galleryImages[idx]) {
+        openImageZoom(window.galleryImages[idx]);
+      }
+    });
+  }
+
+  const thumbs = staticDiv.querySelectorAll('.gallery-thumb');
+  thumbs.forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-idx'), 10);
+      if (window.galleryImages && window.galleryImages[idx]) {
+        // Update main image
+        const mainImg = document.getElementById('main-gallery-image');
+        if (mainImg) {
+          mainImg.src = window.galleryImages[idx];
+          // Update main image data-idx
+          const mainContainer = mainImg.parentElement;
+          if (mainContainer) {
+            mainContainer.setAttribute('data-idx', idx);
+          }
+        }
+        
+        // Update thumbnail borders
+        thumbs.forEach((t, i) => {
+          t.style.borderColor = i === idx ? 'var(--primary)' : 'transparent';
+        });
+        
+        // Open zoom
+        openImageZoom(window.galleryImages[idx]);
+      }
+    });
+  });
+
+  // Add loading indicator for room details
+  resultsContainer.innerHTML += `
+    <div style="margin-top: 48px; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out 0.6s both;">
+      <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border-radius: 16px; padding: 32px; border: 2px dashed rgba(59, 130, 246, 0.3); text-align: center;">
+        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
+          <div style="width: 50px; height: 50px; border: 4px solid rgba(59, 130, 246, 0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        </div>
+        <h3 style="margin: 0 0 8px 0; font-size: 1.2rem; font-weight: 700; color: var(--text-main);">
+          <i class="ph ph-bed" style="margin-right: 8px; color: var(--primary);"></i> Loading Room Options
+        </h3>
+        <p style="margin: 0; color: var(--text-muted); font-size: 1rem;">
+          We're fetching the best room options for you. Please wait...
+        </p>
+        <div style="margin-top: 16px; display: flex; justify-content: center; gap: 6px;">
+          <div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.3s;"></div>
+          <div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 1.5s ease-in-out infinite 0.6s;"></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  timerUI.innerHTML = formatDuration(durationMs);
+  timerUI.classList.remove("hidden");
+}
+
+function renderHotelDetails(data) {
+  const resultsContainer = document.getElementById("detail-results");
+
+  // Extract hotel data
   let hotel;
   if (data.hotelId || data.hotelName || data.options) hotel = data;
   else if (data.hotel && !Array.isArray(data.hotel)) hotel = data.hotel;
@@ -969,8 +2022,14 @@ function renderHotelDetails(data) {
   else if (data.hotels && Array.isArray(data.hotels)) hotel = data.hotels[0];
 
   if (!hotel) {
-    resultsContainer.innerHTML = `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>No details found for this hotel.</p></div>`;
+    resultsContainer.innerHTML += `<div class="empty-state"><i class="ph ph-warning-circle"></i><p>No details found for this hotel.</p></div>`;
     return;
+  }
+
+  // Remove loading indicator
+  const loadingDiv = resultsContainer.querySelector('[style*="dashed"]');
+  if (loadingDiv) {
+    loadingDiv.parentElement.remove();
   }
 
   // Check if price changed
@@ -984,84 +2043,6 @@ function renderHotelDetails(data) {
     }
   }
 
-  // Header Details
-  const name = hotel.name || hotel.hotelName || "Unknown Hotel";
-  let locationStr = hotel.city || "";
-  if (hotel.country) locationStr += (locationStr ? ", " : "") + hotel.country;
-  let stars = hotel.starRating ? ` · <span style="color:#eab308"><i class="ph-fill ph-star"></i> ${hotel.starRating}</span>` : "";
-
-  header.innerHTML = `
-    <h2 class="hotel-name" style="font-size: 1.8rem;">
-      ${name}
-      <span class="hotel-id-badge" style="font-size: 0.8rem; align-self: center;">ID: ${hotel.hotelId}</span>
-    </h2>
-    <div class="hotel-location" style="font-size: 1rem; margin-top: 8px;">
-      <i class="ph ph-map-pin"></i> ${locationStr}${stars}
-    </div>
-  `;
-
-  // Display static details if available
-  if (data.staticDetails && data.staticDetails.ok) {
-    const staticData = data.staticDetails.data || data.staticDetails;
-    let staticHTML = "";
-
-    // Images/Gallery
-    if (staticData.images && staticData.images.length > 0) {
-      staticHTML += `
-        <div style="margin-top: 24px; margin-bottom: 24px;">
-          <h3 style="margin-bottom: 12px;"><i class="ph ph-image"></i> Gallery</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
-      `;
-      staticData.images.slice(0, 6).forEach(img => {
-        staticHTML += `
-          <div style="border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer;" onclick="openImageZoom('${img}')">
-            <img src="${img}" alt="Hotel" style="width: 100%; height: 150px; object-fit: cover;">
-          </div>
-        `;
-      });
-      staticHTML += `</div></div>`;
-    }
-
-    // Description
-    if (staticData.description) {
-      staticHTML += `
-        <div style="margin-bottom: 24px; padding: 16px; background: rgba(59, 130, 246, 0.05); border-radius: 8px; border-left: 4px solid var(--primary);">
-          <h3 style="margin-top: 0;"><i class="ph ph-info"></i> About</h3>
-          <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">${staticData.description}</p>
-        </div>
-      `;
-    }
-
-    // Amenities
-    if (staticData.amenities && staticData.amenities.length > 0) {
-      staticHTML += `
-        <div style="margin-bottom: 24px;">
-          <h3 style="margin-bottom: 12px;"><i class="ph ph-star"></i> Amenities</h3>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-      `;
-      staticData.amenities.forEach(amenity => {
-        staticHTML += `<span class="data-pill pill-primary"><i class="ph ph-check-circle"></i> ${amenity}</span>`;
-      });
-      staticHTML += `</div></div>`;
-    }
-
-    // Address & Contact
-    if (staticData.address || staticData.phone || staticData.email) {
-      staticHTML += `
-        <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 8px;">
-          <h3 style="margin-top: 0;"><i class="ph ph-map-pin"></i> Contact Info</h3>
-      `;
-      if (staticData.address) staticHTML += `<p style="margin: 4px 0;"><strong>Address:</strong> ${staticData.address}</p>`;
-      if (staticData.phone) staticHTML += `<p style="margin: 4px 0;"><strong>Phone:</strong> ${staticData.phone}</p>`;
-      if (staticData.email) staticHTML += `<p style="margin: 4px 0;"><strong>Email:</strong> ${staticData.email}</p>`;
-      staticHTML += `</div>`;
-    }
-
-    if (staticHTML) {
-      resultsContainer.innerHTML = staticHTML;
-    }
-  }
-
   if (!hotel.options || hotel.options.length === 0) {
     document.getElementById("detail-room-count").textContent = "(0 Total)";
     resultsContainer.innerHTML += `<div class="empty-state"><i class="ph ph-bed"></i><p>No room options currently available.</p></div>`;
@@ -1069,6 +2050,119 @@ function renderHotelDetails(data) {
   }
 
   document.getElementById("detail-room-count").textContent = `(${hotel.options.length} Total)`;
+
+  // Add room options section header with welcoming message and filters
+  resultsContainer.innerHTML += `
+    <div style="margin-top: 40px; margin-bottom: 28px; animation: fadeInUp 0.8s ease-out both;">
+      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.2);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);">
+            <i class="ph ph-check-circle"></i>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: #1e293b;">Excellent! We Found ${hotel.options.length} Room Option${hotel.options.length !== 1 ? 's' : ''}</h3>
+            <p style="margin: 4px 0 0 0; color: #64748b; font-size: 1rem; line-height: 1.5;">Book this hotel and enjoy your trip! All room types are available for your perfect stay.</p>
+          </div>
+        </div>
+        <div style="text-align: center; padding: 0 20px;">
+          <div style="background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); color: white; padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); margin-bottom: 8px;">
+            <i class="ph ph-heart" style="margin-right: 6px;"></i> Ready to Book?
+          </div>
+          <p style="margin: 0; font-size: 0.85rem; color: #64748b; font-weight: 500;">Please review and book your preferred room</p>
+        </div>
+      </div>
+      
+      <!-- Filter Section -->
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+          <i class="ph ph-funnel" style="font-size: 1.2rem; color: var(--primary);"></i>
+          <h4 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main);">Filter Room Options</h4>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+          <!-- Room Name Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Room Name / ID</label>
+            <input type="text" id="filter-room-name" placeholder="Search rooms..." style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onkeyup="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+          </div>
+          
+          <!-- Meal Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Meal Plan</label>
+            <select id="filter-meal" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">All Meal Plans</option>
+              <option value="room only">Room Only</option>
+              <option value="breakfast">Breakfast</option>
+              <option value="half board">Half Board</option>
+              <option value="full board">Full Board</option>
+              <option value="all inclusive">All Inclusive</option>
+            </select>
+          </div>
+          
+          <!-- GST Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">GST Type</label>
+            <select id="filter-gst" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">All GST Types</option>
+              <option value="igst">IGST</option>
+              <option value="cgst">CGST</option>
+              <option value="sgst">SGST</option>
+              <option value="na">No GST</option>
+            </select>
+          </div>
+          
+          <!-- Refund Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Refundable</label>
+            <select id="filter-refund" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">All Types</option>
+              <option value="true">Refundable</option>
+              <option value="false">Non-Refundable</option>
+            </select>
+          </div>
+          
+          <!-- PAN Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">PAN Required</label>
+            <select id="filter-pan" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">All</option>
+              <option value="true">Required</option>
+              <option value="false">Not Required</option>
+            </select>
+          </div>
+          
+          <!-- Passport Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Passport Required</label>
+            <select id="filter-passport" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">All</option>
+              <option value="true">Required</option>
+              <option value="false">Not Required</option>
+            </select>
+          </div>
+          
+          <!-- Price Sort Filter -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Sort by Price</label>
+            <select id="filter-price" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+              <option value="">Default Order</option>
+              <option value="low-high">Price: Low to High</option>
+              <option value="high-low">Price: High to Low</option>
+            </select>
+          </div>
+          
+          <!-- Clear Filters Button -->
+          <div style="display: flex; align-items: end;">
+            <button onclick="clearRoomFilters()" style="width: 100%; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; font-weight: 500; color: #64748b; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='var(--primary)'; this.style.color='var(--primary)'" onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0'; this.style.color='#64748b'">
+              <i class="ph ph-x"></i> Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div style="height: 2px; background: linear-gradient(90deg, var(--primary) 0%, transparent 100%); border-radius: 1px;"></div>
+    </div>
+  `;
 
   // Reset filter inputs
   document.getElementById("filter-room-name").value = "";
@@ -1079,15 +2173,13 @@ function renderHotelDetails(data) {
   document.getElementById("filter-passport").value = "";
   document.getElementById("filter-price").value = "";
 
-  // Render each option as a card inside the detail list
-  hotel.options.forEach(option => {
+  // Render each option as a card
+  hotel.options.forEach((option, idx) => {
     const card = document.createElement("div");
     card.className = "hotel-card detail-option-card fade-in";
+    card.style.animation = `slideUp 0.5s ease-out ${0.5 + idx * 0.08}s both`;
 
-    // Fallback UI mapping (reuse same logic as search options)
     const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; margin-left:6px; background:rgba(255,255,255,0.6);"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
-
-    // String for searching room IDs
     const roomIdsString = option.roomInfo?.map(r => r.id).join(" ").toLowerCase() || "";
 
     const currency = option.pricing?.currency ?? "INR";
@@ -1113,22 +2205,78 @@ function renderHotelDetails(data) {
     const commission = option.commercial?.commission ? option.commercial.commission.toFixed(2) : "0.00";
 
     let penaltiesHtml = "";
-    if (option.cancellation?.penalties?.length > 0) {
+    if (isRefundable) {
+      // Show green refundable box with table
+      let freeTillDate = "Check-in";
+      if (option.cancellation?.freeCancellationUntil) {
+        freeTillDate = new Date(option.cancellation.freeCancellationUntil).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      } else if (option.cancellation?.penalties?.length > 0 && option.cancellation.penalties[0]?.from) {
+        freeTillDate = new Date(option.cancellation.penalties[0].from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+      
+      penaltiesHtml = `
+        <div style="margin-top: 12px; background: #dcfce7; border: 2px solid #bbf7d0; border-radius: 8px; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 12px 14px; border-bottom: 2px solid #bbf7d0;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="ph ph-check-circle"></i> Fully Refundable - Free Cancellation
+            </div>
+          </div>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #d1fae5;">
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Cancellation Status</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Free Till Date</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Penalty Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #bbf7d0;">
+                <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534; font-weight: 600;"><i class="ph ph-check-circle" style="color: #10b981; margin-right: 6px;"></i>Free Cancellation</td>
+                <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${freeTillDate}</td>
+                <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #10b981;">Free</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      `;
+    } else if (option.cancellation?.penalties?.length > 0) {
+      // Show red non-refundable box with penalties table
       const penaltyRows = option.cancellation.penalties.map(p => {
         const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
         const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-        return `<div style="font-size:0.8rem; color: #b91c1c; display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-                  <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
-                </div>`;
+        return `
+          <tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding: 8px 12px; font-size: 0.8rem; color: #475569;">${fromDate || 'Now'}</td>
+            <td style="padding: 8px 12px; font-size: 0.8rem; color: #475569;">${toDate || 'Check-in'}</td>
+            <td style="padding: 8px 12px; font-size: 0.8rem; font-weight: 600; color: #dc2626;">${currency} ${p.amount.toFixed(2)}</td>
+          </tr>
+        `;
       }).join("");
-      penaltiesHtml = `<div style="margin-top:12px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius-sm); padding:10px 14px;">
-                         <div style="font-size:0.8rem; font-weight:600; color:#991b1b; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
-                         ${penaltyRows}
-                       </div>`;
+      
+      penaltiesHtml = `
+        <div style="margin-top: 12px; background: #fef2f2; border: 2px solid #fecaca; border-radius: 8px; overflow: hidden;">
+          <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); padding: 12px 14px; border-bottom: 2px solid #fecaca;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #991b1b; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="ph ph-warning-circle"></i> Non-Refundable - Cancellation Penalties
+            </div>
+          </div>
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #fef2f2;">
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">From Date</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">To Date</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">Penalty Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${penaltyRows}
+            </tbody>
+          </table>
+        </div>
+      `;
     }
 
-    // Add dataset attributes for filtering
-    card.dataset.roomName = roomNames.replace(/(<([^>]+)>)/gi, "").toLowerCase(); // strip html back to basic string
+    card.dataset.roomName = roomNames.replace(/(<([^>]+)>)/gi, "").toLowerCase();
     card.dataset.optionId = option.optionId.toLowerCase();
     card.dataset.roomId = roomIdsString;
     card.dataset.meal = mealBasis.toLowerCase();
@@ -1138,8 +2286,8 @@ function renderHotelDetails(data) {
     card.dataset.price = totalPrice;
 
     const refundPill = isRefundable
-      ? `<span class="data-pill pill-success"><i class="ph ph-check-circle"></i> Refundable</span>`
-      : `<span class="data-pill pill-danger"><i class="ph ph-warning-circle"></i> Non-Refundable</span>`;
+      ? `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check-circle"></i> Refundable</span>`
+      : `<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-x-circle"></i> Non-Refundable</span>`;
 
     card.innerHTML = `
       <div class="room-details-section">
@@ -1189,7 +2337,7 @@ function renderHotelDetails(data) {
             <span class="price-total">${currency} ${totalPrice}</span>
           </div>
         </div>
-        
+
         <button class="btn-premium" onclick="reviewRoom('${option.optionId}', '${data.correlationId}', ${option.pricing?.totalPrice ?? 0})">
           <i class="ph ph-lock-key"></i> Review & Lock
         </button>
@@ -1288,12 +2436,46 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
   try {
     const config = getConfigPayload();
     const currency = globalSearchBody?.currency || "INR";
-    const body = { optionId, correlationId, currency, env: config.env, apiKey: config.apiKey };
+    const body = { 
+      optionId, 
+      correlationId, 
+      currency, 
+      env: config.env, 
+      apiKey: config.apiKey 
+    };
+
+    // Extract hotelId and reviewHash from global detail data
+    if (window.globalDetailData) {
+      const detailData = window.globalDetailData;
+      
+      // Try to get hotelId from various possible locations in the response
+      const hotelId = detailData.hotelId || 
+                     detailData.hotel?.hotelId || 
+                     detailData.hotel?.id ||
+                     detailData.hid ||
+                     detailData.requestedHotelId ||
+                     (detailData.hotels && detailData.hotels[0]?.hotelId);
+      
+      if (hotelId) {
+        body.hotelId = hotelId;
+      }
+
+      // Try to get reviewHash from various possible locations in the response
+      const reviewHash = detailData.reviewHash || 
+                        detailData.hotel?.reviewHash ||
+                        detailData.hash ||
+                        detailData.review_hash;
+      
+      if (reviewHash) {
+        body.reviewHash = reviewHash;
+      }
+    }
 
     // Switch UI to review page with loading state
     switchToReviewPage();
 
     const t0 = performance.now();
+    
     const res = await fetch(`${API_BASE}/review`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1302,6 +2484,13 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
     const responseMs = Math.round(performance.now() - t0);
 
     const data = await res.json();
+    
+    console.log('API_REVIEW_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.review = responseMs;
+    displayResponseTimes();
+    
     if (!res.ok || data.ok === false) {
       renderReviewError(data.reason || "Review failed. Please check API configuration or response.", data);
       return;
@@ -1328,7 +2517,13 @@ function switchToReviewPage() {
   }
 
   if (reviewContent) {
-    reviewContent.innerHTML = `
+    // Add search criteria display to review page
+    let searchCriteriaHtml = '';
+    if (globalSearchBody) {
+      searchCriteriaHtml = generateSearchCriteriaDisplay(globalSearchBody, globalSearchBody.location, false);
+    }
+    
+    reviewContent.innerHTML = searchCriteriaHtml + `
         <div class="empty-state">
           <div class="loader" style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;"></div>
           <p>Fetching review details and current pricing...</p>
@@ -1380,7 +2575,9 @@ function renderReviewError(message, rawError) {
 
 function renderReviewDetails(data, responseMs) {
   const container = document.getElementById("review-content");
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   const { hotelId, hotelName, bookingId, option, correlationId } = data;
 
@@ -1445,25 +2642,64 @@ function renderReviewDetails(data, responseMs) {
     : `<span class="data-pill pill-neutral" style="opacity:0.6;"><i class="ph ph-passport"></i> Passport Not Required</span>`;
 
   let penaltiesHtml = "";
-  if (option.cancellation?.penalties?.length > 0) {
-    const penaltyRows = option.cancellation.penalties.map(p => {
-      const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-      const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
-      return `<div style="font-size:0.85rem; color: #b91c1c; display:flex; gap:6px; align-items:center; margin-bottom:4px;">
-                <i class="ph ph-warning-circle"></i> Cancel ${fromDate ? `from ${fromDate}` : ""} ${toDate ? `to ${toDate}` : ""}: <strong>${currency} ${p.amount.toFixed(2)}</strong>
-              </div>`;
-    }).join("");
-
+  if (isRefundable) {
+    // Show green refundable box with table
+    let freeTillDate = "Check-in";
+    if (option.cancellation?.freeCancellationUntil) {
+      freeTillDate = new Date(option.cancellation.freeCancellationUntil).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } else if (option.cancellation?.penalties?.length > 0 && option.cancellation.penalties[0]?.from) {
+      freeTillDate = new Date(option.cancellation.penalties[0].from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    
     penaltiesHtml = `
-      <div style="margin-top:16px; background:rgba(239, 68, 68, 0.05); border:1px solid rgba(239, 68, 68, 0.2); border-radius:var(--radius-sm); padding:16px;">
-        <div style="font-size:0.9rem; font-weight:600; color:#991b1b; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Penalties</div>
-        ${penaltyRows}
+      <div style="margin-top:16px; background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border:2px solid #bbf7d0; border-radius:12px; padding:16px; overflow:hidden;">
+        <div style="font-size:0.9rem; font-weight:700; color:#166534; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
+          <i class="ph ph-check-circle"></i> Fully Refundable - Free Cancellation
+        </div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#d1fae5; border-bottom:2px solid #bbf7d0;">
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Status</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Free Till Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Penalty Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #bbf7d0;">
+              <td style="padding:10px 12px; font-size:0.85rem; color:#166534; font-weight:600;"><i class="ph ph-check-circle" style="color:#10b981; margin-right:6px;"></i>Free Cancellation</td>
+              <td style="padding:10px 12px; font-size:0.85rem; color:#166534;">${freeTillDate}</td>
+              <td style="padding:10px 12px; font-size:0.85rem; font-weight:700; color:#10b981;">Free</td>
+            </tr>
+          </tbody>
+        </table>
       </div>`;
-  } else if (isRefundable) {
+  } else if (option.cancellation?.penalties?.length > 0) {
+    // Show red non-refundable box with penalties table
     penaltiesHtml = `
-      <div style="margin-top:16px; background:rgba(34, 197, 94, 0.05); border:1px solid rgba(34, 197, 94, 0.2); border-radius:var(--radius-sm); padding:16px;">
-        <div style="font-size:0.9rem; font-weight:600; color:#166534; margin-bottom:4px;">Fully Refundable</div>
-        <div style="font-size:0.85rem; color: #166534;">Free cancellation. No penalties listed.</div>
+      <div style="margin-top:16px; background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border:2px solid #fecaca; border-radius:12px; padding:16px; overflow:hidden;">
+        <div style="font-size:0.9rem; font-weight:700; color:#991b1b; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
+          <i class="ph ph-warning-circle"></i> Non-Refundable - Cancellation Penalties
+        </div>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#fef2f2; border-bottom:2px solid #fecaca;">
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">From Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">To Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">Penalty Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${option.cancellation.penalties.map(p => {
+              const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Now';
+              const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Check-in';
+              return `<tr style="border-bottom:1px solid #fecaca;">
+                <td style="padding:10px 12px; font-size:0.85rem; color:#7f1d1d;">${fromDate}</td>
+                <td style="padding:10px 12px; font-size:0.85rem; color:#7f1d1d;">${toDate}</td>
+                <td style="padding:10px 12px; font-size:0.85rem; font-weight:700; color:#dc2626;">${currency} ${p.amount.toFixed(2)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
       </div>`;
   }
 
@@ -1555,6 +2791,9 @@ function renderReviewDetails(data, responseMs) {
   `;
 
   container.innerHTML = `
+    <!-- Search Criteria Display -->
+    ${globalSearchBody ? generateSearchCriteriaDisplay(globalSearchBody, globalSearchBody.location, false) : ''}
+    
     ${timingBadge}
     ${priceAlert}
     
@@ -1704,6 +2943,18 @@ function renderReviewDetails(data, responseMs) {
     
     </div>
   `;
+
+  // SAVE STATE TO SESSIONSTORE FOR PAGE REFRESH
+  const stateToSave = {
+    page: 'review',
+    searchBody: globalSearchBody,
+    reviewData: data,
+    responseMs: responseMs,
+    requestedOptionId: option?.id,
+    requestedCorrelationId: correlationId,
+    timestamp: Date.now()
+  };
+  sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
 }
 
 /* =========================================
@@ -1898,12 +3149,14 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
       },
       env: config.env,
       apiKey: config.apiKey,
+      responseTimes: journeyResponseTimes,
     };
 
     if (bookingType === 'VOUCHER' && amount !== null) {
       body.amount = amount;
     }
 
+    const t0 = performance.now();
     const res = await fetch(`${API_BASE}/book`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1911,6 +3164,14 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     });
 
     const data = await res.json();
+    const responseMs = Math.round(performance.now() - t0);
+    
+    console.log('API_BOOKING_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.book = responseMs;
+    displayResponseTimes();
+    
     if (!bookingEl) return;
 
     const typeLabel = bookingType === 'HOLD' ? 'Hold' : 'Voucher';
@@ -1926,10 +3187,27 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
 
     const successColor = bookingType === 'HOLD' ? '#4338ca' : '#16a34a';
     const successIcon = bookingType === 'HOLD' ? 'ph-clock-countdown' : 'ph-check-circle';
+    const successTitle = bookingType === 'HOLD' ? 'Hold Placed Successfully!' : 'Congratulations! Booking Created Successfully';
+    const successMsg = bookingType === 'HOLD' ? 'Your hold has been placed' : 'Your booking has been confirmed';
+    
     bookingEl.innerHTML = `
-      <div class="alert-box success fade-in" style="border-color:${successColor}; background:${successColor}11;">
-        <i class="ph ${successIcon}" style="color:${successColor};"></i>
-        <span class="message" style="color:${successColor};">${typeLabel} booking ${bookingType === 'HOLD' ? 'placed' : 'confirmed'} successfully!</span>
+      <div class="alert-box success fade-in" style="border-color:${successColor}; background:${successColor}11; flex-direction: column; align-items: flex-start; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+          <i class="ph ${successIcon}" style="color:${successColor}; font-size: 1.4rem;"></i>
+          <div>
+            <div style="color:${successColor}; font-weight: 700; font-size: 1.1rem;">${successTitle}</div>
+            <div style="color:${successColor}; font-size: 0.9rem; margin-top: 4px;">${successMsg}</div>
+          </div>
+        </div>
+        
+        <div style="width: 100%; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 12px; margin-top: 8px;">
+          <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;"><strong>Booking ID:</strong> ${data.bookingId || bookingId}</div>
+          <div style="font-size: 0.85rem; color: #666;"><strong>Status:</strong> ${data.status || 'Confirmed'}</div>
+        </div>
+        
+        <button onclick="viewBookingDetail('${data.bookingId || bookingId}')" style="width: 100%; padding: 12px 16px; background: linear-gradient(135deg, ${successColor} 0%, ${successColor}dd 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; font-size: 0.95rem;">
+          <i class="ph ph-arrow-right"></i> View Booking Details
+        </button>
       </div>
       <pre style="margin-top:12px; font-size:0.78rem; background:#f8faff; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
   } catch (err) {
@@ -1940,6 +3218,187 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
         <span class="message">Unexpected error while creating booking.</span>
       </div>`;
   }
+}
+
+// Function to view booking details
+async function viewBookingDetail(bookingId) {
+  const config = getConfigPayload();
+  const body = {
+    bookingId,
+    env: config.env,
+    apiKey: config.apiKey
+  };
+  
+  // Show loading state
+  const bookingEl = document.getElementById("booking");
+  if (bookingEl) {
+    bookingEl.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="loader" style="margin-bottom:16px; border-color:var(--primary); border-top-color:transparent; width:30px; height:30px;"></div>
+        <p>Fetching booking details...</p>
+      </div>`;
+  }
+  
+  try {
+    const t0 = performance.now();
+    const res = await fetch(`${API_BASE}/booking-detail`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const responseMs = Math.round(performance.now() - t0);
+    
+    const data = await res.json();
+    
+    console.log('API_BOOKING_DETAIL_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.bookingDetail = responseMs;
+    displayResponseTimes();
+    
+    if (!res.ok || data.ok === false) {
+      if (bookingEl) {
+        bookingEl.innerHTML = `
+          <div class="alert-box error fade-in" style="flex-direction: column; align-items: flex-start;">
+            <div style="display: flex; gap: 8px; align-items: center; font-weight: 600;">
+              <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i> Failed to Load Booking Details
+            </div>
+            <div style="margin-top: 8px; font-size: 0.9rem;">${data.reason || data.message || 'Please try again'}</div>
+          </div>`;
+      }
+      return;
+    }
+    
+    // Navigate to booking detail page
+    window.globalBookingDetail = data;
+    renderBookingDetail(data);
+    
+  } catch (err) {
+    if (bookingEl) {
+      bookingEl.innerHTML = `
+        <div class="alert-box error fade-in">
+          <i class="ph ph-warning"></i>
+          <span class="message">Error fetching booking details: ${err.message}</span>
+        </div>`;
+    }
+  }
+}
+
+// Function to render booking detail page
+function renderBookingDetail(data) {
+  // Hide all pages
+  document.getElementById("search-page")?.classList.add("hidden");
+  document.getElementById("results-page")?.classList.add("hidden");
+  document.getElementById("detail-page")?.classList.add("hidden");
+  document.getElementById("review-page")?.classList.add("hidden");
+  
+  // Show booking detail page
+  const bookingDetailPage = document.getElementById("booking-detail-page");
+  if (bookingDetailPage) {
+    bookingDetailPage.classList.remove("hidden");
+    bookingDetailPage.classList.add("fade-in");
+  }
+  
+  // Update URL
+  if (window.location.pathname !== '/ui/booking-detail') {
+    history.pushState({ view: 'booking-detail' }, '', '/ui/booking-detail');
+  }
+  
+  const container = document.getElementById("booking-detail-content");
+  if (!container) return;
+  
+  // Extract booking details
+  const bookingId = data.bookingId || data.id || 'N/A';
+  const hotelName = data.hotelName || data.hotel?.name || 'Hotel';
+  const checkIn = data.checkIn || data.checkInDate || 'N/A';
+  const checkOut = data.checkOut || data.checkOutDate || 'N/A';
+  const totalPrice = data.totalPrice || data.amount || 0;
+  const currency = data.currency || 'INR';
+  const status = data.status || 'Confirmed';
+  const confirmationNumber = data.confirmationNumber || data.bookingId || 'N/A';
+  
+  const bookingDetailsHtml = `
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- Success Banner -->
+      <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 2px solid #10b981; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0;">
+          <i class="ph ph-check-circle"></i>
+        </div>
+        <div>
+          <div style="font-size: 1.3rem; font-weight: 800; color: #065f46;">Booking Confirmed!</div>
+          <div style="font-size: 0.95rem; color: #047857; margin-top: 4px;">Your reservation has been successfully created</div>
+        </div>
+      </div>
+      
+      <!-- Booking Details Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <!-- Booking ID -->
+        <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #4338ca; margin-bottom: 8px;">Booking ID</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b; word-break: break-all;">${bookingId}</div>
+        </div>
+        
+        <!-- Confirmation Number -->
+        <div style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #059669; margin-bottom: 8px;">Confirmation #</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #065f46; word-break: break-all;">${confirmationNumber}</div>
+        </div>
+        
+        <!-- Hotel Name -->
+        <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Hotel</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${hotelName}</div>
+        </div>
+        
+        <!-- Status -->
+        <div style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px;">
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #059669; margin-bottom: 8px;">Status</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 6px;">
+            <i class="ph ph-check-circle" style="color: #10b981;"></i> ${status}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dates and Price -->
+      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+        <!-- Check-in -->
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Check-in</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${checkIn}</div>
+        </div>
+        
+        <!-- Check-out -->
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Check-out</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${checkOut}</div>
+        </div>
+        
+        <!-- Total Price -->
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Total Price</div>
+          <div style="font-size: 1.2rem; font-weight: 800; color: #059669;">${currency} ${totalPrice.toFixed(2)}</div>
+        </div>
+      </div>
+      
+      <!-- Full Response -->
+      <div style="background: #f8faff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: #4338ca; margin-bottom: 12px;">Full Booking Response</div>
+        <pre style="font-size: 0.75rem; color: #1e1b4b; overflow-x: auto; max-height: 300px; margin: 0;">${JSON.stringify(data, null, 2)}</pre>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 12px; margin-top: 12px;">
+        <button onclick="backToSearch()" style="flex: 1; padding: 12px 16px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
+          <i class="ph ph-arrow-left"></i> Back to Search
+        </button>
+        <button onclick="window.print()" style="flex: 1; padding: 12px 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
+          <i class="ph ph-printer"></i> Print Booking
+        </button>
+      </div>
+    </div>
+  `;
+  
+  container.innerHTML = bookingDetailsHtml;
 }
 
 async function bookRoom(optionId, correlationId) {
@@ -2141,14 +3600,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   initializeDates();
   loadConfigState();
-
-  // Enforce statless SPA routing validation on load
-  if (window.location.pathname !== '/ui/' && window.location.pathname !== '/ui/search') {
-    // If we hard-refresh on a deep link without search state, we must kick back to search
-    if (!globalSearchBody) {
-      window.location.replace('/ui/search');
-    }
-  }
 });
 
 // History API Handlers
@@ -2156,3 +3607,30 @@ window.addEventListener('popstate', (e) => {
   // Simple fallback for browser back/forward buttons: reload to restore clean state
   window.location.reload();
 });
+
+// Toggle amenities function
+function toggleAmenities() {
+  const hiddenDiv = document.getElementById('hidden-amenities');
+  const button = document.getElementById('show-more-amenities');
+  
+  if (hiddenDiv.style.display === 'none') {
+    hiddenDiv.style.display = 'grid';
+    button.innerHTML = '<i class="ph ph-minus"></i> Show less amenities';
+  } else {
+    hiddenDiv.style.display = 'none';
+    const data = window.amenityData;
+    button.innerHTML = `<i class="ph ph-plus"></i> Show ${data.total - data.showCount} more amenities`;
+  }
+}
+
+// Clear room filters function
+function clearRoomFilters() {
+  document.getElementById("filter-room-name").value = "";
+  document.getElementById("filter-meal").value = "";
+  document.getElementById("filter-gst").value = "";
+  document.getElementById("filter-refund").value = "";
+  document.getElementById("filter-pan").value = "";
+  document.getElementById("filter-passport").value = "";
+  document.getElementById("filter-price").value = "";
+  applyRoomFilters();
+}

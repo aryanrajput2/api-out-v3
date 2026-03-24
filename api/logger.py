@@ -63,4 +63,4 @@ def _write_log(log_entry: dict):
         with open(log_file, 'a') as f:
             f.write(json.dumps(log_entry) + "\n")
     except Exception as e:
-        print(f"Error writing log: {e}")
+        pass
