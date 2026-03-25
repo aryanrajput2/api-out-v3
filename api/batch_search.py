@@ -1,4 +1,5 @@
 import asyncio
+import time
 import requests
 from requests import JSONDecodeError
 from config import API_KEY, BASE_URL
@@ -63,7 +64,9 @@ async def search_hotels_batch(data: dict):
             payload["timeoutMs"] = data["timeoutMs"]
         
         try:
+            start_time = time.time()
             response = requests.post(url, headers=headers, json=payload, timeout=60)
+            elapsed_ms = int((time.time() - start_time) * 1000)
             
             # Try to parse JSON regardless of status code
             # The API might return JSON error messages even with 403
@@ -72,7 +75,8 @@ async def search_hotels_batch(data: dict):
                 result["_batch_info"] = {
                     "batch_number": batch_number,
                     "correlation_id": correlation_id,
-                    "hotel_count": len(batch_hids)
+                    "hotel_count": len(batch_hids),
+                    "response_time_ms": elapsed_ms
                 }
                 return result
             except JSONDecodeError:
@@ -86,7 +90,8 @@ async def search_hotels_batch(data: dict):
                     "_batch_info": {
                         "batch_number": batch_number,
                         "correlation_id": correlation_id,
-                        "hotel_count": len(batch_hids)
+                        "hotel_count": len(batch_hids),
+                        "response_time_ms": elapsed_ms
                     }
                 }
         except requests.exceptions.Timeout:

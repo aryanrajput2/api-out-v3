@@ -77,6 +77,16 @@
     </header>
 
     <main>
+      <!-- Global Response Times Tracker Section -->
+      <div id="response-times-section" class="glass-panel" style="margin-top: 24px; display: none; padding: 16px 20px;">
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <h3 style="margin: 0; white-space: nowrap; display: flex; align-items: center; gap: 8px;"><i class="ph ph-timer" style="color: #3b82f6; font-size: 1.4rem;"></i> Performance</h3>
+          <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; flex: 1;">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Page 0: Login Page -->
       <section id="login-page" class="view-page hidden">
         <div class="login-container">
@@ -343,21 +353,7 @@
           </form>
         </div>
 
-        <!-- Response Times Tracker Section -->
-        <div id="response-times-section" class="glass-panel" style="margin-top: 24px; display: none;">
-          <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-              <h3><i class="ph ph-timer"></i> API Response Times</h3>
-            </div>
-          </div>
-          <div id="response-times-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; padding: 16px 0;">
-            <!-- Populated via JS -->
-          </div>
-          <div id="response-times-total" style="margin-top: 16px; padding: 16px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid rgba(3, 169, 244, 0.3); border-radius: 12px; text-align: center; display: none;">
-            <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #0369a1; margin-bottom: 8px;">Total Journey Time</div>
-            <div style="font-size: 2rem; font-weight: 800; color: #0284c7;" id="total-time-display">0ms</div>
-          </div>
-        </div>
+
 
         <!-- Recent Bookings Section -->
         <div id="recent-bookings-section" class="glass-panel" style="margin-top: 24px; display: none;">

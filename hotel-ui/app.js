@@ -19,13 +19,30 @@ function displayResponseTimes() {
   let totalMs = 0;
   let hasAnyTime = false;
   let html = '';
+  let calculationParts = [];
   
+  // Custom Card Generator for Modern UI (Header Integration)
+  const generateCard = (topText, bottomText, colorSrc) => {
+    const color = colorSrc || '#3b82f6';
+    const isTotal = topText.toLowerCase() === 'total';
+    const bg = isTotal ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : 'rgba(255, 255, 255, 0.95)';
+    const textColor = isTotal ? '#f8fafc' : color;
+    const labelColor = isTotal ? '#94a3b8' : '#64748b';
+    const border = isTotal ? '1px solid rgba(255,255,255,0.1)' : `1px solid ${color}40`;
+    
+    return `<div style="background: ${bg}; backdrop-filter: blur(8px); border: ${border}; border-radius: 8px; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.05); gap: 10px;">
+      <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; color: ${labelColor};">${topText}</div>
+      <div style="font-size: 0.85rem; font-weight: 800; color: ${textColor}; letter-spacing: -0.01em; font-family: monospace;">${bottomText}</div>
+    </div>`;
+  };
+
   // Search time
   if (journeyResponseTimes.search) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.search;
-    const seconds = (journeyResponseTimes.search / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #3b82f6; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Search</div><div style="font-size: 1.8rem; font-weight: 900; color: #3b82f6;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.search / 1000).toFixed(2);
+    calculationParts.push(`search ${s}s`);
+    html += generateCard('Search', `${s}s`, '#3b82f6');
   }
   
   // Batch search times
@@ -33,8 +50,9 @@ function displayResponseTimes() {
     hasAnyTime = true;
     journeyResponseTimes.batchSearch.forEach((time, idx) => {
       totalMs += time;
-      const seconds = (time / 1000).toFixed(2);
-      html += `<div style="background: white; border: 2px solid #8b5cf6; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Batch Search ${idx + 1}</div><div style="font-size: 1.8rem; font-weight: 900; color: #8b5cf6;">${seconds}s</div></div>`;
+      const s = (time / 1000).toFixed(2);
+      calculationParts.push(`batch ${idx + 1} ${s}s`);
+      html += generateCard(`Batch ${idx + 1}`, `${s}s`, '#8b5cf6');
     });
   }
   
@@ -42,85 +60,60 @@ function displayResponseTimes() {
   if (journeyResponseTimes.staticDetail) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.staticDetail;
-    const seconds = (journeyResponseTimes.staticDetail / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #06b6d4; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Static Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #06b6d4;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.staticDetail / 1000).toFixed(2);
+    calculationParts.push(`static ${s}s`);
+    html += generateCard('Static API', `${s}s`, '#06b6d4');
   }
   
   // Dynamic detail time
   if (journeyResponseTimes.dynamicDetail) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.dynamicDetail;
-    const seconds = (journeyResponseTimes.dynamicDetail / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #10b981; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Dynamic Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #10b981;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.dynamicDetail / 1000).toFixed(2);
+    calculationParts.push(`detail ${s}s`);
+    html += generateCard('Detail API', `${s}s`, '#10b981');
   }
   
   // Review time
   if (journeyResponseTimes.review) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.review;
-    const seconds = (journeyResponseTimes.review / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #f59e0b; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Review</div><div style="font-size: 1.8rem; font-weight: 900; color: #f59e0b;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.review / 1000).toFixed(2);
+    calculationParts.push(`review ${s}s`);
+    html += generateCard('Review', `${s}s`, '#f59e0b');
   }
   
   // Book time
   if (journeyResponseTimes.book) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.book;
-    const seconds = (journeyResponseTimes.book / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #ef4444; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Book</div><div style="font-size: 1.8rem; font-weight: 900; color: #ef4444;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.book / 1000).toFixed(2);
+    calculationParts.push(`book ${s}s`);
+    html += generateCard('Book', `${s}s`, '#ef4444');
   }
   
   // Booking detail time
   if (journeyResponseTimes.bookingDetail) {
     hasAnyTime = true;
     totalMs += journeyResponseTimes.bookingDetail;
-    const seconds = (journeyResponseTimes.bookingDetail / 1000).toFixed(2);
-    html += `<div style="background: white; border: 2px solid #ec4899; border-radius: 12px; padding: 16px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-shadow: 0 4px 12px rgba(236, 72, 153, 0.1);"><div style="font-size: 0.9rem; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Booking Detail</div><div style="font-size: 1.8rem; font-weight: 900; color: #ec4899;">${seconds}s</div></div>`;
+    const s = (journeyResponseTimes.bookingDetail / 1000).toFixed(2);
+    calculationParts.push(`booking detail ${s}s`);
+    html += generateCard('Booking Check', `${s}s`, '#ec4899');
   }
   
   if (hasAnyTime) {
-    const list = document.getElementById('response-times-list');
-    if (list) {
-      list.innerHTML = html;
-      list.style.display = 'grid !important';
-      list.style.gridTemplateColumns = 'repeat(auto-fit, minmax(160px, 1fr))';
-      list.style.gap = '12px';
-      list.style.padding = '16px 0';
-      list.style.visibility = 'visible';
-      list.style.opacity = '1';
+    const totalS = (totalMs / 1000).toFixed(2);
+    html += generateCard('Total', `${totalS}s`, '#0f172a');
+    
+    const headerBoxes = document.getElementById('header-response-boxes');
+    if (headerBoxes) {
+      headerBoxes.innerHTML = html;
     }
     
     const section = document.getElementById('response-times-section');
     if (section) {
-      section.style.display = 'block !important';
-      section.style.visibility = 'visible !important';
-      section.style.opacity = '1 !important';
-      section.style.marginTop = '24px';
-      section.style.minHeight = '200px';
-      section.style.overflow = 'visible';
+      section.style.cssText = 'display: block; visibility: visible; opacity: 1; margin-top: 16px; margin-bottom: 24px; overflow: visible;';
     }
-    
-    const totalDisplay = document.getElementById('response-times-total');
-    const totalTimeDisplay = document.getElementById('total-time-display');
-    if (totalDisplay && totalTimeDisplay) {
-      totalDisplay.style.display = 'block !important';
-      totalDisplay.style.visibility = 'visible !important';
-      totalDisplay.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-      totalDisplay.style.borderRadius = '12px';
-      totalDisplay.style.padding = '20px';
-      totalDisplay.style.marginTop = '16px';
-      totalDisplay.style.textAlign = 'center';
-      totalDisplay.style.color = 'white';
-      totalDisplay.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.2)';
-      totalTimeDisplay.textContent = formatTimeDisplay(totalMs);
-      totalTimeDisplay.style.fontSize = '2rem';
-      totalTimeDisplay.style.fontWeight = '900';
-      totalTimeDisplay.style.color = 'white';
-    }
-    
-    console.log('✅ Response times displayed - Total:', formatTimeDisplay(totalMs));
-    console.log('✅ Section visible:', section.offsetHeight > 0);
-    console.log('✅ List visible:', list.offsetHeight > 0);
   } else {
     const section = document.getElementById('response-times-section');
     if (section) {
@@ -903,7 +896,8 @@ async function searchHotels() {
     
     console.log('API_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
     
-    // Track response time
+    // Clear and track response time
+    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null };
     journeyResponseTimes.search = duration;
     displayResponseTimes();
 
@@ -991,8 +985,19 @@ async function searchLocationHotels(location) {
     
     console.log('API_BATCH_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
     
-    // Track response time
-    journeyResponseTimes.batchSearch.push(duration);
+    // Track response time by parsing batch_details
+    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null };
+    if (data.batch_details && data.batch_details.length > 0) {
+      data.batch_details.forEach(b => {
+        if (b.response_time_ms) {
+          journeyResponseTimes.batchSearch.push(b.response_time_ms);
+        }
+      });
+    }
+    if (journeyResponseTimes.batchSearch.length === 0) {
+      journeyResponseTimes.batchSearch.push(duration);
+    }
+    
     displayResponseTimes();
 
     if (!res.ok || data.ok === false) {
