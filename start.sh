@@ -9,13 +9,14 @@ lsof -t -i:8000 | xargs kill -9 2>/dev/null || true
 source .venv/bin/activate
 
 # Kill any old tunnel instances
-pkill -f ngrok 2>/dev/null || true
-pkill -f itcyou 2>/dev/null || true
+pkill -f pinggy 2>/dev/null || true
+pkill -f localtunnel 2>/dev/null || true
+pkill -f serveo 2>/dev/null || true
 
 # Prompt user for tunnel preference
 echo ""
 echo "Choose tunnel service:"
-echo "  1) ngrok (public URL)"
+echo "  1) serveo (constant static URL, opens immediately on all laptops)"
 echo "  2) Local only (no tunnel) [default]"
 echo ""
 read -p "Enter choice (1 or 2) [default: 2]: " TUNNEL_CHOICE
@@ -24,57 +25,39 @@ TUNNEL_CHOICE=${TUNNEL_CHOICE:-2}
 TUNNEL_URL=""
 
 if [ "$TUNNEL_CHOICE" = "1" ]; then
-    # Use ngrok
+    # Use serveo for a CONSTANT static URL
     echo ""
-    echo "Starting ngrok tunnel..."
+    echo "Starting serveo tunnel..."
     
-    # Try to find ngrok in multiple locations (including temp extract location)
-    NGROK_CMD=""
-    for path in "/tmp/ngrok_extract/ngrok" "$HOME/.local/bin/ngrok" "/usr/local/bin/ngrok" "/opt/homebrew/bin/ngrok" "$(which ngrok 2>/dev/null)"; do
-        if [ -x "$path" ] 2>/dev/null; then
-            NGROK_CMD="$path"
+    # We use a unique, hardcoded subdomain so it never changes
+    CUSTOM_SUBDOMAIN="tripjack-api-v3-static"
+    
+    nohup ssh -o StrictHostKeyChecking=no -R ${CUSTOM_SUBDOMAIN}:80:127.0.0.1:8000 serveo.net < /dev/null > serveo.log 2>&1 &
+    TUNNEL_PID=$!
+    echo "serveo tunnel started (PID: $TUNNEL_PID)"
+    
+    # Wait for tunnel to establish
+    echo "  Waiting for serveo to establish..."
+    sleep 5
+    
+    # Try multiple times to check serveo.log
+    for i in {1..12}; do
+        if grep -q "Forwarding HTTP traffic" serveo.log 2>/dev/null; then
+            TUNNEL_URL=$(grep "Forwarding HTTP traffic from" serveo.log | grep -o 'https://[^ ]*' | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g')
+            echo "✅ serveo established!"
             break
         fi
+        echo "  Retrying... ($i/12)"
+        sleep 1
     done
     
-    # If found in temp location, copy to standard location for future use
-    if [ -x "/tmp/ngrok_extract/ngrok" ] && [ ! -x "$HOME/.local/bin/ngrok" ]; then
-        mkdir -p "$HOME/.local/bin"
-        cp "/tmp/ngrok_extract/ngrok" "$HOME/.local/bin/ngrok"
-        chmod +x "$HOME/.local/bin/ngrok"
-        NGROK_CMD="$HOME/.local/bin/ngrok"
-        echo "✅ Copied ngrok to $HOME/.local/bin/ngrok for future use"
-    fi
-    
-    if [ -z "$NGROK_CMD" ]; then
-        echo "  ❌ ngrok not found"
-        echo "  Install with: brew install ngrok/ngrok/ngrok"
-        echo "  Falling back to local development..."
-    else
-        echo "✅ Found ngrok at: $NGROK_CMD"
-        nohup $NGROK_CMD http 8000 --log=stdout > ngrok.log 2>&1 &
-        NGROK_PID=$!
-        echo "ngrok started (PID: $NGROK_PID)"
-        
-        # Wait for tunnel to establish
-        echo "  Waiting for ngrok tunnel to establish..."
-        sleep 10
-        
-        # Try multiple times to get the URL from ngrok API
-        for i in {1..15}; do
-            TUNNEL_URL=$(curl -s localhost:4040/api/tunnels 2>/dev/null | python3 -c "import sys, json; data=sys.stdin.read(); print(json.loads(data)['tunnels'][0]['public_url'] if data else '')" 2>/dev/null)
-            if [ -n "$TUNNEL_URL" ]; then
-                echo "✅ ngrok tunnel established!"
-                break
-            fi
-            echo "  Retrying... ($i/15)"
-            sleep 1
-        done
-        
-        if [ -z "$TUNNEL_URL" ]; then
-            echo "  ⚠️  ngrok URL not ready yet — check ngrok.log for details."
-            sleep 2
-        fi
+    if grep -q "To request a particular subdomain" serveo.log 2>/dev/null; then
+        AUTH_LINK=$(grep -o 'https://console.serveo.net/ssh/keys?[^ ]*' serveo.log | tr -d '\r' | sed 's/\x1b\[[0-9;]*m//g' | head -n 1)
+        echo ""
+        echo "⚠️  SERveo requires a quick one-time authentication to give you a CONSTANT URL."
+        echo "   Please open this link in your browser and click 'Login with GitHub':"
+        echo "   👉 $AUTH_LINK"
+        echo "   (Until you do, you have been assigned the random fallback URL above. Restart this script after logging in to get your static URL!)"
     fi
 fi
 

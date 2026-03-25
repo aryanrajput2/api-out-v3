@@ -2219,27 +2219,48 @@ function renderHotelDetails(data) {
         freeTillDate = new Date(option.cancellation.penalties[0].from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
       }
       
+      let rowsHtml = "";
+      if (option.cancellation?.penalties?.length > 0) {
+        rowsHtml = option.cancellation.penalties.map(p => {
+          const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Now";
+          const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Check-in";
+          const amtText = p.amount === 0 ? '<span style="color:#10b981;">Free</span>' : `${currency} ${p.amount.toFixed(2)}`;
+          const amountColor = p.amount === 0 ? '#10b981' : '#dc2626';
+          return `
+            <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.15); transition: background 0.2s;" onmouseover="this.style.background='rgba(16, 185, 129, 0.05)'" onmouseout="this.style.background='transparent'">
+              <td style="padding: 10px 12px; font-size: 0.85rem; color: #065f46; font-weight: 500;">${fromDate}</td>
+              <td style="padding: 10px 12px; font-size: 0.85rem; color: #065f46; font-weight: 500;">${toDate}</td>
+              <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: ${amountColor};">${amtText}</td>
+            </tr>
+          `;
+        }).join("");
+      } else {
+        rowsHtml = `
+          <tr style="border-bottom: 1px solid rgba(16, 185, 129, 0.15);">
+            <td style="padding: 10px 12px; font-size: 0.85rem; color: #065f46; font-weight: 600;"><i class="ph ph-shield-check" style="color: #10b981; margin-right: 6px;"></i>Free Cancellation</td>
+            <td style="padding: 10px 12px; font-size: 0.85rem; color: #065f46; font-weight: 500;">${freeTillDate}</td>
+            <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #10b981;">Free</td>
+          </tr>
+        `;
+      }
+
       penaltiesHtml = `
-        <div style="margin-top: 12px; background: #dcfce7; border: 2px solid #bbf7d0; border-radius: 8px; overflow: hidden;">
-          <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 12px 14px; border-bottom: 2px solid #bbf7d0;">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-              <i class="ph ph-check-circle"></i> Fully Refundable - Free Cancellation
+        <div style="margin-top: 12px; background: rgba(16, 185, 129, 0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.05);">
+          <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.05) 100%); padding: 12px 14px; border-bottom: 1px solid rgba(16, 185, 129, 0.15);">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #059669; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="ph ph-shield-check" style="font-size: 1.1rem;"></i> Fully Refundable - Cancellation Policy
             </div>
           </div>
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr style="background: #d1fae5;">
-                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Cancellation Status</th>
-                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Free Till Date</th>
-                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 700; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Penalty Amount</th>
+              <tr>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(16, 185, 129, 0.15);">From Date</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(16, 185, 129, 0.15);">To Date</th>
+                <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(16, 185, 129, 0.15);">Penalty Amount</th>
               </tr>
             </thead>
             <tbody>
-              <tr style="border-bottom: 1px solid #bbf7d0;">
-                <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534; font-weight: 600;"><i class="ph ph-check-circle" style="color: #10b981; margin-right: 6px;"></i>Free Cancellation</td>
-                <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${freeTillDate}</td>
-                <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #10b981;">Free</td>
-              </tr>
+              ${rowsHtml}
             </tbody>
           </table>
         </div>
@@ -2294,6 +2315,13 @@ function renderHotelDetails(data) {
       ? `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check-circle"></i> Refundable</span>`
       : `<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-x-circle"></i> Non-Refundable</span>`;
 
+    const dsRoomLeft = option.roomLeft !== undefined
+      ? `<div style="margin-top: 16px; margin-bottom: 4px; font-size: 0.9rem; color: #b45309; display: flex; align-items: center; gap: 6px;"><i class="ph ph-fire"></i> <strong>Only ${option.roomLeft} room(s) left on our site</strong></div>`
+      : '';
+    const dsDeadline = option.deadlineDateTime
+      ? `<div style="margin-bottom: 8px; font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 6px;"><i class="ph ph-clock"></i> <strong>Cancellation Deadline: ${new Date(option.deadlineDateTime).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong></div>`
+      : '';
+
     card.innerHTML = `
       <div class="room-details-section">
         <div class="room-title" style="flex-direction: column; align-items: flex-start; gap: 8px;">
@@ -2312,6 +2340,8 @@ function renderHotelDetails(data) {
           <span class="data-pill pill-neutral">PassPort Required: ${passRequired}</span>
           <span class="data-pill pill-purple"><i class="ph ph-receipt"></i> Type: ${commercialType} (${currency} ${commission})</span>
         </div>
+        ${dsRoomLeft}
+        ${dsDeadline}
         ${penaltiesHtml}
       </div>
 
@@ -2656,51 +2686,74 @@ function renderReviewDetails(data, responseMs) {
       freeTillDate = new Date(option.cancellation.penalties[0].from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
     
+    let rowsHtml = "";
+    if (option.cancellation?.penalties?.length > 0) {
+      rowsHtml = option.cancellation.penalties.map(p => {
+        const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Now";
+        const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Check-in";
+        const amtText = p.amount === 0 ? '<span style="color:#10b981;">Free</span>' : `${currency} ${p.amount.toFixed(2)}`;
+        const amountColor = p.amount === 0 ? '#10b981' : '#dc2626';
+        return `
+          <tr style="border-bottom: 2px solid #bbf7d0;">
+            <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${fromDate}</td>
+            <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${toDate}</td>
+            <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: ${amountColor};">${amtText}</td>
+          </tr>
+        `;
+      }).join("");
+    } else {
+      rowsHtml = `
+        <tr style="border-bottom: 1px solid #bbf7d0;">
+          <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534; font-weight: 600;"><i class="ph ph-check-circle" style="color: #10b981; margin-right: 6px;"></i>Free Cancellation</td>
+          <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${freeTillDate}</td>
+          <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #10b981;">Free</td>
+        </tr>
+      `;
+    }
+
     penaltiesHtml = `
       <div style="margin-top:16px; background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border:2px solid #bbf7d0; border-radius:12px; padding:16px; overflow:hidden;">
         <div style="font-size:0.9rem; font-weight:700; color:#166534; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
-          <i class="ph ph-check-circle"></i> Fully Refundable - Free Cancellation
+          <i class="ph ph-check-circle"></i> Fully Refundable - Cancellation Penalties
         </div>
         <table style="width:100%; border-collapse:collapse;">
           <thead>
             <tr style="background:#d1fae5; border-bottom:2px solid #bbf7d0;">
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Cancellation Status</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Free Till Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">From Date</th>
+              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">To Date</th>
               <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Penalty Amount</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom:1px solid #bbf7d0;">
-              <td style="padding:10px 12px; font-size:0.85rem; color:#166534; font-weight:600;"><i class="ph ph-check-circle" style="color:#10b981; margin-right:6px;"></i>Free Cancellation</td>
-              <td style="padding:10px 12px; font-size:0.85rem; color:#166534;">${freeTillDate}</td>
-              <td style="padding:10px 12px; font-size:0.85rem; font-weight:700; color:#10b981;">Free</td>
-            </tr>
+            ${rowsHtml}
           </tbody>
         </table>
       </div>`;
   } else if (option.cancellation?.penalties?.length > 0) {
     // Show red non-refundable box with penalties table
     penaltiesHtml = `
-      <div style="margin-top:16px; background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border:2px solid #fecaca; border-radius:12px; padding:16px; overflow:hidden;">
-        <div style="font-size:0.9rem; font-weight:700; color:#991b1b; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
-          <i class="ph ph-warning-circle"></i> Non-Refundable - Cancellation Penalties
+      <div style="margin-top: 16px; background: rgba(239, 68, 68, 0.04); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(239, 68, 68, 0.05);">
+        <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.05) 100%); padding: 12px 14px; border-bottom: 1px solid rgba(239, 68, 68, 0.1);">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #dc2626; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="ph ph-shield-warning" style="font-size: 1.1rem;"></i> Non-Refundable - Cancellation Policy
+          </div>
         </div>
-        <table style="width:100%; border-collapse:collapse;">
+        <table style="width: 100%; border-collapse: collapse;">
           <thead>
-            <tr style="background:#fef2f2; border-bottom:2px solid #fecaca;">
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">From Date</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">To Date</th>
-              <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#991b1b; text-transform:uppercase; letter-spacing:0.5px;">Penalty Amount</th>
+            <tr>
+              <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(239, 68, 68, 0.15);">From Date</th>
+              <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(239, 68, 68, 0.15);">To Date</th>
+              <th style="padding: 10px 12px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #dc2626; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(239, 68, 68, 0.15);">Penalty Amount</th>
             </tr>
           </thead>
           <tbody>
             ${option.cancellation.penalties.map(p => {
               const fromDate = p.from ? new Date(p.from).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Now';
               const toDate = p.to ? new Date(p.to).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Check-in';
-              return `<tr style="border-bottom:1px solid #fecaca;">
-                <td style="padding:10px 12px; font-size:0.85rem; color:#7f1d1d;">${fromDate}</td>
-                <td style="padding:10px 12px; font-size:0.85rem; color:#7f1d1d;">${toDate}</td>
-                <td style="padding:10px 12px; font-size:0.85rem; font-weight:700; color:#dc2626;">${currency} ${p.amount.toFixed(2)}</td>
+              return `<tr style="border-bottom: 1px solid rgba(239, 68, 68, 0.15); transition: background 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.05)'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 10px 12px; font-size: 0.85rem; color: #991b1b; font-weight: 500;">${fromDate}</td>
+                <td style="padding: 10px 12px; font-size: 0.85rem; color: #991b1b; font-weight: 500;">${toDate}</td>
+                <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #dc2626;">${currency} ${p.amount.toFixed(2)}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -2708,12 +2761,20 @@ function renderReviewDetails(data, responseMs) {
       </div>`;
   }
 
-  // Room Left Info
+  // Room Left & Deadline Info
   const roomLeftHtml = option.roomLeft !== undefined
     ? `<div style="margin-top: 12px; font-size: 0.9rem; color: #b45309; display: flex; align-items: center; gap: 6px;">
          <i class="ph ph-fire"></i> <strong>Only ${option.roomLeft} room(s) left on our site</strong>
        </div>`
     : '';
+
+  const deadlineHtml = option.deadlineDateTime
+    ? `<div style="margin-top: 8px; font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 6px;">
+         <i class="ph ph-clock"></i> <strong>Cancellation Deadline: ${new Date(option.deadlineDateTime).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+       </div>`
+    : '';
+    
+  const combinedRoomDeadlineHtml = roomLeftHtml + deadlineHtml;
 
   // Commercial / Commission Info
   const commissionAmt = option.commercial?.commission ? option.commercial.commission.toFixed(2) : "0.00";
@@ -2826,7 +2887,7 @@ function renderReviewDetails(data, responseMs) {
            </h4>
            <div style="font-weight: 500; color: var(--text-main); line-height: 1.6;">${roomNames}</div>
            
-           ${roomLeftHtml}
+           ${combinedRoomDeadlineHtml}
 
            <div class="hotel-tags" style="margin-top: 16px;">
              ${refundPill}

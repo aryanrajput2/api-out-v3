@@ -24,6 +24,7 @@ ALLOWED_IPS = {
     "160.22.60.16",     # Office IP 3
     "3.108.106.208",     # janmejay ip
     "13.204.135.18",     # janmejay ip second
+    "13.234.90.183",     # New Office IP
 }
 
 app = FastAPI()
