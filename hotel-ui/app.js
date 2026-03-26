@@ -2785,7 +2785,27 @@ function renderReviewDetails(data, responseMs) {
     </div>
   `;
 
-  // Additional Compliance Info
+  // Inclusions pills
+  let inclusionsHtml = '';
+  if (option.inclusions && option.inclusions.length > 0) {
+    const pills = option.inclusions.map(function(inc) {
+      return '<span style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:500;display:inline-block;margin:3px 3px 3px 0;">' + inc + '</span>';
+    }).join('');
+    inclusionsHtml = '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">'
+      + '<div style="font-size:0.8rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ph ph-list-checks"></i> Package Inclusions</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + pills + '</div>'
+      + '</div>';
+  }
+
+  // Booking Notes
+  let bookingNotesHtml = '';
+  if (option.bookingNotes) {
+    bookingNotesHtml = '<div style="margin-top:16px;padding:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;">'
+      + '<div style="font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ph ph-note"></i> Important Booking Notes</div>'
+      + '<div style="font-size:0.85rem;color:#92400e;line-height:1.5;white-space:pre-line;">' + option.bookingNotes + '</div>'
+      + '</div>';
+  }
+
   const panReq = option.compliance?.panRequired ? `<span class="data-pill pill-warning"><i class="ph ph-identification-card"></i> PAN Required</span>` : '';
   const passReq = option.compliance?.passportRequired ? `<span class="data-pill pill-warning"><i class="ph ph-passport"></i> Passport Required</span>` : '';
 
@@ -2899,6 +2919,8 @@ function renderReviewDetails(data, responseMs) {
 
            ${optionTypeHtml}
            
+           ${inclusionsHtml}
+           ${bookingNotesHtml}
            ${commercialHtml}
         </div>
 
