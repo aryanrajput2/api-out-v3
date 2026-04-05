@@ -1,0 +1,33 @@
+{
+  "enabled": true,
+  "ips": [
+    {
+      "ip": "127.0.0.1",
+      "label": "Localhost"
+    },
+    {
+      "ip": "65.2.62.247",
+      "label": "Office IP 1"
+    },
+    {
+      "ip": "157.49.118.218",
+      "label": "Office IP 2"
+    },
+    {
+      "ip": "160.22.60.16",
+      "label": "Office IP 3"
+    },
+    {
+      "ip": "3.108.106.208",
+      "label": "Janmejay IP"
+    },
+    {
+      "ip": "13.204.135.18",
+      "label": "Janmejay IP 2"
+    },
+    {
+      "ip": "13.234.90.183",
+      "label": "New Office IP"
+    }
+  ]
+}

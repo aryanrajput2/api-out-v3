@@ -1535,17 +1535,22 @@ async function fetchHotelDetails(hotelId, optionId) {
 
     // Show static content immediately
     if (staticData && staticData.ok !== false) {
+      console.log('Rendering static details...');
       renderStaticDetailsOnly(staticData, staticDurationMs);
+      console.log('Static details rendered, now fetching dynamic details...');
     }
 
     // Then fetch dynamic details
+    console.log('About to fetch dynamic details with body:', dynamicBody);
     const dynamicRes = await fetch(`${API_BASE}/dynamic-detail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dynamicBody)
     });
 
+    console.log('Dynamic detail response received:', dynamicRes.status);
     const dynamicData = await dynamicRes.json();
+    console.log('Dynamic detail data parsed:', dynamicData);
     const durationMs = Math.round(performance.now() - startTime);
     
     console.log('API_DYNAMIC_DETAIL_REQUEST', { duration: durationMs, status: dynamicRes.status, ok: dynamicData.ok });
@@ -1591,6 +1596,8 @@ async function fetchHotelDetails(hotelId, optionId) {
 
     renderHotelDetails(combinedData);
   } catch (err) {
+    console.error('Error in fetchHotelDetails:', err);
+    console.error('Error stack:', err.stack);
     errorBox.classList.remove("hidden");
     errorBox.querySelector(".message").textContent = err.message;
   }
@@ -1617,7 +1624,7 @@ function openImageZoom(imageUrl) {
   
   modal.innerHTML = `
     <div style="position: relative; max-width: 95vw; max-height: 95vh; display: flex; align-items: center; justify-content: center;">
-      <img src="${imageUrl}" alt="Hotel" style="max-width: 100%; max-height: 95vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: zoomIn 0.4s ease-out;">
+      <img src="${imageUrl}" alt="Hotel" style="max-width: 100%; max-height: 95vh; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: zoomIn 0.4s ease-out;" onerror="handleModalImageError(this)" onload="handleModalImageLoad(this)">
       
       <!-- Close Button -->
       <button onclick="closeImageZoom()" style="position: absolute; top: -50px; right: -50px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4); transition: all 0.3s ease; z-index: 10001;" onmouseover="this.style.transform='scale(1.1) rotate(90deg)'; this.style.boxShadow='0 6px 24px rgba(239, 68, 68, 0.6)';" onmouseout="this.style.transform='scale(1) rotate(0deg)'; this.style.boxShadow='0 4px 16px rgba(239, 68, 68, 0.4)';">
@@ -1652,6 +1659,40 @@ function openImageZoom(imageUrl) {
   document.body.style.overflow = 'hidden';
 }
 
+// Handle modal image errors
+function handleModalImageError(img) {
+  console.warn('Modal image failed to load:', img.src);
+  
+  const placeholder = document.createElement('div');
+  placeholder.style.cssText = `
+    width: 400px;
+    height: 300px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    font-weight: 500;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  `;
+  
+  placeholder.innerHTML = `
+    <i class="ph ph-image-broken" style="font-size: 4rem; margin-bottom: 16px; opacity: 0.7;"></i>
+    <span>Image could not be loaded</span>
+    <span style="font-size: 0.9rem; opacity: 0.7; margin-top: 8px;">The image may be unavailable or corrupted</span>
+  `;
+  
+  img.parentNode.replaceChild(placeholder, img);
+}
+
+function handleModalImageLoad(img) {
+  // Image loaded successfully in modal
+  console.log('Modal image loaded successfully:', img.src);
+}
+
 function closeImageZoom() {
   const modal = document.getElementById("image-zoom-modal");
   if (modal) {
@@ -1661,6 +1702,113 @@ function closeImageZoom() {
       document.body.style.overflow = '';
     }, 300);
   }
+}
+
+// Image error handling functions
+function handleImageError(img) {
+  console.warn('Image failed to load:', img.src);
+  
+  // Try to find alternative image sources
+  const container = img.closest('.gallery-main, .gallery-thumb');
+  const idx = container ? parseInt(container.getAttribute('data-idx'), 10) : -1;
+  
+  // If we have gallery images, try the next available image
+  if (window.galleryImages && idx >= 0 && window.galleryImages.length > 1) {
+    const nextIdx = (idx + 1) % window.galleryImages.length;
+    const nextImage = window.galleryImages[nextIdx];
+    
+    if (nextImage && nextImage !== img.src) {
+      console.log(`Trying alternative image ${nextIdx}:`, nextImage);
+      img.src = nextImage;
+      return; // Give the alternative image a chance to load
+    }
+  }
+  
+  // Create a placeholder with hotel icon
+  const placeholder = document.createElement('div');
+  placeholder.style.cssText = `
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: 2px dashed #cbd5e1;
+  `;
+  
+  placeholder.innerHTML = `
+    <i class="ph ph-image-broken" style="font-size: 3rem; margin-bottom: 8px; opacity: 0.6;"></i>
+    <span>Image not available</span>
+    <span style="font-size: 0.8rem; opacity: 0.7; margin-top: 4px;">Click disabled</span>
+  `;
+  
+  // Replace the image with placeholder
+  img.parentNode.replaceChild(placeholder, img);
+  
+  // Disable click functionality for broken images
+  if (container) {
+    container.style.cursor = 'default';
+    container.onclick = null;
+    container.removeEventListener('click', container._clickHandler);
+    
+    // Hide zoom overlay if it exists
+    const overlay = container.querySelector('.zoom-overlay, .thumb-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    // Add a visual indicator that this image is broken
+    container.style.opacity = '0.6';
+    container.style.filter = 'grayscale(100%)';
+  }
+}
+
+function handleImageLoad(img) {
+  // Image loaded successfully, ensure click functionality is enabled
+  const container = img.closest('.gallery-main, .gallery-thumb');
+  if (container) {
+    container.style.cursor = 'pointer';
+    container.style.opacity = '1';
+    container.style.filter = 'none';
+    
+    // Ensure overlay is visible
+    const overlay = container.querySelector('.zoom-overlay, .thumb-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+    
+    // Remove loading indicator if it exists
+    const loader = container.querySelector('.image-loader');
+    if (loader) {
+      loader.remove();
+    }
+  }
+}
+
+// Add loading indicator to images
+function addImageLoader(container) {
+  const loader = document.createElement('div');
+  loader.className = 'image-loader';
+  loader.style.cssText = `
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10;
+  `;
+  
+  container.style.position = 'relative';
+  container.appendChild(loader);
 }
 
 function renderStaticDetailsOnly(staticData, durationMs) {
@@ -1738,10 +1886,10 @@ function renderStaticDetailsOnly(staticData, durationMs) {
 
   // Build static content HTML
   let staticHTML = "";
+  let validImages = []; // Declare outside to use later
 
   // Hero Gallery with animations - First image large, others small
   if (staticInfo.images && Array.isArray(staticInfo.images) && staticInfo.images.length > 0) {
-    const validImages = [];
     staticInfo.images.forEach((img) => {
       let imageUrl = '';
       if (typeof img === 'string') {
@@ -1755,8 +1903,17 @@ function renderStaticDetailsOnly(staticData, durationMs) {
           imageUrl = img.imageUrl;
         }
       }
+      
+      // More thorough URL validation
       if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim().length > 0) {
-        validImages.push(imageUrl);
+        const trimmedUrl = imageUrl.trim();
+        // Check if it's a valid URL format
+        if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://') || trimmedUrl.startsWith('//')) {
+          // Avoid obviously broken URLs
+          if (!trimmedUrl.includes('placeholder') && !trimmedUrl.includes('no-image') && !trimmedUrl.includes('404')) {
+            validImages.push(trimmedUrl);
+          }
+        }
       }
     });
 
@@ -1773,7 +1930,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
           
           <!-- Main Image with Click to Zoom -->
           <div style="margin-bottom: 16px; position: relative;">
-            <div class="gallery-main" data-idx="0" style="width: 100%; height: 400px; border-radius: 16px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.15); position: relative;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='scale(1.01)'; this.querySelector('.zoom-overlay').style.opacity='1';" onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)'; this.querySelector('.zoom-overlay').style.opacity='0';">
+            <div class="gallery-main" data-idx="0" style="width: 100%; height: 400px; border-radius: 16px; overflow: hidden; cursor: pointer; border: 3px solid transparent; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.15); position: relative;">
               <img id="main-gallery-image" src="${validImages[0]}" alt="Hotel main image" style="width: 100%; height: 100%; object-fit: cover;">
               <div class="zoom-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
                 <div style="background: white; color: var(--text-main); padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
@@ -1788,7 +1945,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
           ${validImages.length > 1 ? `
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; max-height: 240px; overflow-y: auto; padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.1);">
               ${validImages.map((img, idx) => `
-                <div class="gallery-thumb" data-idx="${idx}" style="aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid ${idx === 0 ? 'var(--primary)' : 'transparent'}; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); position: relative;" onmouseover="this.style.borderColor='var(--primary)'; this.style.transform='scale(1.08)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.3)'; this.querySelector('.thumb-overlay').style.opacity='1';" onmouseout="this.style.borderColor='${idx === 0 ? 'var(--primary)' : 'transparent'}'; this.style.transform='scale(1)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'; this.querySelector('.thumb-overlay').style.opacity='0';">
+                <div class="gallery-thumb" data-idx="${idx}" style="aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid ${idx === 0 ? 'var(--primary)' : 'transparent'}; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); position: relative;">
                   <img src="${img}" alt="Hotel image ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;">
                   <div class="thumb-overlay" style="position: absolute; inset: 0; background: rgba(59, 130, 246, 0.2); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
                     <i class="ph ph-eye" style="color: white; font-size: 1.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>
@@ -1947,48 +2104,33 @@ function renderStaticDetailsOnly(staticData, durationMs) {
     `;
   }
 
-  // Add gallery click handlers
+  // Add the static content to the page
   const staticDiv = document.createElement("div");
   staticDiv.innerHTML = staticHTML;
   resultsContainer.appendChild(staticDiv);
 
-  // Add click handlers for main image and thumbnails
-  const mainImage = staticDiv.querySelector('.gallery-main');
-  if (mainImage) {
-    mainImage.addEventListener('click', function() {
-      const idx = parseInt(this.getAttribute('data-idx'), 10);
-      if (window.galleryImages && window.galleryImages[idx]) {
-        openImageZoom(window.galleryImages[idx]);
+  // Store gallery images globally for the zoom functionality
+  if (validImages && validImages.length > 0) {
+    window.galleryImages = validImages;
+    console.log('Gallery images set:', window.galleryImages);
+    
+    // Add debugging for click events
+    setTimeout(() => {
+      const mainGallery = document.querySelector('.gallery-main');
+      const thumbGalleries = document.querySelectorAll('.gallery-thumb');
+      
+      console.log('Main gallery element:', mainGallery);
+      console.log('Thumb gallery elements:', thumbGalleries.length);
+      
+      if (mainGallery) {
+        console.log('Main gallery data-idx:', mainGallery.getAttribute('data-idx'));
       }
-    });
+      
+      thumbGalleries.forEach((thumb, idx) => {
+        console.log(`Thumb ${idx} data-idx:`, thumb.getAttribute('data-idx'));
+      });
+    }, 100);
   }
-
-  const thumbs = staticDiv.querySelectorAll('.gallery-thumb');
-  thumbs.forEach(thumb => {
-    thumb.addEventListener('click', function() {
-      const idx = parseInt(this.getAttribute('data-idx'), 10);
-      if (window.galleryImages && window.galleryImages[idx]) {
-        // Update main image
-        const mainImg = document.getElementById('main-gallery-image');
-        if (mainImg) {
-          mainImg.src = window.galleryImages[idx];
-          // Update main image data-idx
-          const mainContainer = mainImg.parentElement;
-          if (mainContainer) {
-            mainContainer.setAttribute('data-idx', idx);
-          }
-        }
-        
-        // Update thumbnail borders
-        thumbs.forEach((t, i) => {
-          t.style.borderColor = i === idx ? 'var(--primary)' : 'transparent';
-        });
-        
-        // Open zoom
-        openImageZoom(window.galleryImages[idx]);
-      }
-    });
-  });
 
   // Add loading indicator for room details
   resultsContainer.innerHTML += `

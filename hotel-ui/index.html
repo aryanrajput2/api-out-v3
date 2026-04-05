@@ -51,6 +51,12 @@
 
       <!-- Persistent Global Security & Auth Badge -->
       <div style="display: flex; gap: 12px; align-items: center;">
+        <!-- Dashboard Button -->
+        <a href="/ui/dashboard" class="btn-dashboard" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%); border: 2px solid rgba(99, 102, 241, 0.3); border-radius: 12px; text-decoration: none; color: var(--primary); font-weight: 700; font-size: 0.85rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);" onmouseover="this.style.background='linear-gradient(135deg, var(--primary), var(--secondary))'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(99, 102, 241, 0.3)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1))'; this.style.color='var(--primary)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(99, 102, 241, 0.15)';">
+          <i class="ph ph-gear"></i>
+          <span>Dashboard</span>
+        </a>
+        
         <div class="global-security-badge"
           style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.9); border-radius: var(--radius-md); padding: 14px 20px; box-shadow: var(--shadow-sm); font-size: 0.85rem; color: var(--text-main); display: flex; flex-direction: column; gap: 8px; min-width: 280px; animation: slideFadeIn 0.8s ease-out;">
           <div
@@ -542,6 +548,7 @@
   </div>
 
   <script src="/ui/app.js"></script>
+  <script src="/ui/image-zoom.js"></script>
 </body>
 
 </html>

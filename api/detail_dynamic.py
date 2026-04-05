@@ -7,7 +7,7 @@ from config import API_KEY, BASE_URL
 def dynamic_detail(data: dict):
     env = data.get("env", BASE_URL).rstrip("/")
     api_key = data.get("apiKey", API_KEY)
-    url = f"{env}/hms/v3/hotel/option/detail"
+    url = f"{env}/hms/v3/hotel/pricing"
 
     headers = {
         "Content-Type": "application/json",
@@ -15,12 +15,15 @@ def dynamic_detail(data: dict):
     }
 
     payload = {
-        "optionId": data.get("optionId")
+        "correlationId": data.get("correlationId"),
+        "hid": data.get("hid"),
+        "checkIn": data.get("checkIn"),
+        "checkOut": data.get("checkOut"),
+        "rooms": data.get("rooms"),
+        "currency": data.get("currency", "INR"),
+        "nationality": data.get("nationality", "106"),
+        "timeoutMs": data.get("timeoutMs", 30000)
     }
-    
-    # Add optional nationality if provided
-    if data.get("nationality"):
-        payload["nationality"] = data["nationality"]
 
     response = requests.post(url, headers=headers, json=payload)
 
@@ -29,7 +32,7 @@ def dynamic_detail(data: dict):
     except JSONDecodeError:
         return {
             "ok": False,
-            "message": "Upstream Tripjack /hotel/option/detail did not return valid JSON",
+            "message": "Upstream Tripjack /hotel/pricing did not return valid JSON",
             "status_code": response.status_code,
             "reason": response.reason,
             "url": response.url,

@@ -1,0 +1,27 @@
+{
+  "name": "api-out-v3",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aryanrajput2/api-out-v3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aryanrajput2/api-out-v3/issues"
+  },
+  "homepage": "https://github.com/aryanrajput2/api-out-v3#readme",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "playwright": "^1.59.1"
+  },
+  "dependencies": {
+    "@umami/node": "^0.4.0"
+  }
+}

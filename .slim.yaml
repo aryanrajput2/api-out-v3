@@ -1,0 +1,4 @@
+services:
+  hotelapi:
+    port: 8000
+    subdomain: hotelapi

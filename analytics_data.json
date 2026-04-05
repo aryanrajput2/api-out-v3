@@ -1,0 +1,403 @@
+{
+  "events": [],
+  "api_calls": [
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 969,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.054857"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1492,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.055672"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1253,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.055950"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 400,
+      "response_time_ms": 1965,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.056200"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2070,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.056724"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 503,
+      "response_time_ms": 716,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.056969"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1060,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.057465"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 677,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.057713"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 503,
+      "response_time_ms": 102,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.057998"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2062,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.058693"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2441,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.058963"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1040,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.059250"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2954,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.059555"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 400,
+      "response_time_ms": 886,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.059849"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 500,
+      "response_time_ms": 1118,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.060444"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1609,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.061701"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 503,
+      "response_time_ms": 614,
+      "success": false,
+      "error_msg": "Test error message",
+      "timestamp": "2026-04-05T19:35:00.062155"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 385,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.063238"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1339,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.064111"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2314,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-04-05T19:35:00.064648"
+    }
+  ],
+  "errors": [
+    {
+      "source": "/dynamic-detail",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.056202"
+    },
+    {
+      "source": "/review",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.056971"
+    },
+    {
+      "source": "/review",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.058000"
+    },
+    {
+      "source": "/dynamic-detail",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.059851"
+    },
+    {
+      "source": "/search",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.060446"
+    },
+    {
+      "source": "/static-detail",
+      "message": "Test error message",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.062157"
+    },
+    {
+      "source": "/review",
+      "message": "Test error 1: Something went wrong",
+      "type": "timeout_error",
+      "timestamp": "2026-04-05T19:35:00.073234"
+    },
+    {
+      "source": "/review",
+      "message": "Test error 2: Something went wrong",
+      "type": "timeout_error",
+      "timestamp": "2026-04-05T19:35:00.073768"
+    },
+    {
+      "source": "/search",
+      "message": "Test error 3: Something went wrong",
+      "type": "api_error",
+      "timestamp": "2026-04-05T19:35:00.074309"
+    },
+    {
+      "source": "/review",
+      "message": "Test error 4: Something went wrong",
+      "type": "timeout_error",
+      "timestamp": "2026-04-05T19:35:00.074954"
+    },
+    {
+      "source": "/dynamic-detail",
+      "message": "Test error 5: Something went wrong",
+      "type": "timeout_error",
+      "timestamp": "2026-04-05T19:35:00.076074"
+    }
+  ],
+  "searches": [
+    {
+      "location": "Jaipur",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 2,
+      "guests": 3,
+      "results_count": 163,
+      "response_time_ms": 1711,
+      "timestamp": "2026-04-05T19:35:00.065587"
+    },
+    {
+      "location": "Goa",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 2,
+      "guests": 4,
+      "results_count": 120,
+      "response_time_ms": 1892,
+      "timestamp": "2026-04-05T19:35:00.066055"
+    },
+    {
+      "location": "Mumbai",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 3,
+      "guests": 6,
+      "results_count": 145,
+      "response_time_ms": 1851,
+      "timestamp": "2026-04-05T19:35:00.066480"
+    },
+    {
+      "location": "Bangalore",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 2,
+      "guests": 3,
+      "results_count": 85,
+      "response_time_ms": 1555,
+      "timestamp": "2026-04-05T19:35:00.067059"
+    },
+    {
+      "location": "Bangalore",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 1,
+      "guests": 5,
+      "results_count": 131,
+      "response_time_ms": 1769,
+      "timestamp": "2026-04-05T19:35:00.067520"
+    },
+    {
+      "location": "Goa",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 3,
+      "guests": 5,
+      "results_count": 171,
+      "response_time_ms": 1812,
+      "timestamp": "2026-04-05T19:35:00.068000"
+    },
+    {
+      "location": "Jaipur",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 3,
+      "guests": 5,
+      "results_count": 136,
+      "response_time_ms": 1748,
+      "timestamp": "2026-04-05T19:35:00.068468"
+    },
+    {
+      "location": "Goa",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 2,
+      "guests": 3,
+      "results_count": 75,
+      "response_time_ms": 805,
+      "timestamp": "2026-04-05T19:35:00.068933"
+    },
+    {
+      "location": "Bangalore",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 1,
+      "guests": 4,
+      "results_count": 155,
+      "response_time_ms": 1897,
+      "timestamp": "2026-04-05T19:35:00.069401"
+    },
+    {
+      "location": "Jaipur",
+      "checkin": "2026-05-25",
+      "checkout": "2026-05-26",
+      "rooms": 3,
+      "guests": 3,
+      "results_count": 151,
+      "response_time_ms": 665,
+      "timestamp": "2026-04-05T19:35:00.069908"
+    }
+  ],
+  "bookings": [
+    {
+      "booking_id": "TEST0001",
+      "hotel_id": "100000000000",
+      "amount": 8665,
+      "currency": "INR",
+      "success": true,
+      "total_time_ms": 1032,
+      "timestamp": "2026-04-05T19:35:00.070417"
+    },
+    {
+      "booking_id": "TEST0002",
+      "hotel_id": "100000000001",
+      "amount": 32983,
+      "currency": "INR",
+      "success": true,
+      "total_time_ms": 4510,
+      "timestamp": "2026-04-05T19:35:00.070868"
+    },
+    {
+      "booking_id": "TEST0003",
+      "hotel_id": "100000000002",
+      "amount": 10746,
+      "currency": "INR",
+      "success": true,
+      "total_time_ms": 1411,
+      "timestamp": "2026-04-05T19:35:00.071381"
+    },
+    {
+      "booking_id": "TEST0004",
+      "hotel_id": "100000000003",
+      "amount": 39569,
+      "currency": "INR",
+      "success": true,
+      "total_time_ms": 2902,
+      "timestamp": "2026-04-05T19:35:00.072143"
+    },
+    {
+      "booking_id": "TEST0005",
+      "hotel_id": "100000000004",
+      "amount": 41999,
+      "currency": "INR",
+      "success": true,
+      "total_time_ms": 2021,
+      "timestamp": "2026-04-05T19:35:00.072782"
+    }
+  ],
+  "page_views": []
+}

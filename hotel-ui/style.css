@@ -1553,6 +1553,24 @@ input::placeholder {
 .gallery-thumb:hover {
   transform: scale(1.08) !important;
   box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3) !important;
+  border-color: var(--primary) !important;
+}
+
+.gallery-thumb:hover .thumb-overlay {
+  opacity: 1 !important;
+}
+
+.gallery-main {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.gallery-main:hover {
+  transform: scale(1.01) !important;
+  border-color: var(--primary) !important;
+}
+
+.gallery-main:hover .zoom-overlay {
+  opacity: 1 !important;
 }
 
 .gallery-hero img {
@@ -1586,6 +1604,35 @@ input::placeholder {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
