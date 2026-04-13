@@ -1,6 +1,23 @@
 const API_BASE = window.location.origin;
 let globalSearchBody = null; // Store the last search used for dynamic-detail
 
+// Hide header elements on login page only
+document.addEventListener('DOMContentLoaded', function() {
+  const loginPage = document.getElementById('login-page');
+  const headerSecuritySection = document.getElementById('header-security-section');
+  const envWarningBanner = document.getElementById('env-warning-banner');
+  const envSafeBanner = document.getElementById('env-safe-banner');
+  
+  // Check if login page is NOT hidden (meaning we're on login page)
+  if (loginPage && loginPage.classList.contains('hidden') === false) {
+    // We are on login page - HIDE header elements
+    if (headerSecuritySection) headerSecuritySection.style.display = 'none';
+    if (envWarningBanner) envWarningBanner.style.display = 'none';
+    if (envSafeBanner) envSafeBanner.style.display = 'none';
+  }
+  // On all other pages, elements remain visible (default display: flex)
+});
+
 // Track response times for the entire booking journey
 let journeyResponseTimes = {
   search: null,

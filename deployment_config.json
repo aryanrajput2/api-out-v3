@@ -1,0 +1,26 @@
+{
+  "environments": {
+    "test": {
+      "name": "Test Environment",
+      "url": "http://localhost:8000",
+      "status": "active",
+      "description": "Local testing environment"
+    },
+    "staging": {
+      "name": "Staging Environment",
+      "url": "https://staging-api.example.com",
+      "status": "inactive",
+      "description": "Pre-production staging"
+    },
+    "admin": {
+      "name": "Admin Environment",
+      "url": "https://admin-api.example.com",
+      "status": "inactive",
+      "description": "Admin/Production environment"
+    }
+  },
+  "current_environment": "admin",
+  "release_approval_required": true,
+  "auto_backup": true,
+  "last_updated": "2026-04-09T23:12:31.029533"
+}

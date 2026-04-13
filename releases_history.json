@@ -1,0 +1,46 @@
+[
+  {
+    "id": "release-20260409-192010",
+    "version": "v1.0.0",
+    "timestamp": "2026-04-09T19:20:10.407958",
+    "from_environment": "test",
+    "to_environment": "admin",
+    "changes": "Initial release with search, booking, and dashboard features",
+    "status": "approved",
+    "approved_by": "admin",
+    "approved_at": "2026-04-09T19:20:22.959985"
+  },
+  {
+    "id": "release-20260409-222856",
+    "version": "v1.0.2",
+    "timestamp": "2026-04-09T22:28:56.408209",
+    "from_environment": "test",
+    "to_environment": "admin",
+    "changes": "Test release - fixed bug",
+    "status": "approved",
+    "approved_by": "admin",
+    "approved_at": "2026-04-09T23:03:49.592420"
+  },
+  {
+    "id": "release-20260409-223047",
+    "version": "v1.0.3",
+    "timestamp": "2026-04-09T22:30:47.409921",
+    "from_environment": "test",
+    "to_environment": "admin",
+    "changes": "Production ready - fixed all issues",
+    "status": "approved",
+    "approved_by": "admin",
+    "approved_at": "2026-04-09T23:10:49.495296"
+  },
+  {
+    "id": "release-20260409-232452",
+    "version": "v1.0.0",
+    "timestamp": "2026-04-09T23:24:52.226866",
+    "from_environment": "test",
+    "to_environment": "admin",
+    "changes": "dahbord button",
+    "status": "approved",
+    "approved_by": "admin",
+    "approved_at": "2026-04-09T23:24:58.901176"
+  }
+]

@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "ips": [
     {
       "ip": "127.0.0.1",

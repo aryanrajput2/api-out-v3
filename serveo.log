@@ -1,4 +1,4 @@
 Pseudo-terminal will not be allocated because stdin is not a terminal.
 [32mForwarding HTTP traffic from https://apiv3.hotel.serveousercontent.com
-[0m[33mTip (1): Upgrade to Pro to remove the warning page and unlock unlimited tunnels: https://console.serveo.net/settings?n=1&src=ssh_nudge&v=A
-[0mConnection to serveo.net closed by remote host.
+[0mconnect_to localhost port 8000: failed.
+Connection to serveo.net closed by remote host.

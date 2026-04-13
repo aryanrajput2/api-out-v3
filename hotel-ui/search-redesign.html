@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Hotel Search - Cheap Hotel Booking Online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      padding: 16px 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .logo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-tab {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #666666;
+      transition: all 0.3s ease;
+      border-bottom: 3px solid transparent;
+    }
+
+    .nav-tab.active {
+      color: #1a1a1a;
+      border-bottom-color: #0066cc;
+    }
+
+    .nav-tab:hover {
+      color: #1a1a1a;
+    }
+
+    .nav-tab i {
+      font-size: 1.3rem;
+    }
+
+    .header-right {
+      font-size: 0.95rem;
+      color: #666666;
+      font-weight: 500;
+    }
+
+    /* Search Section */
+    .search-section {
+      background: white;
+      padding: 24px 40px;
+      margin-bottom: 24px;
+    }
+
+    .search-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .search-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .search-field label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #666666;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .search-field input,
+    .search-field select {
+      padding: 12px;
+      border: 1px solid #d0d2d7;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: white;
+      color: #1a1a1a;
+    }
+
+    .search-field input:focus,
+    .search-field select:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    }
+
+    .search-field input::placeholder {
+      color: #999999;
+    }
+
+    .btn-search {
+      padding: 12px 32px;
+      background: #ff9800;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .btn-search:hover {
+      background: #f57c00;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+    }
+
+    /* Featured Section */
+    .featured-section {
+      background: #fffbf0;
+      padding: 24px 40px;
+      margin-bottom: 24px;
+      border-radius: 8px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .section-tags {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 6px 12px;
+      background: white;
+      border: 1px solid #d0d2d7;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tag.active {
+      background: #0066cc;
+      color: white;
+      border-color: #0066cc;
+    }
+
+    .tag:hover {
+      border-color: #0066cc;
+    }
+
+    .view-all {
+      color: #ff9800;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    /* Hotels Grid */
+    .hotels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .hotel-card {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .hotel-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .hotel-image {
+      position: relative;
+      height: 160px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hotel-discount {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: #ff6b6b;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .hotel-info {
+      padding: 12px;
+    }
+
+    .hotel-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+
+    .hotel-location {
+      font-size: 0.8rem;
+      color: #999999;
+      margin-bottom: 8px;
+    }
+
+    .hotel-rating {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    .stars {
+      color: #ffc107;
+    }
+
+    .reviews {
+      color: #999999;
+    }
+
+    .hotel-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0066cc;
+    }
+
+    /* Offers Section */
+    .offers-section {
+      padding: 24px 40px;
+    }
+
+    .offers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .offer-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .offer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .offer-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .offer-icon {
+      width: 40px;
+      height: 40px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .offer-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .offer-description {
+      font-size: 0.85rem;
+      color: #666666;
+      line-height: 1.4;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .search-container {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .btn-search {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        padding: 12px 20px;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .search-section {
+        padding: 16px 20px;
+      }
+
+      .search-container {
+        grid-template-columns: 1fr;
+      }
+
+      .featured-section {
+        padding: 16px 20px;
+      }
+
+      .offers-section {
+        padding: 16px 20px;
+      }
+
+      .hotels-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .offers-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with Navigation -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">🏨 Hotels</div>
+      <div class="nav-tabs">
+        <button class="nav-tab">
+          <i class="ph ph-airplane"></i>
+          <span>Flights</span>
+        </button>
+        <button class="nav-tab active">
+          <i class="ph ph-building"></i>
+          <span>Hotels</span>
+        </button>
+        <button class="nav-tab">
+          <i class="ph ph-train"></i>
+          <span>Trains</span>
+        </button>
+        <button class="nav-tab">
+          <i class="ph ph-bus"></i>
+          <span>Buses</span>
+        </button>
+      </div>
+    </div>
+    <div class="header-right">Cheap Hotel Booking Online</div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="search-container">
+      <div class="search-field">
+        <label>Destination</label>
+        <input type="text" id="destination" placeholder="Enter city, area or property name" />
+      </div>
+      <div class="search-field">
+        <label>Check-in</label>
+        <input type="date" id="checkin" />
+      </div>
+      <div class="search-field">
+        <label>Check-out</label>
+        <input type="date" id="checkout" />
+      </div>
+      <div class="search-field">
+        <label>Rooms & Guests</label>
+        <select id="rooms">
+          <option>1 Room, 2 Guests</option>
+          <option>2 Rooms, 4 Guests</option>
+          <option>3 Rooms, 6 Guests</option>
+        </select>
+      </div>
+      <button class="btn-search" onclick="searchHotels()">
+        <span>Search</span>
+        <i class="ph ph-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Featured Hotels Section -->
+  <div class="featured-section">
+    <div class="section-header">
+      <h2 class="section-title">Best Deals for Hotels</h2>
+      <div style="display: flex; gap: 12px; align-items: center;">
+        <div class="section-tags">
+          <span class="tag active">New Delhi</span>
+          <span class="tag">Mumbai</span>
+          <span class="tag">Bangalore</span>
+          <span class="tag">Hyderabad</span>
+          <span class="tag">Chennai</span>
+          <span class="view-all">View all →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hotels-grid">
+      <!-- Hotel 1 -->
+      <div class="hotel-card">
+        <div class="hotel-image">
+          <div class="hotel-discount">12% off</div>
+          <i class="ph ph-bed" style="font-size: 3rem; color: white; opacity: 0.3;"></i>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Hotel Shanti Palace</div>
+          <div class="hotel-location">Mahipalpur</div>
+          <div class="hotel-rating">
+            <span class="stars">★★★★★</span>
+            <span class="reviews">Very Good • 1k+ Users</span>
+          </div>
+          <div class="hotel-price">₹3,570</div>
+        </div>
+      </div>
+
+      <!-- Hotel 2 -->
+      <div class="hotel-card">
+        <div class="hotel-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+          <div class="hotel-discount">12% off</div>
+          <i class="ph ph-bed" style="font-size: 3rem; color: white; opacity: 0.3;"></i>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Jyoti Mahal A Royal Herita...</div>
+          <div class="hotel-location">Paharganj</div>
+          <div class="hotel-rating">
+            <span class="stars">★★★★☆</span>
+            <span class="reviews">Excellent • 846 Users</span>
+          </div>
+          <div class="hotel-price">₹3,861</div>
+        </div>
+      </div>
+
+      <!-- Hotel 3 -->
+      <div class="hotel-card">
+        <div class="hotel-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <div class="hotel-discount">27% off</div>
+          <i class="ph ph-bed" style="font-size: 3rem; color: white; opacity: 0.3;"></i>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">Deventure Sarovar Portti...</div>
+          <div class="hotel-location">Karol Hera</div>
+          <div class="hotel-rating">
+            <span class="stars">★★★★★</span>
+            <span class="reviews">Excellent • 1k+ Users</span>
+          </div>
+          <div class="hotel-price">₹4,760</div>
+        </div>
+      </div>
+
+      <!-- Hotel 4 -->
+      <div class="hotel-card">
+        <div class="hotel-image" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+          <div class="hotel-discount">37% off</div>
+          <i class="ph ph-bed" style="font-size: 3rem; color: white; opacity: 0.3;"></i>
+        </div>
+        <div class="hotel-info">
+          <div class="hotel-name">The Hosteller Delhi</div>
+          <div class="hotel-location">New Friends Colony</div>
+          <div class="hotel-rating">
+            <span class="stars">★★★★☆</span>
+            <span class="reviews">Exceptional • 1k+ Users</span>
+          </div>
+          <div class="hotel-price">₹2,837</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Offers Section -->
+  <div class="offers-section">
+    <div class="section-header">
+      <h2 class="section-title">Offers For You</h2>
+      <div style="display: flex; gap: 12px;">
+        <span class="tag active">Hotels</span>
+        <span class="tag">Bank Offers</span>
+        <span class="view-all">View All →</span>
+      </div>
+    </div>
+
+    <div class="offers-grid">
+      <div class="offer-card">
+        <div class="offer-header">
+          <div class="offer-icon">🏦</div>
+          <div class="offer-title">Flat 12% Off</div>
+        </div>
+        <div class="offer-description">Hotels with ICICI Bank Credit Card + Interest-Free EMI</div>
+      </div>
+
+      <div class="offer-card">
+        <div class="offer-header">
+          <div class="offer-icon">💰</div>
+          <div class="offer-title">Flat 66% Off</div>
+        </div>
+        <div class="offer-description">On select hotels. Use Code: HELLO</div>
+      </div>
+
+      <div class="offer-card">
+        <div class="offer-header">
+          <div class="offer-icon">💳</div>
+          <div class="offer-title">Flat 12% Off</div>
+        </div>
+        <div class="offer-description">On Hotels with Kotak Credit Card + Interest-Free EMI</div>
+      </div>
+
+      <div class="offer-card">
+        <div class="offer-header">
+          <div class="offer-icon">🏦</div>
+          <div class="offer-title">Up to ₹10,000 Off</div>
+        </div>
+        <div class="offer-description">On IDFC Hotels with IDFC FIRST Bank Credit Cards + Interest Free EMI</div>
+      </div>
+
+      <div class="offer-card">
+        <div class="offer-header">
+          <div class="offer-icon">🏦</div>
+          <div class="offer-title">Flat 15% Off</div>
+        </div>
+        <div class="offer-description">On Hotels with HSBC Credit Card + Interest-Free EMI</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Set default dates
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      document.getElementById('checkin').valueAsDate = today;
+      document.getElementById('checkout').valueAsDate = tomorrow;
+    });
+
+    function searchHotels() {
+      const destination = document.getElementById('destination').value;
+      const checkin = document.getElementById('checkin').value;
+      const checkout = document.getElementById('checkout').value;
+
+      if (!destination || !checkin || !checkout) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      // Redirect to search results or perform search
+      console.log('Searching for:', { destination, checkin, checkout });
+      alert('Search functionality will be integrated with your API');
+    }
+  </script>
+</body>
+</html>

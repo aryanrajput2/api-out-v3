@@ -18,6 +18,7 @@ from api.whitelist_manager import (
     get_allowed_ips, is_whitelist_enabled
 )
 from api.analytics import analytics
+from api.deployment import deployment_manager
 import asyncio
 import os
 import time
@@ -108,20 +109,25 @@ def chrome_devtools_probe():
     return Response(status_code=204)
 
 
-@app.post("/search")
-def search(request: Request, data: dict):
-    log_request(request, "/search", data)
+def _handle_search(request: Request, data: dict, environment: str = None):
+    """Shared search handler for all environment-based routes"""
+    endpoint = f"/{environment}/search" if environment else "/search"
+    log_request(request, endpoint, data)
     start_time = time.time()
     
     try:
         result = search_hotels(data)
         response_time_ms = int((time.time() - start_time) * 1000)
-        log_response(request, "/search", 200, result)
+        log_response(request, endpoint, 200, result)
+        
+        # Add environment info to response
+        if environment:
+            result["environment"] = environment
         
         # Track analytics
         try:
             success = result.get("ok", False)
-            analytics.track_api_call("/search", "POST", 200, response_time_ms, success, 
+            analytics.track_api_call(endpoint, "POST", 200, response_time_ms, success, 
                                      None if success else result.get("error"))
             if success:
                 analytics.track_search(
@@ -131,7 +137,8 @@ def search(request: Request, data: dict):
                     rooms=len(data.get("rooms", [])),
                     guests=sum(r.get("adults", 0) + r.get("children", 0) for r in data.get("rooms", [])),
                     results_count=len(result.get("hotels", [])),
-                    response_time_ms=response_time_ms
+                    response_time_ms=response_time_ms,
+                    environment=environment
                 )
         except Exception as e:
             print(f"Analytics tracking error: {e}")
@@ -143,12 +150,22 @@ def search(request: Request, data: dict):
         
         # Track failed request
         try:
-            analytics.track_api_call("/search", "POST", 500, response_time_ms, False, error_msg)
-            analytics.track_error("/search", error_msg, "api_error")
+            analytics.track_api_call(endpoint, "POST", 500, response_time_ms, False, error_msg)
+            analytics.track_error(endpoint, error_msg, "api_error")
         except:
             pass
         
         return {"ok": False, "error": error_msg}
+
+@app.post("/search")
+def search(request: Request, data: dict):
+    """Default search endpoint"""
+    return _handle_search(request, data)
+
+@app.post("/{environment}/search")
+def search_by_environment(request: Request, environment: str, data: dict):
+    """Environment-specific search endpoint (test, staging, admin)"""
+    return _handle_search(request, data, environment)
 
 @app.post("/review")
 def review(request: Request, data: dict):
@@ -540,5 +557,86 @@ def clear_old_analytics(request: Request, days: int = 7):
     try:
         analytics.clear_old_data(days)
         return {"ok": True, "message": f"Cleared data older than {days} days"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+# ============================================================================
+# DEPLOYMENT & ENVIRONMENT MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.get("/api/deployment/status")
+def get_deployment_status(request: Request):
+    """Get current deployment status and environment"""
+    try:
+        return deployment_manager.get_deployment_status()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.get("/api/deployment/environments")
+def get_all_environments(request: Request):
+    """Get all available environments"""
+    try:
+        return deployment_manager.get_all_environments()
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/deployment/switch-environment")
+def switch_environment(request: Request, data: dict):
+    """Switch to a different environment"""
+    try:
+        env_name = data.get("environment")
+        if not env_name:
+            return {"ok": False, "error": "Environment name required"}
+        return deployment_manager.switch_environment(env_name)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/deployment/update-url")
+def update_environment_url(request: Request, data: dict):
+    """Update environment URL"""
+    try:
+        env_name = data.get("environment")
+        new_url = data.get("url")
+        if not env_name or not new_url:
+            return {"ok": False, "error": "Environment name and URL required"}
+        return deployment_manager.update_environment_url(env_name, new_url)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/deployment/create-release")
+def create_release(request: Request, data: dict):
+    """Create a release from test to admin"""
+    try:
+        version = data.get("version")
+        changes = data.get("changes")
+        from_env = data.get("from_environment", "test")
+        to_env = data.get("to_environment", "admin")
+        
+        if not version or not changes:
+            return {"ok": False, "error": "Version and changes required"}
+        
+        return deployment_manager.create_release(version, changes, from_env, to_env)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.post("/api/deployment/approve-release")
+def approve_release(request: Request, data: dict):
+    """Approve a pending release"""
+    try:
+        release_id = data.get("release_id")
+        approved_by = data.get("approved_by", "admin")
+        
+        if not release_id:
+            return {"ok": False, "error": "Release ID required"}
+        
+        return deployment_manager.approve_release(release_id, approved_by)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+@app.get("/api/deployment/releases")
+def get_releases(request: Request, limit: int = 10):
+    """Get release history"""
+    try:
+        return deployment_manager.get_releases(limit)
     except Exception as e:
         return {"ok": False, "error": str(e)}

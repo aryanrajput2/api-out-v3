@@ -2,6 +2,8 @@
 const API_BASE = window.location.origin;
 
 // Analytics Functions
+let allBookings = []; // Store all bookings for filtering
+
 async function loadAnalytics() {
   try {
     const response = await fetch(`${API_BASE}/api/analytics/stats?hours=24`);
@@ -176,6 +178,193 @@ function refreshAnalytics() {
   loadAnalytics();
 }
 
+// Bookings Management Functions
+async function loadBookings() {
+  try {
+    const response = await fetch(`${API_BASE}/recent-bookings?limit=100`);
+    const data = await response.json();
+    
+    if (data.ok && data.bookings) {
+      allBookings = data.bookings;
+      displayBookings(allBookings);
+      updateBookingsStats(allBookings);
+    }
+  } catch (error) {
+    console.error('Error loading bookings:', error);
+    showBookingsError();
+  }
+}
+
+function displayBookings(bookings) {
+  const container = document.getElementById('bookings-list');
+  const countEl = document.getElementById('bookings-list-count');
+  
+  countEl.textContent = `${bookings.length} booking${bookings.length !== 1 ? 's' : ''}`;
+  
+  if (bookings.length === 0) {
+    container.innerHTML = `
+      <div class="no-bookings-state">
+        <i class="ph ph-calendar-x"></i>
+        <p>No bookings found</p>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = bookings.map(booking => {
+    const date = new Date(booking.createdAt);
+    const formattedDate = date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const totalTime = booking.totalResponseTime || 0;
+    const totalSeconds = (totalTime / 1000).toFixed(2);
+    
+    return `
+      <div class="booking-card">
+        <div class="booking-header">
+          <div class="booking-id">
+            <i class="ph ph-ticket"></i>
+            ${booking.id}
+          </div>
+          <div class="booking-date">
+            <i class="ph ph-clock"></i> ${formattedDate}
+          </div>
+        </div>
+        
+        <div class="booking-details">
+          <div class="booking-detail-item">
+            <div class="booking-detail-label">Total Response Time</div>
+            <div class="booking-detail-value">
+              <span class="booking-response-time">${totalSeconds}s</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="booking-actions">
+          <button class="btn-secondary" onclick="viewBookingDetail('${booking.id}')">
+            <i class="ph ph-eye"></i> View Details
+          </button>
+          <button class="btn-danger" onclick="deleteBooking('${booking.id}')">
+            <i class="ph ph-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateBookingsStats(bookings) {
+  const totalCount = bookings.length;
+  document.getElementById('total-bookings-count').textContent = totalCount;
+  
+  // Calculate average response time
+  if (totalCount > 0) {
+    const avgTime = bookings.reduce((sum, b) => sum + (b.totalResponseTime || 0), 0) / totalCount;
+    document.getElementById('avg-booking-time').textContent = `${(avgTime / 1000).toFixed(2)}s`;
+  } else {
+    document.getElementById('avg-booking-time').textContent = '0ms';
+  }
+  
+  // Count today's bookings
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayCount = bookings.filter(b => {
+    const bookingDate = new Date(b.createdAt);
+    bookingDate.setHours(0, 0, 0, 0);
+    return bookingDate.getTime() === today.getTime();
+  }).length;
+  document.getElementById('bookings-today').textContent = todayCount;
+  
+  // Count this week's bookings
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekCount = bookings.filter(b => new Date(b.createdAt) >= weekAgo).length;
+  document.getElementById('bookings-this-week').textContent = weekCount;
+}
+
+function filterBookings() {
+  const searchId = document.getElementById('search-booking-id').value.toLowerCase();
+  const dateFrom = document.getElementById('filter-date-from').value;
+  const dateTo = document.getElementById('filter-date-to').value;
+  
+  let filtered = allBookings;
+  
+  // Filter by booking ID
+  if (searchId) {
+    filtered = filtered.filter(b => b.id.toLowerCase().includes(searchId));
+  }
+  
+  // Filter by date range
+  if (dateFrom) {
+    const fromDate = new Date(dateFrom);
+    fromDate.setHours(0, 0, 0, 0);
+    filtered = filtered.filter(b => new Date(b.createdAt) >= fromDate);
+  }
+  
+  if (dateTo) {
+    const toDate = new Date(dateTo);
+    toDate.setHours(23, 59, 59, 999);
+    filtered = filtered.filter(b => new Date(b.createdAt) <= toDate);
+  }
+  
+  displayBookings(filtered);
+}
+
+function clearBookingFilters() {
+  document.getElementById('search-booking-id').value = '';
+  document.getElementById('filter-date-from').value = '';
+  document.getElementById('filter-date-to').value = '';
+  displayBookings(allBookings);
+}
+
+function refreshBookings() {
+  showNotification('Refreshing bookings...', 'info');
+  loadBookings();
+}
+
+async function deleteBooking(bookingId) {
+  if (!confirm(`Are you sure you want to delete booking ${bookingId}?`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`${API_BASE}/booking/${bookingId}`, {
+      method: 'DELETE'
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      showNotification(`Booking ${bookingId} deleted successfully`, 'success');
+      loadBookings();
+    } else {
+      showNotification(data.message || 'Error deleting booking', 'error');
+    }
+  } catch (error) {
+    showNotification('Error deleting booking', 'error');
+  }
+}
+
+function viewBookingDetail(bookingId) {
+  // Open the booking detail page in the main app
+  window.open(`/ui/booking-detail?id=${bookingId}`, '_blank');
+}
+
+function showBookingsError() {
+  const container = document.getElementById('bookings-list');
+  container.innerHTML = `
+    <div class="no-bookings-state">
+      <i class="ph ph-warning-circle" style="color: var(--danger);"></i>
+      <p>Error loading bookings. Please try again.</p>
+    </div>
+  `;
+}
+
 // Show/Hide sections
 function showSection(sectionName) {
   // Hide all sections
@@ -189,14 +378,30 @@ function showSection(sectionName) {
   });
   
   // Show selected section
-  document.getElementById(`${sectionName}-section`).classList.add('active');
+  const targetSection = document.getElementById(`${sectionName}-section`);
+  if (targetSection) {
+    targetSection.classList.add('active');
+  }
   
   // Add active to clicked nav item
-  event.target.closest('.nav-item').classList.add('active');
+  const navItem = event.target.closest('.nav-item');
+  if (navItem) {
+    navItem.classList.add('active');
+  }
   
-  // Refresh analytics when switching to analytics section
+  // Refresh data when switching to specific sections
   if (sectionName === 'analytics') {
     loadAnalytics();
+  } else if (sectionName === 'bookings') {
+    loadBookings();
+  } else if (sectionName === 'deployment') {
+    loadDeploymentStatus();
+  } else if (sectionName === 'whitelist') {
+    loadCurrentIP();
+    loadWhitelistStatus();
+    loadIPList();
+  } else if (sectionName === 'api-config') {
+    loadAPIConfiguration();
   }
 }
 
@@ -510,12 +715,316 @@ function updateActiveConfigDisplay() {
 
 // Initialize dashboard
 window.addEventListener('DOMContentLoaded', () => {
-  loadAnalytics();
-  loadCurrentIP();
-  loadWhitelistStatus();
-  loadIPList();
-  loadAPIConfiguration();
+  // Check URL hash and show appropriate section
+  const hash = window.location.hash.substring(1); // Remove the # symbol
+  if (hash) {
+    // Find the section and nav item
+    const section = document.getElementById(`${hash}-section`);
+    const navItem = document.querySelector(`a[href="#${hash}"]`);
+    
+    if (section && navItem) {
+      // Hide all sections
+      document.querySelectorAll('.dashboard-section').forEach(s => {
+        s.classList.remove('active');
+      });
+      
+      // Remove active from all nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Show the section from hash
+      section.classList.add('active');
+      navItem.classList.add('active');
+      
+      // Load data for specific sections
+      if (hash === 'whitelist') {
+        loadCurrentIP();
+        loadWhitelistStatus();
+        loadIPList();
+      } else if (hash === 'analytics') {
+        loadAnalytics();
+      } else if (hash === 'api-config') {
+        loadAPIConfiguration();
+      } else if (hash === 'bookings') {
+        loadBookings();
+      } else if (hash === 'deployment') {
+        loadDeploymentStatus();
+      }
+    } else {
+      // Hash not found, default to analytics
+      loadAnalytics();
+      loadCurrentIP();
+      loadWhitelistStatus();
+      loadIPList();
+      loadAPIConfiguration();
+      loadDeploymentStatus();
+    }
+  } else {
+    // No hash, load all
+    loadAnalytics();
+    loadCurrentIP();
+    loadWhitelistStatus();
+    loadIPList();
+    loadAPIConfiguration();
+    loadDeploymentStatus();
+  }
   
   // Auto-refresh analytics every 30 seconds
   setInterval(loadAnalytics, 30000);
+  
+  // Auto-refresh deployment every 30 seconds
+  setInterval(loadDeploymentStatus, 30000);
 });
+
+
+// ============================================================================
+// DEPLOYMENT & ENVIRONMENT MANAGEMENT FUNCTIONS
+// ============================================================================
+
+async function loadDeploymentStatus() {
+  try {
+    console.log('Loading deployment status...');
+    const response = await fetch(`${API_BASE}/api/deployment/status`);
+    const data = await response.json();
+    
+    console.log('Deployment status response:', data);
+    
+    if (data.ok) {
+      // Update current environment display
+      const envDetails = data.environment_details;
+      const envNameEl = document.getElementById('current-env-name');
+      const envUrlEl = document.getElementById('current-env-url');
+      const envStatusEl = document.getElementById('current-env-status');
+      
+      if (envNameEl) envNameEl.textContent = envDetails.name || 'Unknown';
+      if (envUrlEl) envUrlEl.textContent = envDetails.url || 'N/A';
+      if (envStatusEl) envStatusEl.textContent = envDetails.status || 'Unknown';
+      
+      // Load all environments for dropdown
+      await loadEnvironmentsList();
+      
+      // Load releases
+      await loadReleases();
+    } else {
+      console.error('Deployment status error:', data.error);
+    }
+  } catch (error) {
+    console.error('Error loading deployment status:', error);
+  }
+}
+
+async function loadEnvironmentsList() {
+  try {
+    console.log('Loading environments list...');
+    const response = await fetch(`${API_BASE}/api/deployment/environments`);
+    const data = await response.json();
+    
+    console.log('Environments response:', data);
+    
+    if (data.ok && data.environments) {
+      const select = document.getElementById('env-select');
+      if (!select) {
+        console.error('env-select element not found');
+        return;
+      }
+      
+      select.innerHTML = '<option value="">-- Select Environment --</option>';
+      
+      Object.entries(data.environments).forEach(([key, env]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${env.name} (${key})`;
+        select.appendChild(option);
+        console.log(`Added environment option: ${key}`);
+      });
+      
+      console.log('Environments loaded successfully');
+    } else {
+      console.error('Failed to load environments:', data.error);
+    }
+  } catch (error) {
+    console.error('Error loading environments:', error);
+  }
+}
+
+async function switchEnvironment() {
+  const envSelect = document.getElementById('env-select');
+  const envName = envSelect.value;
+  
+  if (!envName) {
+    alert('Please select an environment');
+    return;
+  }
+  
+  try {
+    console.log('Switching to environment:', envName);
+    const response = await fetch(`${API_BASE}/api/deployment/switch-environment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ environment: envName })
+    });
+    
+    const data = await response.json();
+    
+    console.log('Switch environment response:', data);
+    
+    if (data.ok) {
+      alert(`Successfully switched to ${data.current_environment}`);
+      loadDeploymentStatus();
+    } else {
+      alert(`Error: ${data.error}`);
+    }
+  } catch (error) {
+    console.error('Error switching environment:', error);
+    alert('Error switching environment');
+  }
+}
+
+async function createRelease() {
+  const version = document.getElementById('release-version').value.trim();
+  const changes = document.getElementById('release-changes').value.trim();
+  const fromEnv = document.getElementById('release-from-env').value;
+  
+  console.log('Creating release:', { version, changes, fromEnv });
+  
+  if (!version || !changes) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  if (!version.match(/^v\d+\.\d+\.\d+$/)) {
+    alert('Version must be in format: v1.0.0');
+    return;
+  }
+  
+  try {
+    console.log('Sending create release request...');
+    const response = await fetch(`${API_BASE}/api/deployment/create-release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        version,
+        changes,
+        from_environment: fromEnv,
+        to_environment: 'admin'
+      })
+    });
+    
+    const data = await response.json();
+    
+    console.log('Create release response:', data);
+    
+    if (data.ok) {
+      alert(`✓ Release ${version} created successfully!\nStatus: Pending Approval`);
+      document.getElementById('release-version').value = '';
+      document.getElementById('release-changes').value = '';
+      await loadReleases();
+    } else {
+      alert(`Error: ${data.error}`);
+    }
+  } catch (error) {
+    console.error('Error creating release:', error);
+    alert('Error creating release: ' + error.message);
+  }
+}
+
+async function loadReleases() {
+  try {
+    console.log('Loading releases...');
+    const response = await fetch(`${API_BASE}/api/deployment/releases?limit=10`);
+    const data = await response.json();
+    
+    console.log('Releases response:', data);
+    
+    if (data.ok && data.releases) {
+      displayReleases(data.releases);
+    } else {
+      console.error('Failed to load releases:', data.error);
+      const container = document.getElementById('releases-list');
+      if (container) {
+        container.innerHTML = '<div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b;">Error loading releases</div>';
+      }
+    }
+  } catch (error) {
+    console.error('Error loading releases:', error);
+    const container = document.getElementById('releases-list');
+    if (container) {
+      container.innerHTML = '<div style="padding: 16px; background: #fee2e2; border-radius: 8px; color: #991b1b;">Error: ' + error.message + '</div>';
+    }
+  }
+}
+
+function displayReleases(releases) {
+  const container = document.getElementById('releases-list');
+  
+  if (releases.length === 0) {
+    container.innerHTML = '<div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center; color: #999;">No releases yet</div>';
+    return;
+  }
+  
+  container.innerHTML = releases.map(release => {
+    const statusColor = release.status === 'approved' ? '#10b981' : '#f59e0b';
+    const statusBg = release.status === 'approved' ? '#ecfdf5' : '#fffbeb';
+    const timestamp = new Date(release.timestamp).toLocaleString();
+    
+    return `
+      <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${statusColor};">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+          <div>
+            <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">
+              ${release.version} → ${release.to_environment}
+            </div>
+            <div style="font-size: 0.85rem; color: #666;">
+              ${release.from_environment} → ${release.to_environment}
+            </div>
+          </div>
+          <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">
+            ${release.status}
+          </span>
+        </div>
+        <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">
+          ${release.changes}
+        </div>
+        <div style="font-size: 0.75rem; color: #999;">
+          ${timestamp}
+        </div>
+        ${release.status === 'pending_approval' ? `
+          <button onclick="approveRelease('${release.id}')" style="margin-top: 8px; padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+            Approve Release
+          </button>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+async function approveRelease(releaseId) {
+  try {
+    const response = await fetch(`${API_BASE}/api/deployment/approve-release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        release_id: releaseId,
+        approved_by: 'admin'
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('Release approved successfully!');
+      loadReleases();
+    } else {
+      alert(`Error: ${data.error}`);
+    }
+  } catch (error) {
+    console.error('Error approving release:', error);
+    alert('Error approving release');
+  }
+}
+
+// Load deployment data when deployment section is shown
+function loadDeploymentSection() {
+  loadDeploymentStatus();
+}

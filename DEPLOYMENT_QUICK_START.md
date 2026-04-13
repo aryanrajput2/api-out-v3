@@ -1,72 +1,89 @@
-# Quick Start: Deploy to Render in 5 Minutes
-
-## What's Ready
-
-✅ `render.yaml` - Render deployment config  
-✅ `requirements.txt` - Python dependencies  
-✅ `.gitignore` - Git ignore rules  
-✅ `api/main.py` - Updated for cloud deployment  
-✅ `RENDER_DEPLOYMENT.md` - Full deployment guide  
+# Deployment Quick Start Guide
 
 ## 5-Minute Setup
 
-### 1. Commit & Push to GitHub
-```bash
-git add .
-git commit -m "Ready for Render deployment"
-git push origin main
-```
+### 1. Access Dashboard
+- Go to your application
+- Click **Dashboard** button (top right)
+- Click **Deployment** in the sidebar
 
-### 2. Go to Render
-- Visit https://render.com
-- Sign up (free account, no credit card)
-- Click **"New +"** → **"Web Service"**
+### 2. Check Current Environment
+You'll see:
+- **Current Environment**: Shows which environment is active (Test, Staging, or Admin)
+- **URL**: The API endpoint being used
+- **Status**: Active/Inactive
 
-### 3. Connect GitHub
-- Select **"Deploy an existing Git repository"**
-- Connect your GitHub account
-- Select your repository
+### 3. Make Changes in Test
+1. Make all your changes in the test environment
+2. Test thoroughly
+3. Verify everything works
 
-### 4. Configure
-- **Name**: `tripjack-hotel-api`
-- **Runtime**: `Python 3`
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `uvicorn api.main:app --host 0.0.0.0 --port 8000`
-- **Plan**: **Free**
+### 4. Create Release
+1. Fill in the form:
+   - **Version**: `v1.0.0` (or your version)
+   - **From Environment**: `test`
+   - **Changes**: Describe what changed
+2. Click **Create Release**
+3. Release appears in history with "Pending Approval" status
 
-### 5. Deploy
-- Click **"Create Web Service"**
-- Wait 2-3 minutes for build
-- Get your URL: `https://tripjack-hotel-api.onrender.com`
+### 5. Approve Release
+1. Review the release details
+2. Click **Approve Release** button
+3. Status changes to "Approved"
 
-## Your URLs
+### 6. Switch to Admin
+1. Use the **Switch Environment** dropdown
+2. Select **Admin Environment**
+3. Click **Switch**
+4. Now using admin/production environment
 
-- **API**: `https://tripjack-hotel-api.onrender.com/api`
-- **UI**: `https://tripjack-hotel-api.onrender.com/ui`
-- **Health**: `https://tripjack-hotel-api.onrender.com/health`
+## Common Tasks
 
-## Free Tier Details
+### View Release History
+- Scroll to **Release History** section
+- See all releases with status and timestamps
+- Click **Approve** on pending releases
 
-- **750 hours/month** (1 service running continuously)
-- **Spins down after 15 min** of inactivity (wakes on request)
-- **100 GB/month bandwidth**
-- **No credit card needed**
-- **Auto-deploy on push** to main branch
+### Change Environment URL
+- Go to Dashboard → Deployment
+- Update the URL in the environment configuration
+- Changes take effect immediately
 
-## Important: IP Whitelist
+### Rollback to Previous Version
+- Check release history
+- Note the previous version number
+- Create a new release reverting to that version
+- Approve and deploy
 
-Your app has IP whitelist disabled by default for Render. To enable it:
+## Environment URLs
 
-Set environment variable in Render dashboard:
-```
-ENFORCE_IP_WHITELIST=true
-```
+| Environment | URL | Purpose |
+|---|---|---|
+| Test | `http://localhost:8000` | Local development |
+| Staging | `https://staging-api.example.com` | Pre-production |
+| Admin | `https://admin-api.example.com` | Production |
 
-## Next Steps
+## Release Status
 
-1. Push code to GitHub
-2. Connect to Render
-3. Deploy
-4. Share your public URL!
+| Status | Meaning | Action |
+|---|---|---|
+| Pending Approval | Waiting for approval | Review and approve |
+| Approved | Ready to deploy | Deploy to production |
+| Deployed | Live in production | Monitor performance |
 
-For detailed guide, see `RENDER_DEPLOYMENT.md`
+## Tips
+
+✅ **Always test in test environment first**
+✅ **Write clear change descriptions**
+✅ **Get approval before production**
+✅ **Keep version numbers consistent**
+✅ **Document breaking changes**
+
+❌ **Don't skip testing**
+❌ **Don't deploy without approval**
+❌ **Don't make changes directly in production**
+❌ **Don't forget to update version numbers**
+
+## Need Help?
+
+See `DEPLOYMENT_WORKFLOW.md` for detailed documentation.

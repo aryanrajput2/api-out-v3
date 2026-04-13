@@ -14,7 +14,7 @@
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-  <link rel="stylesheet" href="/ui/style.css?v=20260326b" />
+  <link rel="stylesheet" href="/ui/style.css" />
 </head>
 
 <body>
@@ -40,10 +40,10 @@
     <header class="app-header"
       style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
       <div class="logo-container">
-        <div class="logo-circle">V3</div>
+        <div class="logo-circle">AH</div>
         <div>
           <a href="/ui/search" style="text-decoration: none; color: inherit;">
-            <h1 style="cursor: pointer; margin-bottom: 4px;">Hotels Api V3 Testing</h1>
+            <h1 style="cursor: pointer; margin-bottom: 4px;">Aryan Hotels</h1>
           </a>
           <p class="subtitle" style="margin: 0;">Experience modern, fast hotel booking.</p>
         </div>
@@ -51,12 +51,6 @@
 
       <!-- Persistent Global Security & Auth Badge -->
       <div style="display: flex; gap: 12px; align-items: center;">
-        <!-- Dashboard Button -->
-        <a href="/ui/dashboard" class="btn-dashboard" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%); border: 2px solid rgba(99, 102, 241, 0.3); border-radius: 12px; text-decoration: none; color: var(--primary); font-weight: 700; font-size: 0.85rem; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);" onmouseover="this.style.background='linear-gradient(135deg, var(--primary), var(--secondary))'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(99, 102, 241, 0.3)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1))'; this.style.color='var(--primary)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(99, 102, 241, 0.15)';">
-          <i class="ph ph-gear"></i>
-          <span>Dashboard</span>
-        </a>
-        
         <div class="global-security-badge"
           style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.9); border-radius: var(--radius-md); padding: 14px 20px; box-shadow: var(--shadow-sm); font-size: 0.85rem; color: var(--text-main); display: flex; flex-direction: column; gap: 8px; min-width: 280px; animation: slideFadeIn 0.8s ease-out;">
           <div
@@ -75,6 +69,11 @@
           </div>
         </div>
 
+        <!-- Dashboard Button -->
+        <a href="/ui/dashboard" class="btn-dashboard" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
+          <i class="ph ph-gauge"></i> Dashboard
+        </a>
+
         <!-- Logout Button -->
         <button id="logout-btn" onclick="logout()" class="btn-logout" style="display: none;">
           <i class="ph ph-sign-out"></i> Logout
@@ -83,16 +82,6 @@
     </header>
 
     <main>
-      <!-- Global Response Times Tracker Section -->
-      <div id="response-times-section" class="glass-panel" style="margin-top: 24px; display: none; padding: 16px 20px;">
-        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <h3 style="margin: 0; white-space: nowrap; display: flex; align-items: center; gap: 8px;"><i class="ph ph-timer" style="color: #3b82f6; font-size: 1.4rem;"></i> Performance</h3>
-          <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; flex: 1;">
-            <!-- Populated via JS -->
-          </div>
-        </div>
-      </div>
-
       <!-- Page 0: Login Page -->
       <section id="login-page" class="view-page hidden">
         <div class="login-container">
@@ -358,20 +347,6 @@
             </div>
           </form>
         </div>
-
-
-
-        <!-- Recent Bookings Section -->
-        <div id="recent-bookings-section" class="glass-panel" style="margin-top: 24px; display: none;">
-          <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 16px;">
-            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
-              <h3><i class="ph ph-calendar-check"></i> Your Bookings <span id="bookings-count" style="font-size: 0.9rem; margin-left: 8px; font-weight: 500; color: var(--text-muted);"></span></h3>
-            </div>
-          </div>
-          <div id="recent-bookings-list" class="bookings-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 16px 0;">
-            <!-- Populated via JS -->
-          </div>
-        </div>
       </section>
 
       <!-- Page 2: Results -->
@@ -398,7 +373,7 @@
             </div>
 
             <!-- Filters Bar -->
-            <div id="results-filters-container" style="display:none;">
+            <div class="filters-glass-container" id="results-filters-container" style="display:none;">
               <div class="input-group filter-group search-flex">
                 <i class="ph ph-magnifying-glass icon-left"></i>
                 <input type="text" id="r-filter-name" placeholder="Search Hotel Name, Options, or IDs..."
@@ -488,6 +463,65 @@
                   Total)</span></h3>
               <span id="detail-timer" class="timer-badge hidden"></span>
             </div>
+
+            <!-- Filters Bar -->
+            <div class="filters-glass-container">
+              <div class="input-group filter-group search-flex">
+                <i class="ph ph-magnifying-glass icon-left"></i>
+                <input type="text" id="filter-room-name" placeholder="Search Room Name, Option ID, or Room ID..."
+                  onkeyup="applyRoomFilters()">
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-fork-knife icon-left"></i>
+                <select id="filter-meal" onchange="applyRoomFilters()">
+                  <option value="">All Meals</option>
+                  <option value="Room Only">Room Only</option>
+                  <option value="Breakfast">Breakfast</option>
+                  <option value="Half Board">Half Board</option>
+                  <option value="Full Board">Full Board</option>
+                </select>
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-receipt icon-left"></i>
+                <select id="filter-gst" onchange="applyRoomFilters()">
+                  <option value="">GST: All</option>
+                  <option value="NA">GST: NA</option>
+                  <option value="Required">GST: Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-swap icon-left"></i>
+                <select id="filter-refund" onchange="applyRoomFilters()">
+                  <option value="">Refund Policy: All</option>
+                  <option value="true">Refundable</option>
+                  <option value="false">Non-Refundable</option>
+                </select>
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-identification-card icon-left"></i>
+                <select id="filter-pan" onchange="applyRoomFilters()">
+                  <option value="">PAN: All</option>
+                  <option value="true">PAN Required</option>
+                  <option value="false">PAN Not Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group">
+                <i class="ph ph-passport icon-left"></i>
+                <select id="filter-passport" onchange="applyRoomFilters()">
+                  <option value="">Passport: All</option>
+                  <option value="true">Passport Required</option>
+                  <option value="false">Passport Not Required</option>
+                </select>
+              </div>
+              <div class="input-group filter-group" style="width: 180px;">
+                <i class="ph ph-sort-ascending icon-left"></i>
+                <select id="filter-price" onchange="applyRoomFilters()">
+                  <option value="">Sort: Default</option>
+                  <option value="low_to_high">Price: Low to High</option>
+                  <option value="high_to_low">Price: High to Low</option>
+                </select>
+              </div>
+            </div>
           </div>
 
           <div id="detail-error" class="alert-box error hidden" style="flex-direction: column; margin-bottom: 16px;">
@@ -525,30 +559,10 @@
           </div>
         </div>
       </section>
-
-      <!-- Page 5: Booking Detail Page -->
-      <section id="booking-detail-page" class="view-page hidden">
-        <div class="results-header">
-          <button type="button" class="btn-ghost" onclick="backToSearch()">
-            <i class="ph ph-arrow-left"></i> Back to Search
-          </button>
-        </div>
-
-        <div class="glass-panel review-panel fade-in-up" id="booking-detail-content" style="padding: 24px;">
-          <!-- Managed via JS -->
-          <div class="empty-state">
-            <div class="loader"
-              style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;">
-            </div>
-            <p>Loading booking details...</p>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
   <script src="/ui/app.js"></script>
-  <script src="/ui/image-zoom.js"></script>
 </body>
 
 </html>

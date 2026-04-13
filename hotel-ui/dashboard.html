@@ -19,7 +19,7 @@
     <!-- Left Sidebar Navigation -->
     <aside class="dashboard-sidebar">
       <div class="sidebar-header">
-        <div class="logo-circle">V3</div>
+        <img src="/ui/logo.png" alt="API-V3 Luxury Hotel" class="logo-image">
         <div>
           <h2>Dashboard</h2>
           <p>Admin Panel</p>
@@ -30,6 +30,10 @@
         <a href="#analytics" class="nav-item active" onclick="showSection('analytics')">
           <i class="ph ph-chart-line"></i>
           <span>Analytics</span>
+        </a>
+        <a href="#bookings" class="nav-item" onclick="showSection('bookings')">
+          <i class="ph ph-calendar-check"></i>
+          <span>Bookings</span>
         </a>
         <a href="#whitelist" class="nav-item" onclick="showSection('whitelist')">
           <i class="ph ph-shield-check"></i>
@@ -46,6 +50,10 @@
         <a href="#logs" class="nav-item" onclick="showSection('logs')">
           <i class="ph ph-file-text"></i>
           <span>Logs</span>
+        </a>
+        <a href="#deployment" class="nav-item" onclick="showSection('deployment')">
+          <i class="ph ph-rocket"></i>
+          <span>Deployment</span>
         </a>
       </nav>
       
@@ -199,8 +207,106 @@
         </div>
       </section>
       
+      <!-- Bookings Management Section -->
+      <section id="bookings-section" class="dashboard-section">
+        <div class="section-header">
+          <div>
+            <h1>Bookings Management</h1>
+            <p>View and manage all your hotel bookings</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-primary" onclick="refreshBookings()">
+              <i class="ph ph-arrows-clockwise"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Search and Filters -->
+        <div class="glass-panel" style="margin-bottom: 24px;">
+          <h3><i class="ph ph-funnel"></i> Search & Filters</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 16px;">
+            <div class="input-group">
+              <label for="search-booking-id">
+                <i class="ph ph-magnifying-glass"></i> Search by Booking ID
+              </label>
+              <input type="text" id="search-booking-id" placeholder="Enter booking ID..." onkeyup="filterBookings()" />
+            </div>
+            
+            <div class="input-group">
+              <label for="filter-date-from">
+                <i class="ph ph-calendar"></i> From Date
+              </label>
+              <input type="date" id="filter-date-from" onchange="filterBookings()" />
+            </div>
+            
+            <div class="input-group">
+              <label for="filter-date-to">
+                <i class="ph ph-calendar"></i> To Date
+              </label>
+              <input type="date" id="filter-date-to" onchange="filterBookings()" />
+            </div>
+            
+            <div style="display: flex; align-items: flex-end; gap: 8px;">
+              <button class="btn-secondary" onclick="clearBookingFilters()" style="flex: 1;">
+                <i class="ph ph-x"></i> Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bookings Stats -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+          <div class="mini-stat-card">
+            <i class="ph ph-calendar-check" style="color: #10b981;"></i>
+            <div>
+              <div class="mini-stat-value" id="total-bookings-count">0</div>
+              <div class="mini-stat-label">Total Bookings</div>
+            </div>
+          </div>
+          
+          <div class="mini-stat-card">
+            <i class="ph ph-clock" style="color: #3b82f6;"></i>
+            <div>
+              <div class="mini-stat-value" id="avg-booking-time">0ms</div>
+              <div class="mini-stat-label">Avg Response Time</div>
+            </div>
+          </div>
+          
+          <div class="mini-stat-card">
+            <i class="ph ph-calendar" style="color: #8b5cf6;"></i>
+            <div>
+              <div class="mini-stat-value" id="bookings-today">0</div>
+              <div class="mini-stat-label">Today</div>
+            </div>
+          </div>
+          
+          <div class="mini-stat-card">
+            <i class="ph ph-calendar-dots" style="color: #06b6d4;"></i>
+            <div>
+              <div class="mini-stat-value" id="bookings-this-week">0</div>
+              <div class="mini-stat-label">This Week</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bookings List -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3><i class="ph ph-list"></i> All Bookings</h3>
+            <span class="badge" id="bookings-list-count">0 bookings</span>
+          </div>
+          <div id="bookings-list" class="bookings-list">
+            <div class="loading-state">
+              <div class="loader"></div>
+              <p>Loading bookings...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
       <!-- IP Whitelist Section -->
-      <section id="whitelist-section" class="dashboard-section active">
+      <section id="whitelist-section" class="dashboard-section">
         <div class="section-header">
           <div>
             <h1>IP Whitelist Management</h1>
@@ -405,6 +511,100 @@
         <div class="glass-panel">
           <h3>Coming Soon</h3>
           <p>API logs will be displayed here.</p>
+        </div>
+      </section>
+
+      <!-- Deployment Section -->
+      <section id="deployment-section" class="dashboard-section">
+        <div class="section-header">
+          <div>
+            <h1>Deployment & Environment Management</h1>
+            <p>Manage environments, create releases, and deploy to production</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-primary" onclick="loadDeploymentStatus()">
+              <i class="ph ph-arrows-clockwise"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Current Environment Status -->
+        <div class="glass-panel" style="margin-bottom: 24px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <i class="ph ph-globe"></i> Current Environment
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #0066cc;">
+              <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">Environment</div>
+              <div id="current-env-name" style="font-size: 1.2rem; font-weight: 700; color: #1a1a1a;">-</div>
+            </div>
+            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #10b981;">
+              <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">URL</div>
+              <div id="current-env-url" style="font-size: 0.9rem; font-weight: 600; color: #0066cc; word-break: break-all;">-</div>
+            </div>
+            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #f59e0b;">
+              <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">Status</div>
+              <div id="current-env-status" style="font-size: 1rem; font-weight: 700; color: #10b981;">Active</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Switch Environment -->
+        <div class="glass-panel" style="margin-bottom: 24px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <i class="ph ph-arrow-square-up-right"></i> Switch Environment
+          </h3>
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: flex-end;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #666;">Select Environment</label>
+              <select id="env-select" style="width: 100%; padding: 10px; border: 1px solid #d0d2d7; border-radius: 6px; font-size: 0.95rem;">
+                <option value="">-- Select Environment --</option>
+              </select>
+            </div>
+            <button class="btn-primary" onclick="switchEnvironment()" style="padding: 10px 20px;">
+              <i class="ph ph-arrow-right"></i> Switch
+            </button>
+          </div>
+        </div>
+
+        <!-- Create Release -->
+        <div class="glass-panel" style="margin-bottom: 24px;">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <i class="ph ph-rocket"></i> Create Release
+          </h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #666;">Version</label>
+              <input type="text" id="release-version" placeholder="e.g., v1.2.3" style="width: 100%; padding: 10px; border: 1px solid #d0d2d7; border-radius: 6px; font-size: 0.95rem;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #666;">From Environment</label>
+              <select id="release-from-env" style="width: 100%; padding: 10px; border: 1px solid #d0d2d7; border-radius: 6px; font-size: 0.95rem;">
+                <option value="test">Test</option>
+                <option value="staging">Staging</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #666;">Changes Description</label>
+            <textarea id="release-changes" placeholder="Describe the changes in this release..." style="width: 100%; padding: 10px; border: 1px solid #d0d2d7; border-radius: 6px; font-size: 0.95rem; min-height: 100px; font-family: inherit;"></textarea>
+          </div>
+          <button class="btn-primary" onclick="createRelease()" style="width: 100%; padding: 12px;">
+            <i class="ph ph-rocket"></i> Create Release
+          </button>
+        </div>
+
+        <!-- Release History -->
+        <div class="glass-panel">
+          <h3 style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+            <i class="ph ph-history"></i> Release History
+          </h3>
+          <div id="releases-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center; color: #999;">
+              Loading releases...
+            </div>
+          </div>
         </div>
       </section>
     </main>
