@@ -297,6 +297,14 @@ window.addEventListener("DOMContentLoaded", () => {
   setDefaultDates();
   loadRecentBookings();
   
+  // Initialize rooms container
+  const container = document.getElementById("rooms-container");
+  if (container && container.children.length === 0) {
+    addRoom();
+  }
+  
+  loadConfigState();
+  
   const currentPath = window.location.pathname;
   
   if (currentPath === '/ui/detail' || currentPath === '/ui/review') {
@@ -389,6 +397,10 @@ function setDefaultDates() {
     const sixMonthsLater = new Date(today);
     sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
     
+    // Check-out is 1 day after check-in
+    const checkoutDate = new Date(sixMonthsLater);
+    checkoutDate.setDate(checkoutDate.getDate() + 1);
+    
     // Format dates as YYYY-MM-DD for input[type="date"]
     const formatDate = (date) => {
       const year = date.getFullYear();
@@ -397,26 +409,31 @@ function setDefaultDates() {
       return `${year}-${month}-${day}`;
     };
     
-    const formattedDate = formatDate(sixMonthsLater);
+    const formattedCheckin = formatDate(sixMonthsLater);
+    const formattedCheckout = formatDate(checkoutDate);
     
-    checkinInput.value = formattedDate;
-    checkoutInput.value = formattedDate;
+    checkinInput.value = formattedCheckin;
+    checkoutInput.value = formattedCheckout;
     
-    console.log('Default dates set - Check-in:', formattedDate, 'Check-out:', formattedDate);
+    console.log('Default dates set - Check-in:', formattedCheckin, 'Check-out:', formattedCheckout);
     
     // Set minimum date to today
     checkinInput.min = formatDate(today);
-    checkoutInput.min = formatDate(sixMonthsLater);
+    checkoutInput.min = formattedCheckout;
     
     // Add event listener to automatically update checkout when checkin changes
     checkinInput.addEventListener('change', function() {
       const selectedCheckin = new Date(this.value);
+      const nextDay = new Date(selectedCheckin);
+      nextDay.setDate(nextDay.getDate() + 1);
+      
       const formattedCheckin = formatDate(selectedCheckin);
+      const formattedNextDay = formatDate(nextDay);
       
-      checkoutInput.value = formattedCheckin;
-      checkoutInput.min = formattedCheckin;
+      checkoutInput.value = formattedNextDay;
+      checkoutInput.min = formattedNextDay;
       
-      console.log('Check-in changed to:', formattedCheckin, 'Check-out updated to:', formattedCheckin);
+      console.log('Check-in changed to:', formattedCheckin, 'Check-out updated to:', formattedNextDay);
     });
   }
 }
@@ -4429,34 +4446,6 @@ function removeRoom(buttonEl) {
   }, 190);
 }
 
-function initializeDates() {
-  const checkinInput = document.getElementById("checkin");
-  const checkoutInput = document.getElementById("checkout");
-
-  if (!checkinInput || !checkoutInput) return;
-
-  // Set default to 6 months from today
-  const today = new Date();
-  const sixMonthsLater = new Date(today);
-  sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-
-  // Format as YYYY-MM-DD
-  const formatIso = (date) => date.toISOString().split('T')[0];
-
-  checkinInput.value = formatIso(sixMonthsLater);
-  checkoutInput.value = formatIso(sixMonthsLater);
-  
-  console.log('initializeDates: Check-in and Check-out set to 6 months from today:', formatIso(sixMonthsLater));
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  const container = document.getElementById("rooms-container");
-  if (container && container.children.length === 0) {
-    addRoom();
-  }
-  initializeDates();
-  loadConfigState();
-});
 
 // History API Handlers
 window.addEventListener('popstate', (e) => {
