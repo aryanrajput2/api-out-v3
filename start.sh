@@ -16,7 +16,7 @@ pkill -f "slim share" 2>/dev/null || true
 # Prompt user for tunnel preference
 echo ""
 echo "Choose tunnel service:"
-echo "  1) Serveo Tunnel (instant public URL, no signup needed) [default]"
+echo "  1) ngrok Tunnel (secure public URL, requires ngrok account) [default]"
 echo "  2) Local only (no tunnel)"
 echo ""
 read -p "Enter choice (1 or 2) [default: 1]: " TUNNEL_CHOICE
@@ -26,16 +26,31 @@ TUNNEL_URL=""
 
 if [ "$TUNNEL_CHOICE" = "1" ]; then
     echo ""
-    echo "Starting Serveo Tunnel..."
-    echo "Connecting to serveo.net with your custom domain..."
+    echo "Starting ngrok Tunnel..."
+    echo "Make sure you have ngrok installed and authenticated..."
     
-    # Start Serveo tunnel in background with custom domain
-    nohup ssh -R apiv3.hotel.serveousercontent.com:80:localhost:8000 serveo.net > serveo.log 2>&1 &
+    # Check if ngrok is installed
+    if ! command -v ngrok &> /dev/null; then
+        echo "❌ ngrok is not installed. Please install it first:"
+        echo "   brew install ngrok  (macOS)"
+        echo "   choco install ngrok (Windows)"
+        echo "   Or download from: https://ngrok.com/download"
+        exit 1
+    fi
+    
+    # Start ngrok tunnel in background
+    nohup ngrok http 8000 > ngrok.log 2>&1 &
     TUNNEL_PID=$!
-    echo "Serveo tunnel started (PID: $TUNNEL_PID)"
+    echo "ngrok tunnel started (PID: $TUNNEL_PID)"
     sleep 3
     
-    TUNNEL_URL="https://apiv3.hotel.serveousercontent.com"
+    # Extract the ngrok URL from the API
+    TUNNEL_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o '"public_url":"[^"]*' | cut -d'"' -f4 | head -1)
+    
+    if [ -z "$TUNNEL_URL" ]; then
+        echo "⚠️  Could not retrieve ngrok URL. Check ngrok.log for details."
+        TUNNEL_URL="http://localhost:8000 (ngrok may not be running)"
+    fi
 fi
 
 # Display tunnel info
