@@ -60,3 +60,4 @@ Server_logs/
 # Railway
 .railway/
 .railwayrc
+bookings_data.json

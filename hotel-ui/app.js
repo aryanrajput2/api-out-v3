@@ -236,12 +236,16 @@ function logout() {
 
 window.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
-  setDefaultDates();
+  initializeDates();
   loadRecentBookings();
   
   const currentPath = window.location.pathname;
-  
-  if (currentPath === '/ui/detail' || currentPath === '/ui/review') {
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingIdParam = urlParams.get('id');
+
+  if (currentPath === '/ui/booking-detail' && bookingIdParam) {
+    viewBookingDetail(bookingIdParam);
+  } else if (currentPath === '/ui/detail' || currentPath === '/ui/review') {
     const savedState = sessionStorage.getItem('tj_page_state');
     
     if (savedState) {
@@ -320,43 +324,6 @@ window.addEventListener("DOMContentLoaded", () => {
     sessionStorage.removeItem('tj_page_state');
   }
 });
-
-// Function to set default dates (today and tomorrow for 1 night stay)
-function setDefaultDates() {
-  const checkinInput = document.getElementById("checkin");
-  const checkoutInput = document.getElementById("checkout");
-  
-  if (checkinInput && checkoutInput) {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    // Format dates as YYYY-MM-DD for input[type="date"]
-    const formatDate = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-    
-    checkinInput.value = formatDate(today);
-    checkoutInput.value = formatDate(tomorrow);
-    
-    // Set minimum date to today
-    checkinInput.min = formatDate(today);
-    checkoutInput.min = formatDate(tomorrow);
-    
-    // Add event listener to automatically update checkout when checkin changes
-    checkinInput.addEventListener('change', function() {
-      const selectedCheckin = new Date(this.value);
-      const nextDay = new Date(selectedCheckin);
-      nextDay.setDate(nextDay.getDate() + 1);
-      
-      checkoutInput.value = formatDate(nextDay);
-      checkoutInput.min = formatDate(nextDay);
-    });
-  }
-}
 
 // Load and display recent bookings on search page
 async function loadRecentBookings() {
@@ -724,9 +691,9 @@ function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = 
    Configuration & Environment
    ========================================= */
 const PREDEFINED_KEYS = [
-  "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe",
+  "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
   "8112616278b36e4e-6996-4088-b66b-bf5d6787fe13",
-  "81139487b3f2160f-acb8-41d6-9177-4bc69df0148a",
+  "81139487ef4307a2-1437-43e8-b481-88a25b62076b",
   "711814269fe755f1-cdc6-44bf-acbc-d91b1a451878",
   "6116982da6b759-28f8-4cdf-b210-04cb98116165",
   "412801f9073cf9-6dd0-40fa-b016-c2f5abf02355",
@@ -795,7 +762,7 @@ function loadConfigState() {
   if (envEl) envEl.value = savedEnv;
   updateEnvBanners(savedEnv);
 
-  const savedApikey = localStorage.getItem("tj_apikey") || "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe";
+  const savedApikey = localStorage.getItem("tj_apikey") || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9";
   const selectEl = document.getElementById("config-apikey-select");
   const customContainer = document.getElementById("custom-apikey-container");
 
@@ -1357,10 +1324,10 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
     
     // Beautiful and modern results summary at the top
     const resultsSummaryHtml = `
-      <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #c6f6d5 100%); border: 2px solid rgba(34, 197, 94, 0.3); border-radius: 16px; padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
         <!-- Decorative background elements -->
-        <div style="position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
-        <div style="position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
         
         <div style="display: flex; align-items: flex-start; gap: 20px; position: relative; z-index: 1;">
           <!-- Icon Container -->
@@ -2268,10 +2235,8 @@ function renderHotelDetails(data) {
             <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">GST Type</label>
             <select id="filter-gst" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
               <option value="">All GST Types</option>
-              <option value="igst">IGST</option>
-              <option value="cgst">CGST</option>
-              <option value="sgst">SGST</option>
-              <option value="na">No GST</option>
+              <option value="na">None (NA)</option>
+              <option value="passthrough">Passthrough</option>
             </select>
           </div>
           
@@ -2353,6 +2318,8 @@ function renderHotelDetails(data) {
     const mf = (option.pricing?.mf ?? 0).toFixed(2);
     const mft = (option.pricing?.mft ?? 0).toFixed(2);
     const totalPrice = (option.pricing?.totalPrice ?? 0).toFixed(2);
+    const gstClaimable = option.pricing?.gstClaimableAmount ? option.pricing.gstClaimableAmount.toFixed(2) : "0.00";
+    const strikeThrough = option.pricing?.strikeThrough ? option.pricing.strikeThrough.toFixed(2) : null;
 
     const mealBasis = option.mealBasis || "Room Only";
     const isRefundable = option.cancellation?.isRefundable;
@@ -2367,6 +2334,21 @@ function renderHotelDetails(data) {
 
     const commercialType = option.commercial?.type || "Net";
     const commission = option.commercial?.commission ? option.commercial.commission.toFixed(2) : "0.00";
+
+    let inclusionsHtml = "";
+    if (option.inclusions && option.inclusions.length > 0) {
+      const incList = option.inclusions.map(i => `<li style="font-size:0.85rem; color:#475569; margin-bottom:4px;">${i}</li>`).join("");
+      inclusionsHtml = `
+        <div style="margin-top:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
+          <div style="font-size:0.85rem; font-weight:600; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+            <i class="ph ph-check-square-offset"></i> Inclusions & Special Requests
+          </div>
+          <ul style="margin:0; padding-left:20px;">
+            ${incList}
+          </ul>
+        </div>
+      `;
+    }
 
     let penaltiesHtml = "";
     if (isRefundable) {
@@ -2481,6 +2463,8 @@ function renderHotelDetails(data) {
       ? `<div style="margin-bottom: 8px; font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 6px;"><i class="ph ph-clock"></i> <strong>Cancellation Deadline: ${new Date(option.deadlineDateTime).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong></div>`
       : '';
 
+    const nationalityHtml = data.nationality ? `<span class="data-pill pill-neutral"><i class="ph ph-globe"></i> Nat: ${data.nationality}</span>` : "";
+
     card.innerHTML = `
       <div class="room-details-section">
         <div class="room-title" style="flex-direction: column; align-items: flex-start; gap: 8px;">
@@ -2493,14 +2477,24 @@ function renderHotelDetails(data) {
           <span class="data-pill pill-warning" ${optionTypeTitle}><i class="ph ph-tag"></i> ${optionTypeData.name}</span>
           <span class="data-pill pill-primary"><i class="ph ph-fork-knife"></i> ${mealBasis}</span>
           ${refundPill}
-          <span class="data-pill pill-neutral"><i class="ph ph-coins"></i> Currency: ${currency}</span>
-          <span class="data-pill pill-neutral">GST: ${gstType}</span>
-          <span class="data-pill pill-neutral">PAN Req: ${panRequired}</span>
-          <span class="data-pill pill-neutral">PassPort Required: ${passRequired}</span>
-          <span class="data-pill pill-purple"><i class="ph ph-receipt"></i> Type: ${commercialType} (${currency} ${commission})</span>
+          <span class="data-pill pill-neutral"><i class="ph ph-coins"></i> ${currency}</span>
+          ${nationalityHtml}
+          <span class="data-pill ${gstType === 'PASSTHROUGH' ? 'pill-success' : 'pill-neutral'}">
+            <i class="ph ph-receipt"></i> GST: ${gstType}
+          </span>
+          <span class="data-pill ${option.compliance?.panRequired ? 'pill-danger' : 'pill-success'}">
+            <i class="ph ph-identification-card"></i> PAN: ${panRequired}
+          </span>
+          <span class="data-pill ${option.compliance?.passportRequired ? 'pill-danger' : 'pill-success'}">
+            <i class="ph ph-passport"></i> Pass: ${passRequired}
+          </span>
+          <span class="data-pill pill-purple">
+            <i class="ph ph-briefcase"></i> ${commercialType}: ${currency} ${commission}
+          </span>
         </div>
         ${dsRoomLeft}
         ${dsDeadline}
+        ${inclusionsHtml}
         ${penaltiesHtml}
       </div>
 
@@ -2527,8 +2521,15 @@ function renderHotelDetails(data) {
             <span class="price-value">+ ${currency} ${mft}</span>
           </div>
           <div class="price-item">
+            <span class="price-label">GST Claimable</span>
+            <span class="price-value" style="color:var(--primary)">${currency} ${gstClaimable}</span>
+          </div>
+          <div class="price-item">
             <span class="price-label">Total</span>
-            <span class="price-total">${currency} ${totalPrice}</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              ${strikeThrough ? `<span style="text-decoration:line-through; font-size:0.9rem; color:#94a3b8;">${currency} ${strikeThrough}</span>` : ""}
+              <span class="price-total">${currency} ${totalPrice}</span>
+            </div>
           </div>
         </div>
 
@@ -2543,7 +2544,10 @@ function renderHotelDetails(data) {
 }
 
 function applyRoomFilters() {
-  const searchTerm = document.getElementById("filter-room-name").value.toLowerCase();
+  const nameEl = document.getElementById("filter-room-name");
+  if (!nameEl) return; // Filters removed from UI
+
+  const searchTerm = nameEl.value.toLowerCase();
   const mealFilter = document.getElementById("filter-meal").value.toLowerCase();
   const gstFilter = document.getElementById("filter-gst").value.toLowerCase();
   const refundFilter = document.getElementById("filter-refund").value;
@@ -2800,9 +2804,18 @@ function renderReviewDetails(data, responseMs) {
   const mf = (option.pricing?.mf ?? 0).toFixed(2);
   const mft = (option.pricing?.mft ?? 0).toFixed(2);
   const isRefundable = option.cancellation?.isRefundable;
+  const onholdAllowed = data.onholdAllowed;
+  const gstClaimable = option.pricing?.gstClaimableAmount ? option.pricing.gstClaimableAmount.toFixed(2) : "0.00";
+  const strikeThrough = option.pricing?.strikeThrough ? option.pricing.strikeThrough.toFixed(2) : null;
+  const gstType = option.compliance?.gstType || "NA";
+
   const priceChangedBadge = data.priceChanged
     ? `<span class="data-pill pill-warning" style="font-size:0.8rem;"><i class="ph ph-warning"></i> Price Changed</span>`
     : `<span class="data-pill pill-success" style="font-size:0.8rem;"><i class="ph ph-check-circle"></i> Price Confirmed</span>`;
+
+  const onholdBadge = onholdAllowed
+    ? `<span class="data-pill pill-success" style="font-size:0.8rem;"><i class="ph ph-clock"></i> Hold Allowed</span>`
+    : `<span class="data-pill pill-danger" style="font-size:0.8rem;"><i class="ph ph-x-circle"></i> Hold Not Allowed</span>`;
 
   const refundPill = isRefundable
     ? `<span class="data-pill pill-success"><i class="ph ph-check-circle"></i> Refundable</span>`
@@ -2828,12 +2841,9 @@ function renderReviewDetails(data, responseMs) {
     </div>
   `;
 
-  const panReqHtml = option.compliance?.panRequired
-    ? `<span class="data-pill pill-warning"><i class="ph ph-identification-card"></i> PAN Required</span>`
-    : `<span class="data-pill pill-neutral" style="opacity:0.6;"><i class="ph ph-identification-card"></i> PAN Not Required</span>`;
-  const passReqHtml = option.compliance?.passportRequired
-    ? `<span class="data-pill pill-warning"><i class="ph ph-passport"></i> Passport Required</span>`
-    : `<span class="data-pill pill-neutral" style="opacity:0.6;"><i class="ph ph-passport"></i> Passport Not Required</span>`;
+  const panReqHtml = `<span class="data-pill ${option.compliance?.panRequired ? 'pill-danger' : 'pill-success'}"><i class="ph ph-identification-card"></i> PAN: ${option.compliance?.panRequired ? 'Yes' : 'No'}</span>`;
+  const passReqHtml = `<span class="data-pill ${option.compliance?.passportRequired ? 'pill-danger' : 'pill-success'}"><i class="ph ph-passport"></i> Pass: ${option.compliance?.passportRequired ? 'Yes' : 'No'}</span>`;
+  const gstPill = `<span class="data-pill ${gstType === 'PASSTHROUGH' ? 'pill-success' : 'pill-neutral'}"><i class="ph ph-receipt"></i> GST: ${gstType}</span>`;
 
   let penaltiesHtml = "";
   if (isRefundable) {
@@ -2943,6 +2953,10 @@ function renderReviewDetails(data, responseMs) {
        <div style="display: flex; align-items: center; gap: 6px;"><i class="ph ph-percent"></i> <strong>Commission:</strong> ${currency} ${commissionAmt}</div>
     </div>
   `;
+
+  // Delivery Defaults
+  const defaultPhone = "1234567890";
+  const defaultEmail = "v3testingtj@gmail.com";
 
   // Inclusions pills
   let inclusionsHtml = '';
@@ -3071,9 +3085,9 @@ function renderReviewDetails(data, responseMs) {
            <div class="hotel-tags" style="margin-top: 16px;">
              ${refundPill}
              <span class="data-pill pill-primary"><i class="ph ph-fork-knife"></i> ${option.mealBasis || 'Room Only'}</span>
-             <span class="data-pill pill-neutral"><i class="ph ph-tag"></i> GST: ${option.compliance?.gstType || 'NA'}</span>
-               ${panReqHtml}
-               ${passReqHtml}
+             ${gstPill}
+             ${panReqHtml}
+             ${passReqHtml}
            </div>
 
            ${optionTypeHtml}
@@ -3117,12 +3131,12 @@ function renderReviewDetails(data, responseMs) {
               </div>
               <div style="flex:1;">
                 <label style="display:block; font-size:0.75rem; font-weight:600; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Mobile Number</label>
-                <input id="delivery-phone" type="tel" placeholder="9876543210" style="width:100%; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.9rem; background:#f9fafb; transition:border-color 0.2s;" onfocus="this.style.borderColor='#4f46e5';this.style.background='white'" onblur="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'" />
+                <input id="delivery-phone" type="tel" value="${defaultPhone}" style="width:100%; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.9rem; background:#f9fafb; transition:border-color 0.2s;" onfocus="this.style.borderColor='#4f46e5';this.style.background='white'" onblur="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'" />
               </div>
             </div>
             <div>
               <label style="display:block; font-size:0.75rem; font-weight:600; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Email Address</label>
-              <input id="delivery-email" type="email" placeholder="traveller@example.com" style="width:100%; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.9rem; background:#f9fafb; transition:border-color 0.2s;" onfocus="this.style.borderColor='#059669';this.style.background='white'" onblur="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'" />
+              <input id="delivery-email" type="email" value="${defaultEmail}" style="width:100%; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.9rem; background:#f9fafb; transition:border-color 0.2s;" onfocus="this.style.borderColor='#059669';this.style.background='white'" onblur="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'" />
             </div>
           </div>
         </div>
@@ -3132,12 +3146,13 @@ function renderReviewDetails(data, responseMs) {
       <!-- Right Column: Price & Action -->
       <div style="flex: 0 0 320px; background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;">
         <div style="background: var(--bg-secondary); border-bottom: 1px solid #e2e8f0; padding: 16px 20px;">
-           <h4 style="margin: 0; display:flex; justify-content:space-between; align-items:center; font-size: 1rem; color: var(--text-main);">
+           <h4 style="margin: 0; display:flex; flex-direction: column; align-items: flex-start; gap: 8px; font-size: 1rem; color: var(--text-main);">
              Price Summary
-             <span style="display:flex;gap:6px;align-items:center;">
+             <div style="display:flex; gap:6px; align-items:center; flex-wrap: wrap;">
                <span class="data-pill pill-neutral" style="font-size: 0.75rem;"><i class="ph ph-coins"></i> ${currency}</span>
+               ${onholdBadge}
                ${priceChangedBadge}
-             </span>
+             </div>
            </h4>
         </div>
         
@@ -3162,12 +3177,19 @@ function renderReviewDetails(data, responseMs) {
             <span>Markup Fee Tax (MFT)</span>
             <span style="font-weight: 500; color: var(--text-main);">${currency} ${mft}</span>
           </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom: 10px; color: var(--text-muted); font-size:0.9rem;">
+            <span>GST Claimable</span>
+            <span style="font-weight: 500; color: var(--primary);">${currency} ${gstClaimable}</span>
+          </div>
           
           <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 16px 0;" />
           
           <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 24px;">
             <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-dark);">Total Price</span>
-            <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${currency} ${totalPrice}</span>
+            <div style="display:flex; flex-direction:column; align-items:flex-end;">
+              ${strikeThrough ? `<span style="text-decoration:line-through; font-size:0.9rem; color:#94a3b8; margin-bottom:2px;">${currency} ${strikeThrough}</span>` : ""}
+              <span style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${currency} ${totalPrice}</span>
+            </div>
           </div>
 
           <!-- Two booking action buttons -->
@@ -3175,7 +3197,10 @@ function renderReviewDetails(data, responseMs) {
             <button class="btn-primary btn-large" style="width:100%;display:flex;justify-content:center;align-items:center;gap:8px;" onclick="submitBooking('VOUCHER','${bookingId}','${correlationId}',${option.pricing?.totalPrice ?? 0})">
               <i class="ph ph-credit-card"></i> Voucher Booking
             </button>
-            <button class="btn-secondary btn-large" style="width:100%;display:flex;justify-content:center;align-items:center;gap:8px;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.3);color:#4338ca;" onclick="submitBooking('HOLD','${bookingId}','${correlationId}',null)">
+            <button class="btn-secondary btn-large" 
+                    style="width:100%;display:flex;justify-content:center;align-items:center;gap:8px;background:${onholdAllowed ? 'rgba(99,102,241,0.08)' : '#f1f5f9'};border:1px solid ${onholdAllowed ? 'rgba(99,102,241,0.3)' : '#e2e8f0'};color:${onholdAllowed ? '#4338ca' : '#94a3b8'}; cursor:${onholdAllowed ? 'pointer' : 'not-allowed'};" 
+                    onclick="${onholdAllowed ? `submitBooking('HOLD','${bookingId}','${correlationId}',null)` : 'void(0)'}"
+                    ${onholdAllowed ? '' : 'disabled'}>
               <i class="ph ph-clock-countdown"></i> Hold Booking
             </button>
           </div>
@@ -3213,6 +3238,15 @@ function buildTravellerFormRows(searchBody) {
   let rows = '';
   let tNum = 0;
 
+  const indianNames = ["Aryan", "Rahul", "Priya", "Sneha", "Amit", "Pooja", "Vikram", "Anjali"];
+  const foreignNames = ["John", "Alice", "Michael", "Emma", "David", "Sophia", "Robert", "Olivia"];
+  const lastNames = ["Sharma", "Smith", "Gupta", "Johnson", "Verma", "Brown", "Singh", "Williams"];
+
+  const getName = (idx, type) => {
+    const list = type === 'first' ? (Math.random() > 0.5 ? indianNames : foreignNames) : lastNames;
+    return list[Math.floor(Math.random() * list.length)];
+  };
+
   const inputStyle = "width:100%; padding:9px 12px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.87rem; background:#f9fafb; outline:none; transition:border-color 0.2s, box-shadow 0.2s;";
   const titleStyle = "width:100%; padding:9px 8px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.87rem; background:#f9fafb; outline:none; cursor:pointer;";
   const labelStyle = "display:block; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:#9ca3af; margin-bottom:4px;";
@@ -3223,8 +3257,8 @@ function buildTravellerFormRows(searchBody) {
         <option>Mr</option><option>Ms</option><option>Mrs</option><option>Miss</option><option>Master</option>
       </select></div>`;
 
-  const renderInput = (id, placeholder, label) =>
-    `<div><label style="${labelStyle}">${label}</label><input id="${id}" type="text" placeholder="${placeholder}" style="${inputStyle}" /></div>`;
+  const renderInput = (id, placeholder, label, val = "") =>
+    `<div><label style="${labelStyle}">${label}</label><input id="${id}" type="text" placeholder="${placeholder}" value="${val}" style="${inputStyle}" /></div>`;
 
   rooms.forEach((room, rIdx) => {
     const adults = room.adults || 1;
@@ -3250,8 +3284,8 @@ function buildTravellerFormRows(searchBody) {
           </div>
           <div style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
             ${renderTitleSelect(`t-title-${tNum}`)}
-            ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *')}
-            ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *')}
+            ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *', getName(tNum, 'first'))}
+            ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *', getName(tNum, 'last'))}
           </div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             ${renderInput(`t-pan-${tNum}`, 'ABCDE1234F', 'PAN (optional)')}
@@ -3272,8 +3306,8 @@ function buildTravellerFormRows(searchBody) {
           </div>
           <div style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
             ${renderTitleSelect(`t-title-${tNum}`)}
-            ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *')}
-            ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *')}
+            ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *', getName(tNum, 'first'))}
+            ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *', getName(tNum, 'last'))}
           </div>
         </div>`;
     }
@@ -3421,14 +3455,30 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     
     if (!bookingEl) return;
 
+    const isSuccess = (data.bookingId || data.order?.bookingId) && 
+                      (res.ok || data.status?.httpStatus === 200 || data.ok === true);
+
     const typeLabel = bookingType === 'HOLD' ? 'Hold' : 'Voucher';
-    if (!res.ok || data.ok === false) {
+    if (!isSuccess) {
       bookingEl.innerHTML = `
-        <div class="alert-box error fade-in">
-          <i class="ph ph-warning-circle"></i>
-          <span class="message">${typeLabel} booking failed: ${data.reason || data.message || "Check response"}</span>
+        <div class="alert-box error fade-in" style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 16px; padding: 20px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <i class="ph ph-warning-circle" style="color: #e11d48; font-size: 1.5rem;"></i>
+            </div>
+            <div>
+              <div style="color: #9f1239; font-weight: 700; font-size: 1rem;">Booking Attempt Failed</div>
+              <div style="color: #e11d48; font-size: 0.85rem; font-weight: 500;">${typeLabel} booking failed</div>
+            </div>
+          </div>
+          <div style="background: white; border-radius: 10px; padding: 12px; color: #be123c; font-size: 0.9rem; line-height: 1.5; border-left: 4px solid #e11d48;">
+            ${data.reason || data.message || "An error occurred with the upstream provider. Please check your credentials or traveller data."}
+          </div>
         </div>
-        <pre style="margin-top:12px; font-size:0.78rem; background:#fdf2f2; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
+        <details style="margin-top:12px; cursor: pointer;">
+          <summary style="font-size:0.75rem; color:#94a3b8;">Technical Error Details</summary>
+          <pre style="margin-top:8px; font-size:0.75rem; background:#fdf2f2; padding:10px; border-radius:8px; overflow-x:auto; border:1px solid #fecaca;">${JSON.stringify(data, null, 2)}</pre>
+        </details>`;
       return;
     }
 
@@ -3438,25 +3488,38 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     const successMsg = bookingType === 'HOLD' ? 'Your hold has been placed' : 'Your booking has been confirmed';
     
     bookingEl.innerHTML = `
-      <div class="alert-box success fade-in" style="border-color:${successColor}; background:${successColor}11; flex-direction: column; align-items: flex-start; gap: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-          <i class="ph ${successIcon}" style="color:${successColor}; font-size: 1.4rem;"></i>
-          <div>
-            <div style="color:${successColor}; font-weight: 700; font-size: 1.1rem;">${successTitle}</div>
-            <div style="color:${successColor}; font-size: 0.9rem; margin-top: 4px;">${successMsg}</div>
+      <div class="booking-success-card fade-in" style="background: white; border: 1.5px solid ${successColor}33; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, ${successColor} 0%, ${successColor}dd 100%); padding: 24px; text-align: center; color: white;">
+          <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <i class="ph ${successIcon}" style="font-size: 2rem;"></i>
           </div>
+          <h4 style="margin: 0; font-size: 1.3rem; font-weight: 700;">${successTitle}</h4>
+          <p style="margin: 8px 0 0; opacity: 0.9; font-size: 0.95rem;">${successMsg}</p>
         </div>
         
-        <div style="width: 100%; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 12px; margin-top: 8px;">
-          <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;"><strong>Booking ID:</strong> ${data.bookingId || bookingId}</div>
-          <div style="font-size: 0.85rem; color: #666;"><strong>Status:</strong> ${data.status || 'Confirmed'}</div>
+        <div style="padding: 24px;">
+          <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+              <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Booking ID</span>
+              <span style="color: #1e293b; font-weight: 700;">${data.bookingId || bookingId}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Status</span>
+              <span class="data-pill pill-success" style="background: ${successColor}15; color: ${successColor}; border: none;">${data.status || 'Confirmed'}</span>
+            </div>
+          </div>
+          
+          <button onclick="viewBookingDetail('${data.bookingId || bookingId}')" 
+                  class="btn-premium"
+                  style="width: 100%; padding: 14px; background: ${successColor}; color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s ease; font-size: 1rem; box-shadow: 0 4px 12px ${successColor}44;">
+            <i class="ph ph-receipt"></i> View Details & Receipt
+          </button>
         </div>
-        
-        <button onclick="viewBookingDetail('${data.bookingId || bookingId}')" style="width: 100%; padding: 12px 16px; background: linear-gradient(135deg, ${successColor} 0%, ${successColor}dd 100%); color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; font-size: 0.95rem;">
-          <i class="ph ph-arrow-right"></i> View Booking Details
-        </button>
       </div>
-      <pre style="margin-top:12px; font-size:0.78rem; background:#f8faff; padding:10px; border-radius:8px; overflow-x:auto;">${JSON.stringify(data, null, 2)}</pre>`;
+      <details style="margin-top:16px; cursor: pointer;">
+        <summary style="font-size:0.75rem; color:#94a3b8; text-align:center;">View Raw API Response</summary>
+        <pre style="margin-top:8px; font-size:0.75rem; background:#f8fafc; padding:12px; border-radius:10px; overflow-x:auto; border:1px solid #e2e8f0;">${JSON.stringify(data, null, 2)}</pre>
+      </details>`;
   } catch (err) {
     if (!bookingEl) return;
     bookingEl.innerHTML = `
@@ -3476,13 +3539,25 @@ async function viewBookingDetail(bookingId) {
     apiKey: config.apiKey
   };
   
-  // Show loading state
+  // Show loading state - if we have the booking element (Review Page) use it,
+  // otherwise use the global booking detail content container
   const bookingEl = document.getElementById("booking");
+  const detailContainer = document.getElementById("booking-detail-content");
+  
   if (bookingEl) {
     bookingEl.innerHTML = `
       <div class="empty-state fade-in">
         <div class="loader" style="margin-bottom:16px; border-color:var(--primary); border-top-color:transparent; width:30px; height:30px;"></div>
         <p>Fetching booking details...</p>
+      </div>`;
+  } else if (detailContainer) {
+    // We are on another page, switch to booking detail page immediately and show loader
+    document.querySelectorAll(".view-page").forEach(p => p.classList.add("hidden"));
+    document.getElementById("booking-detail-page")?.classList.remove("hidden");
+    detailContainer.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="loader" style="margin-bottom:16px; border-color:var(--primary); border-top-color:transparent; width:30px; height:30px;"></div>
+        <p>Retrieving your reservation details...</p>
       </div>`;
   }
   
@@ -3503,14 +3578,32 @@ async function viewBookingDetail(bookingId) {
     journeyResponseTimes.bookingDetail = responseMs;
     displayResponseTimes();
     
-    if (!res.ok || data.ok === false) {
+    console.log('DEBUG_BOOKING_DETAIL_RESPONSE', data);
+    
+    const isSuccess = res.ok && (data.bookingId || data.order?.bookingId || data.status?.success === true || data.order);
+    
+    if (!isSuccess) {
+      console.error('Booking detail fetch failed or returned invalid data', { ok: res.ok, data });
+      const errorMsg = data.reason || data.message || 'The booking ID might be invalid or from a different environment.';
+      
       if (bookingEl) {
         bookingEl.innerHTML = `
           <div class="alert-box error fade-in" style="flex-direction: column; align-items: flex-start;">
             <div style="display: flex; gap: 8px; align-items: center; font-weight: 600;">
               <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i> Failed to Load Booking Details
             </div>
-            <div style="margin-top: 8px; font-size: 0.9rem;">${data.reason || data.message || 'Please try again'}</div>
+            <div style="margin-top: 8px; font-size: 0.9rem;">${errorMsg}</div>
+          </div>`;
+      } else if (detailContainer) {
+        detailContainer.innerHTML = `
+          <div class="alert-box error fade-in" style="margin: 20px; padding: 24px; border-radius: 16px;">
+            <div style="display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 1.1rem; color: #991b1b; margin-bottom: 12px;">
+              <i class="ph ph-warning-circle" style="font-size: 1.5rem;"></i> Error Retrieving Booking
+            </div>
+            <p style="color: #b91c1c; margin-bottom: 20px;">${errorMsg}</p>
+            <button onclick="window.location.reload()" class="btn-primary" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">
+              <i class="ph ph-arrows-clockwise"></i> Try Again
+            </button>
           </div>`;
       }
       return;
@@ -3528,6 +3621,68 @@ async function viewBookingDetail(bookingId) {
           <span class="message">Error fetching booking details: ${err.message}</span>
         </div>`;
     }
+  }
+}
+
+// Function to handle booking cancellation
+async function cancelBookingRequest(bookingId) {
+  if (!confirm(`Are you sure you want to cancel booking ${bookingId}?`)) return;
+  
+  const config = getConfigPayload();
+  const body = {
+    bookingId,
+    env: config.env,
+    apiKey: config.apiKey,
+    remarks: "Cancelled from Portal"
+  };
+  
+  // Show loading overlay
+  const container = document.getElementById("booking-detail-content");
+  const originalHtml = container.innerHTML;
+  
+  container.innerHTML = `
+    <div class="empty-state fade-in" style="padding: 100px 0;">
+      <div class="loader" style="margin-bottom:16px; border-color:var(--danger); border-top-color:transparent; width:40px; height:40px;"></div>
+      <h2 style="color: var(--danger);">Processing Cancellation...</h2>
+      <p>Sending request to Tripjack server. Please wait.</p>
+    </div>
+    ${originalHtml}
+  `;
+  
+  try {
+    const res = await fetch(`${API_BASE}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    
+    const data = await res.json();
+    
+    if (res.ok && (data.status?.success === true || data.ok)) {
+      // Show success alert temporarily
+      container.innerHTML = `
+        <div class="alert-box success fade-in" style="margin: 20px; padding: 24px; border-radius: 16px; animation: slideDown 0.5s ease-out;">
+          <div style="display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 1.2rem;">
+            <i class="ph ph-check-circle" style="font-size: 1.8rem;"></i> Cancellation Successful
+          </div>
+          <p style="margin-top: 8px;">Your booking has been cancelled. Refreshing details...</p>
+        </div>
+        ${originalHtml}
+      `;
+      
+      // Automatic Refresh after 2 seconds
+      setTimeout(() => {
+        viewBookingDetail(bookingId);
+      }, 2000);
+      
+    } else {
+      // Show error
+      alert(`Cancellation failed: ${data.reason || data.message || 'Please contact support.'}`);
+      container.innerHTML = originalHtml;
+    }
+  } catch (err) {
+    alert("An error occurred during cancellation.");
+    container.innerHTML = originalHtml;
   }
 }
 
@@ -3554,94 +3709,232 @@ function renderBookingDetail(data) {
   const container = document.getElementById("booking-detail-content");
   if (!container) return;
   
-  // Extract booking details
-  const bookingId = data.bookingId || data.id || 'N/A';
-  const hotelName = data.hotelName || data.hotel?.name || 'Hotel';
-  const checkIn = data.checkIn || data.checkInDate || 'N/A';
-  const checkOut = data.checkOut || data.checkOutDate || 'N/A';
-  const totalPrice = data.totalPrice || data.amount || 0;
-  const currency = data.currency || 'INR';
-  const status = data.status || 'Confirmed';
-  const confirmationNumber = data.confirmationNumber || data.bookingId || 'N/A';
+  // Extract booking details with safety defaults for the Order/ItemInfos structure
+  const order = data.order || {};
+  const hotelInfo = data.itemInfos?.HOTEL?.hInfo || {};
+  const firstOp = hotelInfo.ops?.[0] || {};
+  const firstRoom = firstOp.ris?.[0] || {};
   
+  const bookingId = order.bookingId || data.bookingId || data.id || 'N/A';
+  const hotelName = hotelInfo.name || data.hotelName || data.hotel?.name || 'Hotel Name';
+  
+  // Try to find dates in various places
+  const checkIn = globalSearchBody?.checkIn || firstRoom.checkIn || data.checkIn || 'N/A';
+  const checkOut = globalSearchBody?.checkOut || firstRoom.checkOut || data.checkOut || 'N/A';
+  
+  // Handle price safely
+  const totalPrice = order.amount || data.totalPrice || data.amount || 0;
+  const currency = data.currency || order.currency || 'INR';
+  const status = order.status || data.status?.httpStatus || data.status || 'Confirmed';
+  const confirmationNumber = order.bookingId || bookingId;
+  const mealBasis = firstRoom.mb || 'N/A';
+  const roomName = firstRoom.rc || 'N/A';
+
+  // Address components
+  const adr = hotelInfo.ad || {};
+  const fullAddress = [adr.adr, adr.adr2, adr.ctn, adr.sn, adr.cn].filter(Boolean).join(', ');
+  
+  // Travellers list
+  const travellers = firstRoom.ti || [];
+  const travellersHtml = travellers.map(t => `
+    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem;">
+      <i class="ph ph-user-circle" style="color: var(--primary);"></i>
+      <span style="font-weight: 600;">${t.ti} ${t.fN} ${t.lN}</span>
+      <span style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">${t.pt}</span>
+    </div>
+  `).join('');
+
+  // Cancellation Penalties
+  const penalties = firstOp.cnp?.pd || [];
+  const penaltiesHtml = penalties.map(p => {
+    const amt = p.am === 0 ? '<span style="color:#10b981;">Free</span>' : `${currency} ${p.am.toFixed(2)}`;
+    return `
+      <tr style="border-bottom: 1px solid #f1f5f9;">
+        <td style="padding: 8px 0; font-size: 0.85rem; color: #64748b;">${new Date(p.fdt).toLocaleDateString()}</td>
+        <td style="padding: 8px 0; font-size: 0.85rem; color: #64748b;">${new Date(p.tdt).toLocaleDateString()}</td>
+        <td style="padding: 8px 0; font-size: 0.85rem; font-weight: 700; text-align: right;">${amt}</td>
+      </tr>
+    `;
+  }).join('');
+
+  // Inclusions / Benefits
+  const benefits = firstRoom.rexb?.BENEFIT?.[0]?.values || [];
+  const benefitsHtml = benefits.map(b => `<span style="background:#f1f5f9; color:#475569; padding:4px 10px; border-radius:6px; font-size:0.75rem;">${b}</span>`).join('');
+
+  // Instructions / Policies
+  const instructions = hotelInfo.inst || [];
+  const instructionsHtml = instructions.map(ins => {
+    let msg = ins.msg;
+    try { 
+      const parsed = JSON.parse(ins.msg);
+      msg = Object.values(parsed).join(' ');
+    } catch(e) {}
+    return `<div style="margin-bottom:12px;">
+      <div style="font-size:0.75rem; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:4px;">${ins.type.replace('_', ' ')}</div>
+      <div style="font-size:0.85rem; color:#475569; line-height:1.5;">${msg}</div>
+    </div>`;
+  }).join('');
+
   const bookingDetailsHtml = `
     <div style="display: flex; flex-direction: column; gap: 20px;">
-      <!-- Success Banner -->
-      <div style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border: 2px solid #10b981; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
-        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0;">
-          <i class="ph ph-check-circle"></i>
-        </div>
-        <div>
-          <div style="font-size: 1.3rem; font-weight: 800; color: #065f46;">Booking Confirmed!</div>
-          <div style="font-size: 0.95rem; color: #047857; margin-top: 4px;">Your reservation has been successfully created</div>
+      <!-- Actions Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn-ghost" onclick="backToSearch()">
+          <i class="ph ph-arrow-left"></i> Back to Search
+        </button>
+        <div style="display: flex; gap: 12px;">
+          ${(status !== 'CANCELLED' && status !== 'CANCEL_DONE') ? `
+            <button onclick="cancelBookingRequest('${bookingId}')" class="btn-danger" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-x-circle"></i> Cancel Booking
+            </button>
+          ` : ''}
+          <button onclick="window.print()" class="btn-secondary" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <i class="ph ph-printer"></i> Print Receipt
+          </button>
         </div>
       </div>
-      
-      <!-- Booking Details Grid -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-        <!-- Booking ID -->
-        <div style="background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 16px;">
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #4338ca; margin-bottom: 8px;">Booking ID</div>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #1e1b4b; word-break: break-all;">${bookingId}</div>
+
+      <!-- Status Banner -->
+      <div style="background: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)' : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)'}; border: 2px solid ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#ef4444' : '#10b981'}; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#ef4444' : '#10b981'} 0%, ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#dc2626' : '#059669'} 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0;">
+          <i class="ph ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'ph-x-circle' : 'ph-check-circle'}"></i>
         </div>
-        
-        <!-- Confirmation Number -->
-        <div style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px;">
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #059669; margin-bottom: 8px;">Confirmation #</div>
-          <div style="font-size: 1.1rem; font-weight: 800; color: #065f46; word-break: break-all;">${confirmationNumber}</div>
-        </div>
-        
-        <!-- Hotel Name -->
-        <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px;">
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Hotel</div>
-          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${hotelName}</div>
-        </div>
-        
-        <!-- Status -->
-        <div style="background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px;">
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #059669; margin-bottom: 8px;">Status</div>
-          <div style="font-size: 1rem; font-weight: 700; color: #065f46; display: flex; align-items: center; gap: 6px;">
-            <i class="ph ph-check-circle" style="color: #10b981;"></i> ${status}
+        <div>
+          <div style="font-size: 1.3rem; font-weight: 800; color: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#991b1b' : '#065f46'};">
+            ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'Booking Cancelled' : (status === 'ON_HOLD' ? 'Placed on Hold' : 'Confirmed')}!
+          </div>
+          <div style="font-size: 0.95rem; color: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#b91c1c' : '#047857'}; margin-top: 4px;">
+            ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'This reservation has been successfully cancelled.' : (status === 'ON_HOLD' ? 'Your hold has been successfully placed' : 'Your reservation has been successfully created')}
           </div>
         </div>
       </div>
       
-      <!-- Dates and Price -->
-      <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
-        <!-- Check-in -->
-        <div>
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Check-in</div>
-          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${checkIn}</div>
-        </div>
+      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
         
-        <!-- Check-out -->
-        <div>
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Check-out</div>
-          <div style="font-size: 1rem; font-weight: 700; color: #1e3a8a;">${checkOut}</div>
+        <!-- Left Column: Hotel & Travellers -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Hotel Section -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div style="width: 44px; height: 44px; background: #eff6ff; color: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                <i class="ph ph-buildings"></i>
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.2rem; color: #1e293b;">${hotelName}</h3>
+                <div style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">${fullAddress}</div>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; border-radius: 12px; padding: 16px;">
+              <div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Check-in</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-top: 4px;">${checkIn}</div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">After ${hotelInfo.checkInTime?.beginTime || '14:00'}</div>
+              </div>
+              <div>
+                <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Check-out</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-top: 4px;">${checkOut}</div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">Before ${hotelInfo.checkOutTime?.beginTime || '12:00'}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Room & Travellers -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+            <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-bed"></i> Room & Traveller Details
+            </h4>
+            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 10px; padding: 12px; margin-bottom: 16px;">
+              <div style="font-weight: 700; color: #9d174d; font-size: 0.9rem;">${roomName}</div>
+              <div style="font-size: 0.8rem; color: #be185d; margin-top: 4px;">Plan: ${mealBasis}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${travellersHtml}
+            </div>
+          </div>
+
+          <!-- Important Info -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+            <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-info"></i> Important Information
+            </h4>
+            ${instructionsHtml}
+          </div>
+
         </div>
-        
-        <!-- Total Price -->
-        <div>
-          <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #1e40af; margin-bottom: 8px;">Total Price</div>
-          <div style="font-size: 1.2rem; font-weight: 800; color: #059669;">${currency} ${totalPrice.toFixed(2)}</div>
+
+        <!-- Right Column: Summary & Policy -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          
+          <!-- Booking Summary Card -->
+          <div style="background: #1e293b; color: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(30, 41, 59, 0.2);">
+            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px; margin-bottom: 4px;">Booking ID</div>
+            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; font-family: monospace;">${bookingId}</div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="opacity: 0.7; font-size: 0.9rem;">Status</span>
+              <span style="background: ${status === 'ON_HOLD' ? '#f59e0b' : '#10b981'}; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;">${status}</span>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 16px 0;" />
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+              <span style="opacity: 0.7; font-size: 0.9rem;">Total Paid</span>
+              <span style="font-size: 1.5rem; font-weight: 800; color: #10b981;">${currency} ${totalPrice.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <!-- Cancellation Policy -->
+          <div style="background: #fff1f2; border: 1px solid #fecaca; border-radius: 16px; padding: 20px;">
+            <h4 style="margin: 0 0 12px; font-size: 0.9rem; color: #9f1239; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-shield-warning"></i> Cancellation Policy
+            </h4>
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="border-bottom: 1.5px solid #fecaca;">
+                  <th style="text-align: left; font-size: 0.7rem; color: #9f1239; padding-bottom: 8px;">From</th>
+                  <th style="text-align: left; font-size: 0.7rem; color: #9f1239; padding-bottom: 8px;">To</th>
+                  <th style="text-align: right; font-size: 0.7rem; color: #9f1239; padding-bottom: 8px;">Penalty</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${penaltiesHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Benefits -->
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+            <h4 style="margin: 0 0 16px; font-size: 0.9rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-sparkle"></i> Included Amenities
+            </h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              ${benefitsHtml}
+            </div>
+          </div>
+
         </div>
+
       </div>
-      
-      <!-- Full Response -->
-      <div style="background: #f8faff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px;">
-        <div style="font-size: 0.85rem; font-weight: 700; color: #4338ca; margin-bottom: 12px;">Full Booking Response</div>
-        <pre style="font-size: 0.75rem; color: #1e1b4b; overflow-x: auto; max-height: 300px; margin: 0;">${JSON.stringify(data, null, 2)}</pre>
-      </div>
-      
+
       <!-- Action Buttons -->
       <div style="display: flex; gap: 12px; margin-top: 12px;">
-        <button onclick="backToSearch()" style="flex: 1; padding: 12px 16px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
-          <i class="ph ph-arrow-left"></i> Back to Search
+        <button onclick="backToSearch()" style="flex: 1; padding: 14px; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
+          <i class="ph ph-house"></i> Return Home
         </button>
-        <button onclick="window.print()" style="flex: 1; padding: 12px 16px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
-          <i class="ph ph-printer"></i> Print Booking
+        <button onclick="window.print()" style="flex: 1; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; box-shadow: 0 4px 12px var(--primary-light);">
+          <i class="ph ph-printer"></i> Download Receipt
         </button>
       </div>
+
+      <!-- Raw Data (Collapsible) -->
+      <details style="margin-top: 24px; cursor: pointer;">
+        <summary style="font-size: 0.75rem; color: #94a3b8; text-align: center;">View Technical Response Details</summary>
+        <div style="background: #f8faff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px; margin-top: 10px;">
+          <pre style="font-size: 0.75rem; color: #1e1b4b; overflow-x: auto; max-height: 400px; margin: 0;">${JSON.stringify(data, null, 2)}</pre>
+        </div>
+      </details>
     </div>
   `;
   
@@ -3826,18 +4119,34 @@ function initializeDates() {
 
   // Set default to exactly 6 months from today
   const today = new Date();
-
   const checkinDate = new Date(today);
   checkinDate.setMonth(checkinDate.getMonth() + 6);
 
   const checkoutDate = new Date(checkinDate);
-  checkoutDate.setDate(checkoutDate.getDate() + 3); // Default 3 nights stay
+  checkoutDate.setDate(checkoutDate.getDate() + 1); // Exactly 1 night stay
 
   // Format as YYYY-MM-DD
-  const formatIso = (date) => date.toISOString().split('T')[0];
+  const formatIso = (date) => {
+    const d = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return d.toISOString().split('T')[0];
+  };
 
   checkinInput.value = formatIso(checkinDate);
   checkoutInput.value = formatIso(checkoutDate);
+  
+  // Set minimum dates to today
+  const minToday = formatIso(today);
+  checkinInput.min = minToday;
+  checkoutInput.min = minToday;
+
+  // Auto-update checkout when checkin changes
+  checkinInput.addEventListener('change', function() {
+    const selected = new Date(this.value);
+    const nextDay = new Date(selected);
+    nextDay.setDate(nextDay.getDate() + 1);
+    checkoutInput.value = formatIso(nextDay);
+    checkoutInput.min = formatIso(nextDay);
+  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {

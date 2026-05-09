@@ -590,9 +590,9 @@ function showNotification(message, type = 'info') {
 
 // API Configuration Functions
 const PREDEFINED_KEYS = [
-  "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe",
+  "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
   "8112616278b36e4e-6996-4088-b66b-bf5d6787fe13",
-  "81139487b3f2160f-acb8-41d6-9177-4bc69df0148a",
+  "81139487ef4307a2-1437-43e8-b481-88a25b62076b",
   "711814269fe755f1-cdc6-44bf-acbc-d91b1a451878",
   "6116982da6b759-28f8-4cdf-b210-04cb98116165",
   "412801f9073cf9-6dd0-40fa-b016-c2f5abf02355",

@@ -7,8 +7,8 @@ def fetch_booking_detail(data: dict):
     env = data.get("env", "https://apitest.tripjack.com/").rstrip("/")
     
     # Determine the correct booking detail URL and API key based on environment
-    if "admin" in env.lower() or "hmsbk-admin" in env.lower():
-        # Admin TJ environment - use Prod Tripjack endpoint
+    if "admin" in env.lower() or "hmsbk-admin" in env.lower() or "tripjack.com" in env.lower() and "apitest" not in env.lower():
+        # Admin TJ or Prod Tripjack environment - use Prod Tripjack endpoint
         BOOKING_DETAIL_URL = "https://tripjack.com/oms/v3/hotel/booking-details"
         BOOKING_DETAIL_APIKEY = data.get("apiKey", "6116982da6b759-28f8-4cdf-b210-04cb98116165")
     else:

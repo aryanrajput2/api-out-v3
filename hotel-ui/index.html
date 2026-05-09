@@ -43,7 +43,7 @@
         <div class="logo-circle">AH</div>
         <div>
           <a href="/ui/search" style="text-decoration: none; color: inherit;">
-            <h1 style="cursor: pointer; margin-bottom: 4px;">Aryan Hotels</h1>
+            <h1 style="cursor: pointer; margin-bottom: 4px;">V3 TJ Hotels</h1>
           </a>
           <p class="subtitle" style="margin: 0;">Experience modern, fast hotel booking.</p>
         </div>
@@ -180,10 +180,10 @@
               <div class="select-wrapper">
                 <select id="config-apikey-select" onchange="handleApiKeySelection()">
                   <optgroup label="Admin & Prod TJ">
-                    <option value="7510455af381d5-d315-41e2-8e5e-e94cc0a960fe" selected>Hotel Tech Team Testing
+                    <option value="751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9" selected>Hotel Tech Team Testing
                       (Prod/Admin)</option>
                     <option value="8112616278b36e4e-6996-4088-b66b-bf5d6787fe13">Aryan Admin (Prod/Admin)</option>
-                    <option value="81139487b3f2160f-acb8-41d6-9177-4bc69df0148a">Aryan Agent (Prod/Admin)</option>
+                    <option value="81139487ef4307a2-1437-43e8-b481-88a25b62076b">Aryan Agent (Prod/Admin)</option>
                     <option value="711814269fe755f1-cdc6-44bf-acbc-d91b1a451878">Vishal Test Agent</option>
                   </optgroup>
                   <optgroup label="API Test Server (Sandbox)">
@@ -238,7 +238,7 @@
               <input type="text" id="hotelids" placeholder="e.g. 100000002784, 100000003248" required />
               
               <!-- Quick Batch Search Buttons -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px;">
                 <button type="button" class="batch-search-btn" onclick="searchLocationHotels('mumbai')" title="Search 200 hotels in Mumbai">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
@@ -251,13 +251,25 @@
                     <i class="ph ph-arrow-right"></i>
                   </div>
                 </button>
-                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('dubai')" title="Search 50 hotels in Dubai">
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('dubai')" title="Search 15 hotels in Dubai">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
                   </div>
                   <div class="batch-btn-content">
                     <div class="batch-btn-title">Dubai</div>
-                    <div class="batch-btn-subtitle">50 Hotels</div>
+                    <div class="batch-btn-subtitle">15 Hotels</div>
+                  </div>
+                  <div class="batch-btn-arrow">
+                    <i class="ph ph-arrow-right"></i>
+                  </div>
+                </button>
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('delhi')" title="Search 15 hotels in Delhi">
+                  <div class="batch-btn-icon">
+                    <i class="ph ph-buildings"></i>
+                  </div>
+                  <div class="batch-btn-content">
+                    <div class="batch-btn-title">Delhi Places</div>
+                    <div class="batch-btn-subtitle">15 Hotels</div>
                   </div>
                   <div class="batch-btn-arrow">
                     <i class="ph ph-arrow-right"></i>
@@ -464,64 +476,6 @@
               <span id="detail-timer" class="timer-badge hidden"></span>
             </div>
 
-            <!-- Filters Bar -->
-            <div class="filters-glass-container">
-              <div class="input-group filter-group search-flex">
-                <i class="ph ph-magnifying-glass icon-left"></i>
-                <input type="text" id="filter-room-name" placeholder="Search Room Name, Option ID, or Room ID..."
-                  onkeyup="applyRoomFilters()">
-              </div>
-              <div class="input-group filter-group">
-                <i class="ph ph-fork-knife icon-left"></i>
-                <select id="filter-meal" onchange="applyRoomFilters()">
-                  <option value="">All Meals</option>
-                  <option value="Room Only">Room Only</option>
-                  <option value="Breakfast">Breakfast</option>
-                  <option value="Half Board">Half Board</option>
-                  <option value="Full Board">Full Board</option>
-                </select>
-              </div>
-              <div class="input-group filter-group">
-                <i class="ph ph-receipt icon-left"></i>
-                <select id="filter-gst" onchange="applyRoomFilters()">
-                  <option value="">GST: All</option>
-                  <option value="NA">GST: NA</option>
-                  <option value="Required">GST: Required</option>
-                </select>
-              </div>
-              <div class="input-group filter-group">
-                <i class="ph ph-swap icon-left"></i>
-                <select id="filter-refund" onchange="applyRoomFilters()">
-                  <option value="">Refund Policy: All</option>
-                  <option value="true">Refundable</option>
-                  <option value="false">Non-Refundable</option>
-                </select>
-              </div>
-              <div class="input-group filter-group">
-                <i class="ph ph-identification-card icon-left"></i>
-                <select id="filter-pan" onchange="applyRoomFilters()">
-                  <option value="">PAN: All</option>
-                  <option value="true">PAN Required</option>
-                  <option value="false">PAN Not Required</option>
-                </select>
-              </div>
-              <div class="input-group filter-group">
-                <i class="ph ph-passport icon-left"></i>
-                <select id="filter-passport" onchange="applyRoomFilters()">
-                  <option value="">Passport: All</option>
-                  <option value="true">Passport Required</option>
-                  <option value="false">Passport Not Required</option>
-                </select>
-              </div>
-              <div class="input-group filter-group" style="width: 180px;">
-                <i class="ph ph-sort-ascending icon-left"></i>
-                <select id="filter-price" onchange="applyRoomFilters()">
-                  <option value="">Sort: Default</option>
-                  <option value="low_to_high">Price: Low to High</option>
-                  <option value="high_to_low">Price: High to Low</option>
-                </select>
-              </div>
-            </div>
           </div>
 
           <div id="detail-error" class="alert-box error hidden" style="flex-direction: column; margin-bottom: 16px;">
@@ -556,6 +510,23 @@
               style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;">
             </div>
             <p>Fetching review details and current pricing...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Page 5: Booking Detail Page -->
+      <section id="booking-detail-page" class="view-page hidden">
+        <div class="results-header">
+          <button type="button" class="btn-ghost" onclick="backToSearch()">
+            <i class="ph ph-house"></i> Back to Home
+          </button>
+        </div>
+
+        <div class="glass-panel booking-detail-panel fade-in-up" id="booking-detail-content" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+          <!-- Managed via JS -->
+          <div class="empty-state">
+            <div class="loader" style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;"></div>
+            <p>Loading booking summary...</p>
           </div>
         </div>
       </section>

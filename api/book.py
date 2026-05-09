@@ -16,7 +16,12 @@ def book_hotel(data: dict):
     if "hmsbk-admin" in env or "admin.tripjack" in env or "tj-hotel-admin" in env:
         # Admin TJ environment
         BOOK_URL = "https://hmsbk-admin.tripjack.com/oms/v3/hotel/book"
-        BOOK_APIKEY = data.get("apiKey", "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe")
+        BOOK_APIKEY = data.get("apiKey", "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9")
+        BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
+    elif "tripjack.com" in env and "apitest" not in env:
+        # Prod Tripjack environment
+        BOOK_URL = "https://tripjack.com/oms/v3/hotel/book"
+        BOOK_APIKEY = data.get("apiKey", "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9")
         BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
     else:
         # API Test Server (Sandbox) - HARDCODED (default for all other envs)
@@ -85,9 +90,13 @@ def book_hotel(data: dict):
         result = response.json()
         
         # If booking was successful, save it to persistent storage
-        if result.get("ok") and result.get("bookingId"):
+        # V3 Response structure check
+        is_success = result.get("ok") or (result.get("status", {}).get("success") is True)
+        booking_id = result.get("bookingId") or result.get("order", {}).get("bookingId")
+        
+        if is_success and booking_id:
             from api.booking_storage import add_booking
-            add_booking(result.get("bookingId"), result)
+            add_booking(booking_id, result)
         
         return result
     except JSONDecodeError:

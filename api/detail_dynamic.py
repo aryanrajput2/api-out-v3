@@ -6,6 +6,8 @@ from config import API_KEY, BASE_URL
 
 def dynamic_detail(data: dict):
     env = data.get("env", BASE_URL).rstrip("/")
+    if env == "https://tripjack.com":
+        env = "https://hms-api.tripjack.com"
     api_key = data.get("apiKey", API_KEY)
     url = f"{env}/hms/v3/hotel/pricing"
 

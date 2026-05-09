@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 def fetch_hotel_static_detail(data: dict):
     env = data.get("env", "https://tj-hotel-admin.tripjack.com/")
+    if env.rstrip("/") == "https://tripjack.com":
+        env = "https://hms-api.tripjack.com/"
     api_key = data.get("apiKey", "")
     hid = data.get("hid") or data.get("TripjackID")
 
