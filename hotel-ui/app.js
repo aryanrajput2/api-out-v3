@@ -3614,10 +3614,10 @@ function renderReviewDetails(data, responseMs) {
     ${timingBadge}
     ${priceAlert}
     
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px;">
+    <div class="review-layout" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px;">
       
       <!-- Left Column: Hotel & Room Info -->
-      <div style="flex: 1; min-width: 300px;">
+      <div class="review-left" style="flex: 1; min-width: 300px;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
            <div class="logo-circle" style="width: 48px; height: 48px; font-size: 1.2rem; background: var(--primary); color: white;"><i class="ph ph-buildings"></i></div>
            <div>
@@ -3682,7 +3682,7 @@ function renderReviewDetails(data, responseMs) {
             </div>
           </div>
           <div style="padding:18px; background:white; display:flex; flex-direction:column; gap:14px;">
-            <div style="display:flex; gap:10px;">
+            <div class="delivery-phone-row" style="display:flex; gap:10px;">
               <div style="flex:0 0 82px;">
                 <label style="display:block; font-size:0.75rem; font-weight:600; color:#6b7280; margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px;">Code</label>
                 <input id="delivery-code" type="text" value="+91" style="width:100%; padding:10px 10px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:0.9rem; background:#f9fafb; transition:border-color 0.2s;" onfocus="this.style.borderColor='#4f46e5';this.style.background='white'" onblur="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'" />
@@ -3702,7 +3702,7 @@ function renderReviewDetails(data, responseMs) {
       </div>
 
       <!-- Right Column: Price & Action -->
-      <div style="flex: 0 0 320px; background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;">
+      <div class="review-right" style="flex: 0 0 320px; background: white; border: 1px solid #e2e8f0; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden;">
         <div style="background: var(--bg-secondary); border-bottom: 1px solid #e2e8f0; padding: 16px 20px;">
            <h4 style="margin: 0; display:flex; flex-direction: column; align-items: flex-start; gap: 8px; font-size: 1rem; color: var(--text-main);">
              Price Summary
@@ -3848,12 +3848,12 @@ function buildTravellerFormRows(searchBody) {
           <div style="font-size:0.78rem; font-weight:700; color:#6366f1; display:flex; align-items:center; gap:6px;">
             <i class="ph ph-person"></i> ${labelText}
           </div>
-          <div style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
+          <div class="traveller-name-grid" style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
             ${renderTitleSelect(`t-title-${tNum}`)}
             ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *', getName(tNum, 'first'))}
             ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *', getName(tNum, 'last'))}
           </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="traveller-docs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             ${renderInput(`t-pan-${tNum}`, 'ABCDE1234F', 'PAN (optional)')}
             ${renderInput(`t-pass-${tNum}`, 'Passport No.', 'Passport (optional)')}
           </div>
@@ -3870,7 +3870,7 @@ function buildTravellerFormRows(searchBody) {
           <div style="font-size:0.78rem; font-weight:700; color:#d97706; display:flex; align-items:center; gap:6px;">
             <i class="ph ph-baby"></i> ${labelText}
           </div>
-          <div style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
+          <div class="traveller-name-grid" style="display:grid; grid-template-columns:100px 1fr 1fr; gap:10px;">
             ${renderChildTitleSelect(`t-title-${tNum}`)}
             ${renderInput(`t-fn-${tNum}`, 'First Name', 'First Name *', getName(tNum, 'first'))}
             ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *', getName(tNum, 'last'))}
@@ -4390,7 +4390,7 @@ function renderBookingDetail(data) {
         </div>
       </div>
       
-      <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
+      <div class="booking-detail-grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px;">
         
         <!-- Left Column: Hotel & Travellers -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
