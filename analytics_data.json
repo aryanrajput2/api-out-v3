@@ -2421,6 +2421,33 @@
       "success": false,
       "error_msg": null,
       "timestamp": "2026-05-10T21:08:01.566901"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 298,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:14:58.431545"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1097,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:14:59.551418"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 3360,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:15:13.266107"
     }
   ],
   "errors": [
@@ -3125,6 +3152,12 @@
       "message": "Status 200",
       "type": "api_error",
       "timestamp": "2026-05-10T21:08:01.566923"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-05-10T21:15:13.266120"
     }
   ],
   "searches": [

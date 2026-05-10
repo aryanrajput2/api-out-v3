@@ -2164,12 +2164,12 @@ function renderStaticDetailsOnly(staticData, durationMs) {
   }
   
   header.innerHTML = `
-    <div style="animation: slideDown 0.6s ease-out;">
-      <h2 class="hotel-name" style="font-size: 2.2rem; margin: 0 0 12px 0; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    <div class="detail-header-content" style="animation: slideDown 0.6s ease-out;">
+      <h2 class="hotel-name-title" style="font-size: 2.2rem; margin: 0 0 12px 0; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
         ${name}
       </h2>
       
-      <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div class="detail-badges" style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
         ${starRating ? `
           <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
             <i class="ph-fill ph-star"></i> ${starRating} Star Hotel
@@ -2183,7 +2183,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
       </div>
       
       ${addressDisplay ? `
-        <div style="display: flex; align-items: flex-start; gap: 10px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.15); margin-bottom: 16px;">
+        <div class="detail-address-box" style="display: flex; align-items: flex-start; gap: 10px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.15); margin-bottom: 16px;">
           <i class="ph ph-map-pin" style="font-size: 1.5rem; color: var(--primary); margin-top: 2px; flex-shrink: 0;"></i>
           <div>
             <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Address</div>
@@ -2252,7 +2252,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
       window.galleryImages = validImages;
       
       staticHTML += `
-        <div style="margin-bottom: 28px; animation: fadeInUp 0.8s ease-out;">
+        <div class="hotel-gallery-section" style="margin-bottom: 28px; animation: fadeInUp 0.8s ease-out;">
           <h3 style="margin: 0 0 16px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text-main);">
             <i class="ph ph-images" style="font-size: 1.4rem; color: var(--primary);"></i> 
             Hotel Gallery 
@@ -2274,7 +2274,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
           
           <!-- Thumbnail Grid -->
           ${validImages.length > 1 ? `
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; max-height: 240px; overflow-y: auto; padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.1);">
+            <div class="gallery-thumbs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 12px; max-height: 240px; overflow-y: auto; padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.1);">
               ${validImages.map((img, idx) => `
                 <div class="gallery-thumb" data-idx="${idx}" onclick="updateMainImage(window.galleryImages[${idx}], ${idx})" style="aspect-ratio: 1; border-radius: 10px; overflow: hidden; cursor: pointer; border: 3px solid ${idx === 0 ? 'var(--primary)' : 'transparent'}; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.12); position: relative;">
                   <img src="${img}" alt="Hotel image ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="handleImageError(this)" onload="handleImageLoad(this)">
@@ -2376,7 +2376,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
               <p style="margin: 0; color: #334155; font-size: 0.9rem; line-height: 1.4;">${addr.fulladdr}</p>
             </div>
           ` : ''}
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+          <div class="location-details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
             ${addr.city ? `
               <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
                 <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">City</div>
@@ -2409,7 +2409,7 @@ function renderStaticDetailsOnly(staticData, durationMs) {
         <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
           <i class="ph ph-clock" style="font-size: 1.3rem; color: var(--primary);"></i> Check-in & Check-out
         </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+        <div class="checkin-checkout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
           <!-- Check-in Card -->
           <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.1)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
             <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
@@ -2720,8 +2720,8 @@ function renderHotelDetails(data) {
   const roomOptionsHeader = document.createElement('div');
   roomOptionsHeader.style.cssText = 'margin-top: 40px; margin-bottom: 28px; animation: fadeInUp 0.8s ease-out both;';
   roomOptionsHeader.innerHTML = `
-      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.2);">
-        <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="excellent-rooms-banner" style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.2);">
+        <div class="banner-left" style="display: flex; align-items: center; gap: 16px;">
           <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);">
             <i class="ph ph-check-circle"></i>
           </div>
@@ -2730,7 +2730,7 @@ function renderHotelDetails(data) {
             <p style="margin: 4px 0 0 0; color: #64748b; font-size: 1rem; line-height: 1.5;">Book this hotel and enjoy your trip! All room types are available for your perfect stay.</p>
           </div>
         </div>
-        <div style="text-align: center; padding: 0 20px;">
+        <div class="banner-right" style="text-align: center; padding: 0 20px;">
           <div style="background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); color: white; padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); margin-bottom: 8px;">
             <i class="ph ph-heart" style="margin-right: 6px;"></i> Ready to Book?
           </div>
@@ -2739,13 +2739,13 @@ function renderHotelDetails(data) {
       </div>
       
       <!-- Filter Section -->
-      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+      <div class="room-filters-section" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
           <i class="ph ph-funnel" style="font-size: 1.2rem; color: var(--primary);"></i>
           <h4 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-main);">Filter Room Options</h4>
         </div>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
           <!-- Room Name Filter -->
           <div>
             <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Room Name / ID</label>
