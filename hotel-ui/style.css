@@ -4356,3 +4356,147 @@ body.login-active .scroll-nav {
     font-size: 1.2rem !important;
   }
 }
+
+/* =========================================
+   DETAIL PAGE: Header & Timer Fixes
+   ========================================= */
+@media (max-width: 768px) {
+  /* Fix the main header container */
+  .panel-header {
+    margin-top: 16px !important;
+    padding: 0 4px !important;
+  }
+
+  .panel-header > div[style*="display: flex"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .panel-header h3 {
+    font-size: 1.1rem !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+
+  #detail-room-count {
+    margin-left: 0 !important;
+    font-size: 0.8rem !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  /* Timer badge fix */
+  #detail-timer {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  #detail-timer div[style*="border-radius: 20px"] {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-header h3 {
+    font-size: 1rem !important;
+  }
+}
+
+/* =========================================
+   MOBILE: Search Criteria Box Fixes
+   ========================================= */
+@media (max-width: 768px) {
+  #search-criteria-box {
+    margin-bottom: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  .search-criteria-header {
+    padding: 12px 16px !important;
+  }
+
+  .criteria-header-flex {
+    gap: 10px !important;
+  }
+
+  .criteria-header-flex h4 {
+    font-size: 0.95rem !important;
+  }
+
+  .criteria-header-flex p {
+    font-size: 0.75rem !important;
+  }
+
+  .search-criteria-grid {
+    padding: 12px !important;
+    gap: 8px !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .search-criteria-grid > div {
+    padding: 10px !important;
+  }
+
+  .search-criteria-grid i {
+    font-size: 0.8rem !important;
+  }
+
+  .search-criteria-grid div[style*="font-size: 0.7rem"] {
+    font-size: 0.65rem !important;
+  }
+
+  .search-criteria-grid div[style*="font-size: 1rem"],
+  .search-criteria-grid div[style*="font-size: 0.9rem"] {
+    font-size: 0.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-criteria-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .criteria-header-flex > div:first-child {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Hide the "Active" badge on very small screens if it overflows */
+  .search-criteria-header div[style*="color: #059669"] {
+    display: none !important;
+  }
+}
+
+/* =========================================
+   DETAIL PAGE: General Layout Polish
+   ========================================= */
+@media (max-width: 768px) {
+  /* Back button section */
+  .results-header {
+    padding: 8px 0 !important;
+    margin-bottom: 8px !important;
+  }
+
+  .btn-ghost {
+    padding: 8px 12px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Detail panel adjustments */
+  .detail-panel {
+    padding: 12px !important;
+  }
+
+  #hotel-detail-header {
+    padding-bottom: 12px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+  }
+}

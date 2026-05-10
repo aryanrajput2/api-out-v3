@@ -798,8 +798,8 @@ function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = 
       <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%); background-size: 200% 100%; animation: gradientShift 3s ease infinite;"></div>
       
       <!-- Header Section -->
-      <div style="padding: 20px 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%); border-bottom: 1px solid rgba(59, 130, 246, 0.1);">
-        <div style="display: flex; align-items: center; gap: 12px;">
+      <div class="search-criteria-header" style="padding: 20px 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%); border-bottom: 1px solid rgba(59, 130, 246, 0.1);">
+        <div class="criteria-header-flex" style="display: flex; align-items: center; gap: 12px;">
           <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); position: relative;">
             <i class="ph ph-magnifying-glass"></i>
             <div style="position: absolute; inset: -2px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 12px; opacity: 0.3; filter: blur(8px); z-index: -1;"></div>
@@ -815,7 +815,7 @@ function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = 
       </div>
 
       <!-- Content Grid -->
-      <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
+      <div class="search-criteria-grid" style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
         ${locationText ? `
           <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
             <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
