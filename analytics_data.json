@@ -2475,6 +2475,42 @@
       "success": false,
       "error_msg": null,
       "timestamp": "2026-05-10T21:18:49.058601"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 298,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:19:31.681596"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 881,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:19:32.585828"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 401,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:20:46.736240"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 979,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-05-10T21:20:47.744138"
     }
   ],
   "errors": [
