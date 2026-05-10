@@ -1,6 +1,117 @@
 const API_BASE = window.location.origin;
 let globalSearchBody = null; // Store the last search used for dynamic-detail
 
+// Store last API transactions for Technical Details View
+let lastApiTransactions = {
+  search: { req: null, res: null, time: null, status: null, url: '/search' },
+  detail: { req: null, res: null, time: null, status: null, url: '/dynamic-detail' },
+  review: { req: null, res: null, time: null, status: null, url: '/review' },
+  book: { req: null, res: null, time: null, status: null, url: '/book' },
+  bookingDetail: { req: null, res: null, time: null, status: null, url: '/booking-detail' }
+};
+
+/**
+ * Renders a Postman-like technical details section
+ * @param {string} step - The step name (search, detail, review, etc)
+ * @returns {string} HTML string
+ */
+function renderTechnicalDetails(step) {
+  const transaction = lastApiTransactions[step];
+  if (!transaction || !transaction.res) return '';
+
+  const id = `tech-${step}-${Math.floor(Math.random() * 1000)}`;
+  const statusClass = transaction.status < 400 ? 'success' : 'error';
+  const timeS = (transaction.time / 1000).toFixed(2);
+
+  return `
+    <div class="tech-details-container">
+      <details>
+        <summary class="tech-details-summary">
+          <i class="ph ph-caret-down"></i>
+          <span>View Technical Response Details (JSON)</span>
+          <div style="margin-left: auto; display: flex; gap: 8px;">
+            <span class="tech-status-badge ${statusClass}">${transaction.status}</span>
+            <span style="font-size: 0.7rem; color: #94a3b8;">${timeS}s</span>
+          </div>
+        </summary>
+        
+        <div class="tech-details-card" style="margin-top: 12px;">
+          <div class="tech-tabs">
+            <div class="tech-tab active" onclick="switchTechTab(this, '${id}-req')">Request</div>
+            <div class="tech-tab" onclick="switchTechTab(this, '${id}-res')">Response</div>
+          </div>
+          
+          <div class="tech-content">
+            <button class="copy-btn" onclick="copyTechJson('${id}')" title="Copy JSON">
+              <i class="ph ph-copy"></i>
+            </button>
+            
+            <div id="${id}-req" class="tech-tab-content">
+              <div class="tech-meta">
+                <div class="tech-meta-item"><strong>Method:</strong> POST</div>
+                <div class="tech-meta-item"><strong>URL:</strong> ${transaction.url}</div>
+              </div>
+              <pre class="tech-json">${syntaxHighlightJson(transaction.req)}</pre>
+            </div>
+            
+            <div id="${id}-res" class="tech-tab-content" style="display: none;">
+              <div class="tech-meta">
+                <div class="tech-meta-item"><strong>Status:</strong> <span class="${statusClass}">${transaction.status}</span></div>
+                <div class="tech-meta-item"><strong>Time:</strong> ${transaction.time}ms</div>
+              </div>
+              <pre class="tech-json">${syntaxHighlightJson(transaction.res)}</pre>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  `;
+}
+
+function switchTechTab(el, contentId) {
+  const container = el.closest('.tech-details-card');
+  container.querySelectorAll('.tech-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  
+  container.querySelectorAll('.tech-tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById(contentId).style.display = 'block';
+}
+
+function copyTechJson(id) {
+  const activeContent = document.querySelector(`#${id}-req:not([style*="display: none"]), #${id}-res:not([style*="display: none"])`);
+  const jsonText = activeContent.querySelector('.tech-json').textContent;
+  
+  navigator.clipboard.writeText(jsonText).then(() => {
+    const btn = activeContent.parentElement.querySelector('.copy-btn');
+    const originalIcon = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-check" style="color: #10b981;"></i>';
+    setTimeout(() => btn.innerHTML = originalIcon, 2000);
+  });
+}
+
+function syntaxHighlightJson(json) {
+  if (typeof json !== 'string') {
+    json = JSON.stringify(json, null, 2);
+  }
+  
+  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
+    let cls = 'tech-json-number';
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) {
+        cls = 'tech-json-key';
+      } else {
+        cls = 'tech-json-string';
+      }
+    } else if (/true|false/.test(match)) {
+      cls = 'tech-json-boolean';
+    } else if (/null/.test(match)) {
+      cls = 'tech-json-null';
+    }
+    return '<span class="' + cls + '">' + match + '</span>';
+  });
+}
+
 // Helper to convert number to words
 function priceInWords(num) {
   if (num === 0) return 'Zero';
@@ -60,7 +171,8 @@ let journeyResponseTimes = {
   dynamicDetail: null,
   review: null,
   book: null,
-  bookingDetail: null
+  bookingDetail: null,
+  cancellation: null
 };
 
 // Function to display response times in UI
@@ -150,6 +262,15 @@ function displayResponseTimes() {
     const s = (journeyResponseTimes.bookingDetail / 1000).toFixed(2);
     calculationParts.push(`booking detail ${s}s`);
     html += generateCard('Booking Check', `${s}s`, '#ec4899');
+  }
+  
+  // Cancellation time
+  if (journeyResponseTimes.cancellation) {
+    hasAnyTime = true;
+    totalMs += journeyResponseTimes.cancellation;
+    const s = (journeyResponseTimes.cancellation / 1000).toFixed(2);
+    calculationParts.push(`cancellation ${s}s`);
+    html += generateCard('Cancellation', `${s}s`, '#a855f7');
   }
   
   if (hasAnyTime) {
@@ -251,6 +372,7 @@ function checkLoginStatus() {
   const warningBanner = document.getElementById("env-warning-banner");
   
   if (!isLoggedIn) {
+    document.body.classList.add("login-active");
     // Show login page and hide ALL other pages
     document.getElementById("login-page").classList.remove("hidden");
     document.querySelectorAll(".view-page").forEach(p => {
@@ -266,6 +388,7 @@ function checkLoginStatus() {
     // Also hide the background blurs to let the luxury login background shine
     document.querySelectorAll(".bg-blur").forEach(el => el.style.display = "none");
   } else {
+    document.body.classList.remove("login-active");
     // Show search page
     document.getElementById("login-page").classList.add("hidden");
     document.getElementById("search-page").classList.remove("hidden");
@@ -544,7 +667,23 @@ function formatDuration(ms) {
 
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
-  return `<i class="ph ph-timer"></i> ${minutes}m ${remainingSeconds}s ${remainingMs}ms`;
+  return `<i class="ph ph-timer"></i> ${minutes}m ${remainingSeconds}s`;
+}
+
+function formatTimingStatus(ms, thresholdMs) {
+  const s = (ms / 1000).toFixed(2);
+  const thresholdS = (thresholdMs / 1000).toFixed(0);
+  const isExceeded = ms > thresholdMs;
+  
+  const icon = isExceeded ? 'ph-warning-circle' : 'ph-check-circle';
+  const color = isExceeded ? '#ef4444' : '#22c55e';
+  const bg = isExceeded ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)';
+  const border = isExceeded ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)';
+  const text = isExceeded ? `Timeout Exceeded (${s}s)` : `Within ${thresholdS}s Limit (${s}s)`;
+  
+  return `<span style="color: ${color}; display: inline-flex; align-items: center; gap: 12px; font-weight: 800; padding: 10px 24px; background: ${bg}; border-radius: 99px; border: 1px solid ${border}; font-size: 1rem; line-height: 1; vertical-align: middle; margin-left: 20px; box-shadow: 0 4px 12px ${border}; letter-spacing: 0.5px; transition: all 0.3s ease; white-space: nowrap;">
+            <i class="ph-fill ${icon}" style="font-size: 1.3rem;"></i> ${text}
+          </span>`;
 }
 
 let searchTimerInterval = null;
@@ -932,19 +1071,39 @@ async function searchHotels() {
 
     const startTime = performance.now();
     
+    const t0 = performance.now();
     const res = await fetch(`${API_BASE}/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    const t1 = performance.now();
+    const responseTime = Math.round(t1 - t0);
 
     const data = await res.json();
+    
+    // Store for Tech Details
+    lastApiTransactions.search = {
+      req: body,
+      res: data,
+      time: responseTime,
+      status: res.status,
+      url: '/search'
+    };
     const duration = Math.round(performance.now() - startTime);
     
+    // Timeout Status UI
+    const threshold = timeoutMs || 13000;
+    const timerUI = document.getElementById("search-timer");
+    if (timerUI) {
+      timerUI.innerHTML = formatTimingStatus(duration, threshold);
+      timerUI.classList.remove("hidden");
+    }
+
     console.log('API_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
     
     // Clear and track response time
-    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null };
+    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null, cancellation: null };
     journeyResponseTimes.search = duration;
     displayResponseTimes();
 
@@ -958,15 +1117,14 @@ async function searchHotels() {
       return;
     }
 
-    // Set Timer UI
-    const timerUI = document.getElementById("search-timer");
-    if (timerUI) {
-      timerUI.innerHTML = formatDuration(duration);
-      timerUI.classList.remove("hidden");
-    }
-
     displayHotels(data);
-    globalSearchBody = body; // Cache for detail queries
+    
+    // Add Technical Details to Results
+    const resultsContainer = document.getElementById("results");
+    if (resultsContainer) resultsContainer.insertAdjacentHTML('beforeend', renderTechnicalDetails('search'));
+
+    globalSearchBody = body;
+    saveRecentSearch(body);
     switchToResultsPage(body, duration, data);
   } catch (err) {
     showSearchError("Unexpected error while searching hotels.", err?.message);
@@ -1021,19 +1179,39 @@ async function searchLocationHotels(location) {
     };
 
     const startTime = performance.now();
+    const t0 = performance.now();
     const res = await fetch(`${API_BASE}/batch-search`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    const t1 = performance.now();
+    const responseTime = Math.round(t1 - t0);
 
     const data = await res.json();
+    
+    // Store for Tech Details (Batch Search behaves like Search for history)
+    lastApiTransactions.search = {
+      req: body,
+      res: data,
+      time: responseTime,
+      status: res.status,
+      url: '/batch-search'
+    };
     const duration = Math.round(performance.now() - startTime);
     
+    // Timeout Status UI
+    const threshold = timeoutMs || 13000;
+    const timerUI = document.getElementById("search-timer");
+    if (timerUI) {
+      timerUI.innerHTML = formatTimingStatus(duration, threshold);
+      timerUI.classList.remove("hidden");
+    }
+
     console.log('API_BATCH_SEARCH_REQUEST', { duration, status: res.status, ok: data.ok });
     
     // Track response time by parsing batch_details
-    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null };
+    journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null, cancellation: null };
     if (data.batch_details && data.batch_details.length > 0) {
       data.batch_details.forEach(b => {
         if (b.response_time_ms) {
@@ -1057,15 +1235,14 @@ async function searchLocationHotels(location) {
       return;
     }
 
-    // Set Timer UI
-    const timerUI = document.getElementById("search-timer");
-    if (timerUI) {
-      timerUI.innerHTML = formatDuration(duration);
-      timerUI.classList.remove("hidden");
-    }
-
     displayHotels(data);
-    globalSearchBody = body; // Cache for detail queries
+    
+    // Add Technical Details to Results
+    const resultsContainer = document.getElementById("results");
+    if (resultsContainer) resultsContainer.insertAdjacentHTML('beforeend', renderTechnicalDetails('search'));
+
+    globalSearchBody = body;
+    saveRecentSearch(body);
     switchToResultsPage(body, duration, data);
   } catch (err) {
     showSearchError(`Unexpected error while searching ${location} hotels.`, err?.message);
@@ -1098,7 +1275,12 @@ function readRoomsFromUi() {
     const room = { adults };
     if (children > 0) {
       room.children = children;
-      if (childAge.length) room.childAge = childAge;
+      // Ensure we have exactly 'children' number of ages, default to 5 if missing
+      const finalAges = [];
+      for (let i = 0; i < children; i++) {
+        finalAges.push(childAge[i] || 5);
+      }
+      room.childAge = finalAges;
     }
     rooms.push(room);
   });
@@ -1195,7 +1377,22 @@ function displayHotels(data) {
     card.dataset.gst = gstType.toLowerCase();
     card.dataset.refundable = isRefundable ? "true" : "false";
     card.dataset.pan = option.compliance?.panRequired ? "true" : "false";
+    card.dataset.passport = option.compliance?.passportRequired ? "true" : "false";
     card.dataset.price = totalPrice;
+
+    const strikeThrough = option.pricing?.strikeThrough ? (option.pricing.strikeThrough).toFixed(2) : null;
+    const gstClaimable = option.pricing?.gstClaimableAmount ? (option.pricing.gstClaimableAmount).toFixed(2) : null;
+
+    let inclusionsHtml = "";
+    if (option.inclusions && option.inclusions.length > 0) {
+      const incList = option.inclusions.map(inc => `<li style="font-size:0.75rem; color:#64748b; margin-bottom:2px;">${inc}</li>`).join("");
+      inclusionsHtml = `
+        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #e2e8f0;">
+          <div style="font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;"><i class="ph ph-check-square-offset"></i> Inclusions:</div>
+          <ul style="margin:0; padding-left:16px;">${incList}</ul>
+        </div>
+      `;
+    }
 
     card.innerHTML = `
       <div class="hotel-header">
@@ -1224,6 +1421,7 @@ function displayHotels(data) {
           <span class="data-pill pill-neutral">PassPortRequired: ${passRequired}</span>
           <span class="data-pill pill-purple"><i class="ph ph-receipt"></i> Type: ${commercialType} (${currency} ${commission})</span>
         </div>
+        ${inclusionsHtml}
       </div>
 
       <div class="hotel-price-row">
@@ -1248,9 +1446,18 @@ function displayHotels(data) {
             <span class="price-label">MFT</span>
             <span class="price-value">+ ${currency} ${mft}</span>
           </div>
+          ${gstClaimable ? `
+          <div class="price-item">
+            <span class="price-label">GST Claimable</span>
+            <span class="price-value" style="color:var(--primary)">${currency} ${gstClaimable}</span>
+          </div>
+          ` : ''}
           <div class="price-item">
             <span class="price-label">Total</span>
-            <span class="price-total">${currency} ${totalPrice}</span>
+            <div style="display:flex; flex-direction:column; align-items:flex-end;">
+              ${strikeThrough ? `<span style="text-decoration:line-through; font-size:0.85rem; color:#94a3b8; margin-bottom:-4px;">${currency} ${strikeThrough}</span>` : ""}
+              <span class="price-total">${currency} ${totalPrice}</span>
+            </div>
           </div>
           <div style="font-size: 0.75rem; color: #64748b; font-weight: 500; text-align: right; margin-top: 4px; font-style: italic;">
             (${priceInWords(totalPrice)} Rupees Only)
@@ -1379,7 +1586,9 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
   }
 
   if (resultsTimer && durationMs) {
-    resultsTimer.innerHTML = formatDuration(durationMs);
+    const timeoutInput = document.getElementById("timeoutMs");
+    const threshold = timeoutInput ? parseInt(timeoutInput.value || "13000", 10) : 13000;
+    resultsTimer.innerHTML = formatTimingStatus(durationMs, threshold);
     resultsTimer.classList.remove("hidden");
   }
 
@@ -1592,17 +1801,37 @@ async function fetchHotelDetails(hotelId, optionId) {
 
     // Then fetch dynamic details
     console.log('About to fetch dynamic details with body:', dynamicBody);
+    const t0 = performance.now();
     const dynamicRes = await fetch(`${API_BASE}/dynamic-detail`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dynamicBody)
     });
+    const t1 = performance.now();
+    const responseTime = Math.round(t1 - t0);
 
     console.log('Dynamic detail response received:', dynamicRes.status);
     const dynamicData = await dynamicRes.json();
+    
+    // Store for Tech Details
+    lastApiTransactions.detail = {
+      req: dynamicBody,
+      res: dynamicData,
+      time: responseTime,
+      status: dynamicRes.status,
+      url: '/dynamic-detail'
+    };
     console.log('Dynamic detail data parsed:', dynamicData);
     const durationMs = Math.round(performance.now() - startTime);
     
+    // Timeout Status UI
+    const timeoutInput = document.getElementById("timeoutMs");
+    const threshold = timeoutInput ? parseInt(timeoutInput.value || "13000", 10) : 13000;
+    if (timerUI) {
+      timerUI.innerHTML = formatTimingStatus(durationMs, threshold);
+      timerUI.classList.remove("hidden");
+    }
+
     console.log('API_DYNAMIC_DETAIL_REQUEST', { duration: durationMs, status: dynamicRes.status, ok: dynamicData.ok });
     
     // Track response time
@@ -1618,9 +1847,6 @@ async function fetchHotelDetails(hotelId, optionId) {
       pre.classList.remove("hidden");
       return;
     }
-
-    timerUI.innerHTML = formatDuration(durationMs);
-    timerUI.classList.remove("hidden");
 
     // Combine static and dynamic data
     const combinedData = {
@@ -1645,6 +1871,10 @@ async function fetchHotelDetails(hotelId, optionId) {
     sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
 
     renderHotelDetails(combinedData);
+    
+    // Add Technical Details
+    const detailResults = document.getElementById("detail-results");
+    if (detailResults) detailResults.insertAdjacentHTML('beforeend', renderTechnicalDetails('detail'));
   } catch (err) {
     console.error('Error in fetchHotelDetails:', err);
     console.error('Error stack:', err.stack);
@@ -2434,8 +2664,12 @@ function renderStaticDetailsOnly(staticData, durationMs) {
   `;
   resultsContainer.appendChild(loadingIndicator);
 
-  timerUI.innerHTML = formatDuration(durationMs);
-  timerUI.classList.remove("hidden");
+  if (timerUI && durationMs) {
+    const timeoutInput = document.getElementById("timeoutMs");
+    const threshold = timeoutInput ? parseInt(timeoutInput.value || "13000", 10) : 13000;
+    timerUI.innerHTML = formatTimingStatus(durationMs, threshold);
+    timerUI.classList.remove("hidden");
+  }
 }
 
 function renderHotelDetails(data) {
@@ -2754,7 +2988,7 @@ function renderHotelDetails(data) {
     card.dataset.price = totalPrice;
 
     const refundPill = isRefundable
-      ? `<span style="background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check-circle"></i> Refundable</span>`
+      ? `<span style="background: #dcfce7; color: #166534; border: 1px solid #dcfce7; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check-circle"></i> Refundable</span>`
       : `<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-x-circle"></i> Non-Refundable</span>`;
 
     const dsRoomLeft = option.roomLeft !== undefined
@@ -2983,16 +3217,25 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
     // Switch UI to review page with loading state
     switchToReviewPage();
 
-    const t0 = performance.now();
-    
+    const t0_review = performance.now();
     const res = await fetch(`${API_BASE}/review`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const responseMs = Math.round(performance.now() - t0);
+    const t1_review = performance.now();
+    const responseMs = Math.round(t1_review - t0_review);
 
     const data = await res.json();
+    
+    // Store for Tech Details
+    lastApiTransactions.review = {
+      req: body,
+      res: data,
+      time: responseMs,
+      status: res.status,
+      url: '/review'
+    };
     
     console.log('API_REVIEW_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
     
@@ -3006,6 +3249,10 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
     }
 
     renderReviewDetails(data, responseMs);
+    
+    // Add Technical Details
+    const reviewContent = document.getElementById("review-content");
+    if (reviewContent) reviewContent.insertAdjacentHTML('beforeend', renderTechnicalDetails('review'));
   } catch (err) {
     renderReviewError("Unexpected error while reviewing room.", err.message);
   }
@@ -3174,7 +3421,7 @@ function renderReviewDetails(data, responseMs) {
         const amtText = p.amount === 0 ? '<span style="color:#10b981;">Free</span>' : `${currency} ${p.amount.toFixed(2)}`;
         const amountColor = p.amount === 0 ? '#10b981' : '#dc2626';
         return `
-          <tr style="border-bottom: 2px solid #bbf7d0;">
+          <tr style="border-bottom: 2px solid #dcfce7;">
             <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${fromDate}</td>
             <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${toDate}</td>
             <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: ${amountColor};">${amtText}</td>
@@ -3183,7 +3430,7 @@ function renderReviewDetails(data, responseMs) {
       }).join("");
     } else {
       rowsHtml = `
-        <tr style="border-bottom: 1px solid #bbf7d0;">
+        <tr style="border-bottom: 1px solid #dcfce7;">
           <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534; font-weight: 600;"><i class="ph ph-check-circle" style="color: #10b981; margin-right: 6px;"></i>Free Cancellation</td>
           <td style="padding: 10px 12px; font-size: 0.85rem; color: #166534;">${freeTillDate}</td>
           <td style="padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: #10b981;">Free</td>
@@ -3192,13 +3439,13 @@ function renderReviewDetails(data, responseMs) {
     }
 
     penaltiesHtml = `
-      <div style="margin-top:16px; background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); border:2px solid #bbf7d0; border-radius:12px; padding:16px; overflow:hidden;">
+      <div style="margin-top:16px; background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:2px solid #dcfce7; border-radius:12px; padding:16px; overflow:hidden;">
         <div style="font-size:0.9rem; font-weight:700; color:#166534; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px; display:flex; align-items:center; gap:8px;">
           <i class="ph ph-check-circle"></i> Fully Refundable - Cancellation Penalties
         </div>
         <table style="width:100%; border-collapse:collapse;">
           <thead>
-            <tr style="background:#d1fae5; border-bottom:2px solid #bbf7d0;">
+            <tr style="background:#f0fdf4; border-bottom:2px solid #dcfce7;">
               <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">From Date</th>
               <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">To Date</th>
               <th style="padding:10px 12px; text-align:left; font-size:0.75rem; font-weight:700; color:#166534; text-transform:uppercase; letter-spacing:0.5px;">Penalty Amount</th>
@@ -3976,13 +4223,21 @@ async function cancelBookingRequest(bookingId) {
   `;
   
   try {
+    const t0 = performance.now();
     const res = await fetch(`${API_BASE}/cancel`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    const responseMs = Math.round(performance.now() - t0);
     
     const data = await res.json();
+    
+    console.log('API_CANCELLATION_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
+    
+    // Track response time
+    journeyResponseTimes.cancellation = responseMs;
+    displayResponseTimes();
     
     if (res.ok && (data.status?.success === true || data.ok)) {
       // Show success alert temporarily
@@ -4258,17 +4513,13 @@ function renderBookingDetail(data) {
         </button>
       </div>
 
-      <!-- Raw Data (Collapsible) -->
-      <details style="margin-top: 24px; cursor: pointer;">
-        <summary style="font-size: 0.75rem; color: #94a3b8; text-align: center;">View Technical Response Details</summary>
-        <div style="background: #f8faff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px; margin-top: 10px;">
-          <pre style="font-size: 0.75rem; color: #1e1b4b; overflow-x: auto; max-height: 400px; margin: 0;">${JSON.stringify(data, null, 2)}</pre>
-        </div>
-      </details>
     </div>
   `;
   
   container.innerHTML = bookingDetailsHtml;
+  
+  // Add Technical Details
+  container.insertAdjacentHTML('beforeend', renderTechnicalDetails('bookingDetail'));
 }
 
 async function bookRoom(optionId, correlationId) {
@@ -4352,13 +4603,25 @@ async function bookRoom(optionId, correlationId) {
       apiKey: config.apiKey
     };
 
+    const t0_book = performance.now();
     const res = await fetch(`${API_BASE}/book`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    const t1_book = performance.now();
+    const bookResponseTime = Math.round(t1_book - t0_book);
 
     const data = await res.json();
+    
+    // Store for Tech Details
+    lastApiTransactions.book = {
+      req: body,
+      res: data,
+      time: bookResponseTime,
+      status: res.status,
+      url: '/book'
+    };
     if (!bookingEl) return;
 
     if (!res.ok || data.ok === false) {
@@ -4377,7 +4640,7 @@ async function bookRoom(optionId, correlationId) {
         <i class="ph ph-check-circle"></i>
         <span class="message">Booking confirmed successfully!</span>
       </div>
-      <pre style="margin-top:12px; font-size: 0.8rem; background: #f0fdf4; padding: 10px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+      ${renderTechnicalDetails('book')}
     `;
   } catch (err) {
     if (!bookingEl) return;
@@ -4393,6 +4656,145 @@ async function bookRoom(optionId, correlationId) {
 /* =========================================
    Rooms UI Helpers
    ========================================= */
+// Recent Searches Functionality
+function saveRecentSearch(searchBody) {
+  try {
+    let searches = JSON.parse(localStorage.getItem('tj_recent_searches') || '[]');
+    
+    // Create a simplified version for comparison
+    const simplified = {
+      checkIn: searchBody.checkIn,
+      checkOut: searchBody.checkOut,
+      hids: searchBody.hids,
+      location: searchBody.location,
+      rooms: searchBody.rooms
+    };
+    
+    const searchKey = JSON.stringify(simplified);
+    
+    // Remove existing if duplicate
+    searches = searches.filter(s => {
+      const sComp = {
+        checkIn: s.checkIn,
+        checkOut: s.checkOut,
+        hids: s.hids,
+        location: s.location,
+        rooms: s.rooms
+      };
+      return JSON.stringify(sComp) !== searchKey;
+    });
+    
+    // Add to front
+    searches.unshift(searchBody);
+    
+    // Limit to 5
+    if (searches.length > 5) searches.pop();
+    
+    localStorage.setItem('tj_recent_searches', JSON.stringify(searches));
+    renderRecentSearches();
+  } catch (err) {
+    console.error('Error saving recent search:', err);
+  }
+}
+
+function renderRecentSearches() {
+  const container = document.getElementById('recent-searches-list');
+  const section = document.getElementById('recent-searches-section');
+  if (!container || !section) return;
+  
+  const searches = JSON.parse(localStorage.getItem('tj_recent_searches') || '[]');
+  if (searches.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  
+  section.style.display = 'block';
+  
+  container.innerHTML = searches.map((s, idx) => {
+    let title = "Custom Search";
+    if (s.location) title = s.location.charAt(0).toUpperCase() + s.location.slice(1);
+    else if (s.hids && s.hids.length > 0) title = `${s.hids.length} Selected Hotels`;
+    
+    const dates = `${s.checkIn} to ${s.checkOut}`;
+    const guestCount = s.rooms.reduce((acc, r) => acc + (parseInt(r.adults) || 0) + (r.children ? r.children.length : 0), 0);
+    const roomCount = s.rooms.length;
+    
+    return `
+      <div class="recent-search-item" onclick="applyRecentSearch(${idx})">
+        <div class="recent-search-top">
+          <div class="recent-search-icon"><i class="ph ph-clock-counter-clockwise"></i></div>
+          <div class="recent-search-main">
+            <h4 class="recent-search-title-text">${title}</h4>
+          </div>
+        </div>
+        <div class="recent-search-meta">
+          <div class="recent-search-detail">
+            <i class="ph ph-calendar"></i> ${dates}
+          </div>
+          <div class="recent-search-detail">
+            <i class="ph ph-users"></i> ${roomCount} Room${roomCount > 1 ? 's' : ''}, ${guestCount} Guest${guestCount > 1 ? 's' : ''}
+          </div>
+        </div>
+        <div class="recent-search-tag">
+          <i class="ph ph-clock" style="margin-right: 4px;"></i> History
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function applyRecentSearch(index) {
+  try {
+    const searches = JSON.parse(localStorage.getItem('tj_recent_searches') || '[]');
+    const s = searches[index];
+    if (!s) return;
+    
+    // Fill basic fields
+    if (document.getElementById('checkin')) document.getElementById('checkin').value = s.checkIn;
+    if (document.getElementById('checkout')) document.getElementById('checkout').value = s.checkOut;
+    if (s.hids && document.getElementById('hotelids')) document.getElementById('hotelids').value = s.hids.join(', ');
+    if (s.currency && document.getElementById('currency')) document.getElementById('currency').value = s.currency;
+    if (s.nationality && document.getElementById('nationality')) document.getElementById('nationality').value = s.nationality;
+    
+    // Fill rooms
+    const roomsContainer = document.getElementById("rooms-container");
+    if (roomsContainer) {
+      roomsContainer.innerHTML = '';
+      s.rooms.forEach((r) => {
+        addRoom();
+        const rows = roomsContainer.querySelectorAll('.room-row');
+        const lastRow = rows[rows.length - 1];
+        
+        const adultsInput = lastRow.querySelector('input[name="adults"]');
+        const childrenInput = lastRow.querySelector('input[name="children"]');
+        const agesInput = lastRow.querySelector('input[name="childAges"]');
+        
+        if (adultsInput) adultsInput.value = r.adults;
+        if (childrenInput) {
+          childrenInput.value = r.children ? r.children.length : 0;
+          updateChildAges(childrenInput);
+        }
+        if (agesInput && r.children && r.children.length > 0) {
+          agesInput.value = r.children.join(', ');
+        }
+      });
+    }
+    
+    // Visual feedback
+    const item = document.querySelectorAll('.recent-search-item')[index];
+    if (item) {
+      item.style.borderColor = 'var(--primary)';
+      item.style.background = 'rgba(59, 130, 246, 0.05)';
+    }
+    
+    // Scroll to action area
+    document.querySelector('.form-actions')?.scrollIntoView({ behavior: 'smooth' });
+    
+  } catch (err) {
+    console.error('Error applying recent search:', err);
+  }
+}
+
 function addRoom() {
   const container = document.getElementById("rooms-container");
   if (!container) return;
@@ -4414,15 +4816,37 @@ function addRoom() {
       </div>
       <div class="input-group" style="margin-bottom:0">
         <label>Children</label>
-        <input type="number" name="children" min="0" value="0" />
+        <input type="number" name="children" min="0" value="0" oninput="updateChildAges(this)" />
       </div>
-      <div class="input-group" style="margin-bottom:0">
-        <label>Child Ages</label>
-        <input type="text" name="childAges" placeholder="e.g. 3, 5" />
+      <div class="input-group child-ages-group" style="margin-bottom:0; display:none;">
+        <label>Child Ages <span style="color:#ef4444">*</span></label>
+        <input type="text" name="childAges" placeholder="e.g. 5, 8" />
       </div>
     </div>
   `;
   container.appendChild(wrapper);
+}
+
+function updateChildAges(inputEl) {
+  const row = inputEl.closest(".room-row");
+  const count = parseInt(inputEl.value, 10) || 0;
+  const group = row.querySelector(".child-ages-group");
+  const agesInput = row.querySelector('input[name="childAges"]');
+  
+  if (count > 0) {
+    group.style.display = "block";
+    agesInput.required = true;
+    // Pre-fill with 5s if empty or count changed
+    const currentAges = agesInput.value.split(",").filter(v => v.trim().length > 0);
+    if (currentAges.length !== count) {
+      const defaultAges = Array(count).fill("5").join(", ");
+      agesInput.value = defaultAges;
+    }
+  } else {
+    group.style.display = "none";
+    agesInput.required = false;
+    agesInput.value = "";
+  }
 }
 
 function removeRoom(buttonEl) {
@@ -4486,6 +4910,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   initializeDates();
   loadConfigState();
+  renderRecentSearches();
 });
 
 // History API Handlers
@@ -4519,4 +4944,12 @@ function clearRoomFilters() {
   document.getElementById("filter-passport").value = "";
   document.getElementById("filter-price").value = "";
   applyRoomFilters();
+}
+// Scroll Navigation Functions
+function scrollToPageTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToPageBottom() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
 }

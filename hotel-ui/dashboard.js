@@ -225,33 +225,40 @@ function displayBookings(bookings) {
     const totalSeconds = (totalTime / 1000).toFixed(2);
     
     return `
-      <div class="booking-card">
+      <div class="booking-card premium-card">
         <div class="booking-header">
           <div class="booking-id">
-            <i class="ph ph-ticket"></i>
-            ${booking.id}
+            <div class="id-badge">
+              <i class="ph ph-ticket"></i>
+              <span>${booking.id}</span>
+            </div>
           </div>
-          <div class="booking-date">
-            <i class="ph ph-clock"></i> ${formattedDate}
+          <div class="booking-header-actions">
+            <span class="booking-date">${formattedDate}</span>
+            <button class="btn-icon-sm" onclick="viewBookingDetail('${booking.id}')" title="View Detail">
+              <i class="ph ph-arrow-square-out"></i>
+            </button>
           </div>
         </div>
         
-        <div class="booking-details">
+        <div class="booking-content">
           <div class="booking-detail-item">
-            <div class="booking-detail-label">Total Response Time</div>
-            <div class="booking-detail-value">
-              <span class="booking-response-time">${totalSeconds}s</span>
+            <span class="detail-label">Total Response Time</span>
+            <div class="detail-value-wrapper">
+              <span class="booking-response-time ${totalSeconds > 10 ? 'slow' : 'fast'}">${totalSeconds}s</span>
             </div>
           </div>
         </div>
         
-        <div class="booking-actions">
-          <button class="btn-secondary" onclick="viewBookingDetail('${booking.id}')">
-            <i class="ph ph-eye"></i> View Details
-          </button>
-          <button class="btn-danger" onclick="deleteBooking('${booking.id}')">
-            <i class="ph ph-trash"></i> Delete
-          </button>
+        <div class="booking-footer">
+          <div class="booking-actions">
+            <button class="btn-dashboard-action btn-view" onclick="viewBookingDetail('${booking.id}')">
+              <i class="ph ph-eye"></i> View Detail
+            </button>
+            <button class="btn-dashboard-action btn-delete" onclick="deleteBooking('${booking.id}')">
+              <i class="ph ph-trash"></i> Delete
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -969,16 +976,6 @@ function displayReleases(releases) {
     const timestamp = new Date(release.timestamp).toLocaleString();
     
     return `
-      <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid ${statusColor};">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-          <div>
-            <div style="font-weight: 700; color: #1a1a1a; margin-bottom: 4px;">
-              ${release.version} → ${release.to_environment}
-            </div>
-            <div style="font-size: 0.85rem; color: #666;">
-              ${release.from_environment} → ${release.to_environment}
-            </div>
-          </div>
           <span style="background: ${statusBg}; color: ${statusColor}; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: capitalize;">
             ${release.status}
           </span>

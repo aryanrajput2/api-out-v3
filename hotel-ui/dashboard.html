@@ -67,6 +67,21 @@
     
     <!-- Main Content Area -->
     <main class="dashboard-main">
+      <!-- Response Times Visualization Section (Global Persistent) -->
+      <section id="response-times-section" style="display: none; visibility: hidden; opacity: 0; margin: 0; padding: 20px; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+            <i class="ph ph-timer"></i>
+          </div>
+          <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response Times</h3>
+          <div style="flex: 1;"></div>
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live Tracking</span>
+        </div>
+        <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px;">
+          <!-- Response time cards will be inserted here -->
+        </div>
+      </section>
+
       <!-- Analytics Section -->
       <section id="analytics-section" class="dashboard-section active">
         <div class="section-header">

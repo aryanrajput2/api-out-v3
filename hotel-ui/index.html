@@ -84,6 +84,21 @@
       </div>
     </header>
 
+    <!-- Response Times Visualization Section (Global Persistent) -->
+    <section id="response-times-section" style="display: none; visibility: hidden; opacity: 0; margin: 0 auto; padding: 20px; max-width: 100%; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+          <i class="ph ph-timer"></i>
+        </div>
+        <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response Times</h3>
+        <div style="flex: 1;"></div>
+        <span style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live Tracking</span>
+      </div>
+      <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px;">
+        <!-- Response time cards will be inserted here -->
+      </div>
+    </section>
+
     <main>
       <!-- Page 0: Login Page -->
       <section id="login-page" class="view-page hidden">
@@ -283,6 +298,7 @@
                   </div>
                 </button>
               </div>
+
             </div>
 
             <div class="input-grid">
@@ -351,12 +367,22 @@
             </div>
 
             <div class="form-actions" style="display: flex; align-items: center; gap: 16px;">
-              <button type="submit" class="btn-primary btn-large" id="search-button" style="flex: 1;">
-                <span id="search-button-label">Search Hotels</span>
+              <button type="submit" class="btn-primary btn-large" id="search-button" style="flex: 1; min-height: 56px; border-radius: 16px;">
+                <i class="ph ph-magnifying-glass search-icon" style="font-size: 1.4rem;"></i>
+                <span id="search-button-label" style="font-size: 1.1rem; letter-spacing: 0.5px;">Search Hotels</span>
                 <div id="search-button-spinner" class="loader hidden"></div>
-                <i class="ph ph-magnifying-glass search-icon"></i>
               </button>
-              <div id="search-timer" class="timer-badge hidden"></div>
+              <span id="search-timer" class="hidden"></span>
+            </div>
+
+            <!-- Recent Searches Section -->
+            <div id="recent-searches-section" class="recent-searches-section" style="display: none;">
+              <div class="recent-searches-header">
+                <div class="recent-searches-title">
+                  <i class="ph ph-clock-counter-clockwise"></i> Recent Searches
+                </div>
+              </div>
+              <div id="recent-searches-list" class="recent-searches-list"></div>
             </div>
 
             <div id="search-error" class="alert-box error hidden" style="flex-direction: column;">
@@ -376,7 +402,7 @@
             <i class="ph ph-arrow-left"></i> Back to Search
           </button>
           <div class="results-summary-box">
-            <h2>Available Options <span id="results-timer" class="timer-badge hidden" style="margin-left: 12px;"></span>
+            <h2>Available Options <span id="results-timer" class="hidden" style="margin-left: 32px;"></span>
             </h2>
             <p id="results-summary">Showing hotels for your last search.</p>
           </div>
@@ -480,7 +506,7 @@
               <h3><i class="ph ph-list-dashes"></i> Available Room Options <span id="detail-room-count"
                   style="font-size: 0.9rem; margin-left: 8px; font-weight: 500; color: var(--text-muted);">(0
                   Total)</span></h3>
-              <span id="detail-timer" class="timer-badge hidden"></span>
+              <span id="detail-timer" class="hidden"></span>
             </div>
 
           </div>
@@ -541,6 +567,16 @@
         </div>
       </section>
     </main>
+  </div>
+
+  <!-- Floating Scroll Navigation -->
+  <div class="scroll-nav">
+    <button class="scroll-btn" onclick="scrollToPageTop()" title="Scroll to Top">
+      <i class="ph ph-arrow-up"></i>
+    </button>
+    <button class="scroll-btn" onclick="scrollToPageBottom()" title="Scroll to Bottom">
+      <i class="ph ph-arrow-down"></i>
+    </button>
   </div>
 
   <script src="/ui/app.js"></script>
