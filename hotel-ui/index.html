@@ -142,8 +142,17 @@
                 <span>Remember me</span>
               </label>
 
+              <!-- OTP Input (Initially Hidden) -->
+              <div id="otp-group" class="form-group hidden" style="margin-top: 16px; animation: slideInUp 0.4s ease-out;">
+                <label for="login-otp">
+                  <i class="ph ph-shield-check"></i> Security OTP
+                </label>
+                <input type="text" id="login-otp" placeholder="Enter 4-digit OTP" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 8px; font-weight: 700;" />
+                <p style="font-size: 0.75rem; color: #64748b; margin-top: 6px; text-align: center;">Enter the code sent to your device</p>
+              </div>
+
               <!-- Login Button -->
-              <button type="submit" class="btn-login">
+              <button type="submit" class="btn-login" id="login-submit-btn">
                 <i class="ph ph-sign-in"></i> Sign In
               </button>
 

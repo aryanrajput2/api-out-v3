@@ -331,21 +331,48 @@ async function logToFile(message, data = null) {
 /* =========================================
    Login & Logout Functions
    ========================================= */
+let loginStage = 1; // 1: Credentials, 2: OTP
+
 function handleLogin(event) {
   event.preventDefault();
   
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
+  const otpInput = document.getElementById("login-otp");
+  const otpGroup = document.getElementById("otp-group");
+  const loginBtn = document.getElementById("login-submit-btn");
   const errorEl = document.getElementById("login-error");
   const errorText = document.getElementById("login-error-text");
   
-  if (email === VALID_EMAIL && password === VALID_PASSWORD) {
-    localStorage.setItem("tj_user_logged_in", "true");
-    localStorage.setItem("tj_user_email", email);
-    checkLoginStatus();
+  errorEl.classList.add("hidden");
+
+  if (loginStage === 1) {
+    // Stage 1: Validate Email and Password
+    if (email === VALID_EMAIL && password === VALID_PASSWORD) {
+      // Show OTP field
+      otpGroup.classList.remove("hidden");
+      loginBtn.innerHTML = '<i class="ph ph-shield-check"></i> Verify OTP';
+      loginStage = 2;
+      
+      // Focus OTP field
+      setTimeout(() => otpInput.focus(), 100);
+    } else {
+      errorEl.classList.remove("hidden");
+      errorText.textContent = "Invalid email or password";
+    }
   } else {
-    errorEl.classList.remove("hidden");
-    errorText.textContent = "Invalid email or password";
+    // Stage 2: Validate Static OTP
+    if (otpInput.value === "7890") {
+      localStorage.setItem("tj_user_logged_in", "true");
+      localStorage.setItem("tj_user_email", email);
+      loginStage = 1; // Reset for next time
+      checkLoginStatus();
+    } else {
+      errorEl.classList.remove("hidden");
+      errorText.textContent = "Invalid OTP. Please try again.";
+      otpInput.value = "";
+      otpInput.focus();
+    }
   }
 }
 
@@ -411,8 +438,14 @@ function checkLoginStatus() {
 function logout() {
   localStorage.removeItem("tj_user_logged_in");
   localStorage.removeItem("tj_user_email");
-  const logoutBtn = document.getElementById("logout-btn");
-  if (logoutBtn) logoutBtn.style.display = "none";
+  
+  // Reset login stage for next time
+  loginStage = 1;
+  const otpGroup = document.getElementById("otp-group");
+  const loginBtn = document.getElementById("login-submit-btn");
+  if (otpGroup) otpGroup.classList.add("hidden");
+  if (loginBtn) loginBtn.innerHTML = '<i class="ph ph-sign-in"></i> Sign In';
+  
   checkLoginStatus();
 }
 
