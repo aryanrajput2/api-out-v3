@@ -40,10 +40,12 @@
     <header class="app-header"
       style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
       <div class="logo-container">
-        <div class="logo-circle">AH</div>
+        <a href="/ui/search" style="text-decoration: none; color: inherit; cursor: pointer;">
+          <div class="logo-circle">AH</div>
+        </a>
         <div>
           <a href="/ui/search" style="text-decoration: none; color: inherit;">
-            <h1 style="cursor: pointer; margin-bottom: 4px;">V3 TJ Hotels</h1>
+            <h1 style="cursor: pointer; margin-bottom: 4px;">API V3 TJ Hotels</h1>
           </a>
           <p class="subtitle" style="margin: 0;">Experience modern, fast hotel booking.</p>
         </div>
@@ -70,7 +72,8 @@
         </div>
 
         <!-- Dashboard Button -->
-        <a href="/ui/dashboard" class="btn-dashboard" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
+        <a href="/ui/dashboard" class="btn-dashboard"
+          style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
           <i class="ph ph-gauge"></i> Dashboard
         </a>
 
@@ -236,10 +239,12 @@
                 <span class="hint">(Comma separated)</span>
               </label>
               <input type="text" id="hotelids" placeholder="e.g. 100000002784, 100000003248" required />
-              
+
               <!-- Quick Batch Search Buttons -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px;">
-                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('mumbai')" title="Search 200 hotels in Mumbai">
+              <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px;">
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('mumbai')"
+                  title="Search 200 hotels in Mumbai">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
                   </div>
@@ -251,7 +256,8 @@
                     <i class="ph ph-arrow-right"></i>
                   </div>
                 </button>
-                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('dubai')" title="Search 15 hotels in Dubai">
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('dubai')"
+                  title="Search 15 hotels in Dubai">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
                   </div>
@@ -263,7 +269,8 @@
                     <i class="ph ph-arrow-right"></i>
                   </div>
                 </button>
-                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('delhi')" title="Search 15 hotels in Delhi">
+                <button type="button" class="batch-search-btn" onclick="searchLocationHotels('delhi')"
+                  title="Search 15 hotels in Delhi">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
                   </div>
@@ -522,10 +529,13 @@
           </button>
         </div>
 
-        <div class="glass-panel booking-detail-panel fade-in-up" id="booking-detail-content" style="padding: 24px; max-width: 900px; margin: 0 auto;">
+        <div class="glass-panel booking-detail-panel fade-in-up" id="booking-detail-content"
+          style="padding: 24px; max-width: 900px; margin: 0 auto;">
           <!-- Managed via JS -->
           <div class="empty-state">
-            <div class="loader" style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;"></div>
+            <div class="loader"
+              style="margin-bottom: 16px; border-color: var(--primary); border-top-color: transparent; width: 30px; height: 30px;">
+            </div>
             <p>Loading booking summary...</p>
           </div>
         </div>

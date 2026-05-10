@@ -46,9 +46,15 @@ def book_hotel(data: dict):
         room_idx = t.get("roomIndex", 0)
         if room_idx not in rooms_map:
             rooms_map[room_idx] = []
+        # Enforce child title: must be Master or Miss only (Tripjack API requirement)
+        pax_type = t.get("paxType", "ADULT")
+        title = t.get("title", "Mr")
+        if pax_type == "CHILD" and title not in ("Master", "Miss"):
+            title = "Master"
+
         traveller_entry = {
-            "ti": t.get("title", "Mr"),
-            "pt": t.get("paxType", "ADULT"),
+            "ti": title,
+            "pt": pax_type,
             "fN": t.get("firstName", ""),
             "lN": t.get("lastName", ""),
         }
