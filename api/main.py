@@ -467,6 +467,52 @@ def frontend_log(request: Request, data: dict):
         return {"ok": False, "message": str(e)}
 
 
+@app.get("/api-logs")
+def get_api_logs(limit: int = 100):
+    """Retrieve recent backend API request/response logs"""
+    try:
+        import os
+        import glob
+        import json
+        logs_dir = "Server_logs"
+        if not os.path.exists(logs_dir):
+            return []
+        
+        # Get all log files
+        log_files = glob.glob(os.path.join(logs_dir, "*.log"))
+        if not log_files:
+            return []
+        
+        # Sort files by name descending to get newest first
+        log_files.sort(reverse=True)
+        
+        all_logs = []
+        # Read files until we get enough logs
+        for file_path in log_files:
+            if len(all_logs) >= limit:
+                break
+            try:
+                with open(file_path, 'r') as f:
+                    lines = f.readlines()
+                # Parse lines from end of file (newest first)
+                for line in reversed(lines):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        all_logs.append(json.loads(line))
+                    except Exception:
+                        pass
+                    if len(all_logs) >= limit:
+                        break
+            except Exception:
+                pass
+                
+        return all_logs
+    except Exception as e:
+        return {"error": str(e)}
+
+
 # ============================================
 # IP Whitelist Management API Endpoints
 # ============================================

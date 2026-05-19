@@ -504,6 +504,8 @@ function showSection(sectionName) {
     loadIPList();
   } else if (sectionName === 'api-config') {
     loadAPIConfiguration();
+  } else if (sectionName === 'logs') {
+    loadLogs();
   }
   
   // Close mobile sidebar if open
@@ -1145,4 +1147,139 @@ function toggleMobileSidebar() {
       toggleBtn.className = 'ph ph-list';
     }
   }
+}
+
+// Load and display API Logs in Admin panel
+async function loadLogs() {
+  const listEl = document.getElementById("logs-list");
+  const countEl = document.getElementById("logs-count");
+  if (!listEl) return;
+
+  listEl.innerHTML = `
+    <div class="loading-state">
+      <div class="loader"></div>
+      <p>Retrieving API logs from server...</p>
+    </div>`;
+
+  try {
+    const res = await fetch("/api-logs");
+    const logs = await res.json();
+
+    if (countEl) {
+      countEl.textContent = `${logs.length || 0} logs`;
+    }
+
+    if (!Array.isArray(logs) || logs.length === 0) {
+      listEl.innerHTML = `
+        <div class="no-bookings-state">
+          <i class="ph ph-receipt" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 12px;"></i>
+          <p>No API transactions recorded yet.</p>
+        </div>`;
+      return;
+    }
+
+    let html = "";
+    logs.forEach((log, index) => {
+      const isReq = log.type === "REQUEST";
+      const typeStyle = isReq 
+        ? "background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);"
+        : "background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.2);";
+      
+      const badgeText = isReq ? "REQUEST" : `RESPONSE (${log.status_code || 200})`;
+      const timestamp = log.timestamp || "Unknown Time";
+      const endpoint = log.endpoint || "Unknown Endpoint";
+      const method = log.method || "POST";
+      const clientIp = log.ip || "127.0.0.1";
+      const bodyData = isReq ? log.body : log.response;
+      
+      // Build visual preview of key attributes
+      let previewInfo = "";
+      if (bodyData) {
+        if (bodyData.bookingId) {
+          previewInfo += `<span style="padding: 2px 6px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size:0.75rem;">ID: <b>${bodyData.bookingId}</b></span> `;
+        }
+        if (bodyData.hotelId) {
+          previewInfo += `<span style="padding: 2px 6px; background: rgba(0,0,0,0.05); border-radius: 4px; font-size:0.75rem;">Hotel: <b>${bodyData.hotelId}</b></span> `;
+        }
+        if (bodyData.status && bodyData.status.success !== undefined) {
+          const succ = bodyData.status.success;
+          previewInfo += `<span style="padding: 2px 6px; background: ${succ ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${succ ? '#10b981' : '#ef4444'}; border-radius: 4px; font-size:0.75rem;">Success: <b>${succ}</b></span> `;
+        }
+      }
+
+      const rawJson = JSON.stringify(bodyData || {}, null, 2);
+      
+      html += `
+        <div class="booking-card" style="padding: 16px; display: flex; flex-direction: column; gap: 12px; transition: all 0.3s ease;">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span class="badge" style="padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; ${typeStyle}">${badgeText}</span>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                <i class="ph ph-clock" style="vertical-align: middle;"></i> ${timestamp}
+              </span>
+              <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                <i class="ph ph-desktop" style="vertical-align: middle;"></i> ${clientIp}
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: #d4af37; background: rgba(212, 175, 55, 0.1); padding: 2px 8px; border-radius: 4px; font-family: monospace;">${method}</span>
+              <span style="font-size: 0.9rem; font-weight: 700; color: var(--primary); font-family: monospace;">${endpoint}</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; border-top: 1px dashed rgba(0,0,0,0.06);">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+              ${previewInfo || '<span style="color: var(--text-muted); font-size: 0.75rem;">No metadata preview</span>'}
+            </div>
+            <button onclick="toggleLogAccordion(${index})" class="btn-dashboard-action btn-view" style="padding: 4px 10px; font-size: 0.8rem; height: auto; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+              <i class="ph ph-code"></i> Inspect JSON
+            </button>
+          </div>
+          
+          <div id="log-accordion-${index}" style="display: none; margin-top: 8px;">
+            <div style="position: relative; background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+              <button onclick="copyLogJson(${index})" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px 8px; color: #fff; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <i class="ph ph-copy"></i> Copy
+              </button>
+              <pre id="log-pre-${index}" style="margin: 0; color: #38bdf8; font-family: monospace; font-size: 0.8rem; overflow-x: auto; max-height: 250px; line-height: 1.4;">${rawJson}</pre>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    listEl.innerHTML = html;
+  } catch (error) {
+    console.error("Error loading logs:", error);
+    listEl.innerHTML = `
+      <div class="no-bookings-state">
+        <i class="ph ph-warning-circle" style="font-size: 2.5rem; color: var(--danger); margin-bottom: 12px;"></i>
+        <p>Error loading API logs. Please make sure the backend server is running.</p>
+      </div>`;
+  }
+}
+
+// Toggle accordion display for inspecting raw JSON
+function toggleLogAccordion(index) {
+  const container = document.getElementById(`log-accordion-${index}`);
+  if (!container) return;
+  
+  if (container.style.display === "none") {
+    container.style.display = "block";
+  } else {
+    container.style.display = "none";
+  }
+}
+
+// Copy JSON block text content to clipboard
+function copyLogJson(index) {
+  const pre = document.getElementById(`log-pre-${index}`);
+  if (!pre) return;
+  
+  navigator.clipboard.writeText(pre.textContent)
+    .then(() => {
+      showNotification("JSON copied to clipboard!", "success");
+    })
+    .catch(() => {
+      showNotification("Failed to copy JSON", "error");
+    });
 }

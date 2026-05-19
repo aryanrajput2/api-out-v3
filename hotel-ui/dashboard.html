@@ -669,12 +669,26 @@
         <div class="section-header">
           <div>
             <h1>API Logs</h1>
-            <p>View recent API requests and responses</p>
+            <p>View recent API requests and responses in real-time</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn-primary" onclick="loadLogs()">
+              <i class="ph ph-arrows-clockwise"></i>
+              <span>Refresh Logs</span>
+            </button>
           </div>
         </div>
         <div class="glass-panel">
-          <h3>Coming Soon</h3>
-          <p>API logs will be displayed here.</p>
+          <div class="panel-header">
+            <h3><i class="ph ph-receipt"></i> Recent Transactions</h3>
+            <span class="badge" id="logs-count">0 logs</span>
+          </div>
+          <div id="logs-list" class="logs-list" style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+            <div class="loading-state">
+              <div class="loader"></div>
+              <p>Loading API logs...</p>
+            </div>
+          </div>
         </div>
       </section>
 
