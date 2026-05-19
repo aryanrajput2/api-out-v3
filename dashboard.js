@@ -221,6 +221,23 @@ function displayBookings(bookings) {
       minute: '2-digit'
     });
     
+    const bookingIdLower = (booking.id || '').toLowerCase();
+    let envName = 'Prod / Admin TJ';
+    let envColor = '#0066cc';
+    let envBg = 'rgba(0, 102, 204, 0.08)';
+    let envBorder = 'rgba(0, 102, 204, 0.2)';
+    let defaultApiKey = '751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9';
+    
+    if (bookingIdLower.startsWith('tgp')) {
+      envName = 'API Test Server (Sandbox)';
+      envColor = '#10b981';
+      envBg = 'rgba(16, 185, 129, 0.08)';
+      envBorder = 'rgba(16, 185, 129, 0.2)';
+      defaultApiKey = '6116982da6b759-28f8-4cdf-b210-04cb98116165';
+    }
+    
+    const apiKey = booking.usedApiKey || defaultApiKey;
+
     const totalTime = booking.totalResponseTime || 0;
     const totalSeconds = (totalTime / 1000).toFixed(2);
     
@@ -233,6 +250,25 @@ function displayBookings(bookings) {
           </div>
           <div class="booking-date">
             <i class="ph ph-clock"></i> ${formattedDate}
+          </div>
+        </div>
+        
+        <!-- Environment & API Key Badge Row -->
+        <div class="booking-metadata-row" style="display: flex; gap: 8px; margin: 12px; flex-wrap: wrap; align-items: center;">
+          <!-- Env Badge -->
+          <div class="meta-badge env" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: ${envBg}; border: 1px solid ${envBorder}; border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: ${envColor};">
+            <i class="ph ph-globe" style="font-size: 0.9rem;"></i>
+            <span>${envName}</span>
+          </div>
+          <!-- API Key Badge -->
+          <div class="meta-badge apikey" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: #d97706; font-family: monospace; letter-spacing: 0.5px; flex: 1; min-width: 150px; justify-content: space-between; overflow: hidden;">
+            <span style="display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 240px;" title="Full API Key: ${apiKey}">
+              <i class="ph ph-key" style="font-size: 0.9rem; color: #f59e0b;"></i>
+              <span>${apiKey}</span>
+            </span>
+            <button onclick="navigator.clipboard.writeText('${apiKey}').then(() => alert('API Key copied to clipboard!'))" style="background: none; border: none; padding: 0 4px; color: #d97706; cursor: pointer; display: flex; align-items: center; font-size: 0.8rem;" title="Copy API Key">
+              <i class="ph ph-copy"></i>
+            </button>
           </div>
         </div>
         

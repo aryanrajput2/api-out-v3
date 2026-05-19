@@ -195,6 +195,14 @@ async function loadBookings() {
   }
 }
 
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showNotification('Booking ID copied to clipboard!', 'success');
+  }).catch(err => {
+    console.error('Failed to copy ID:', err);
+  });
+}
+
 function displayBookings(bookings) {
   const container = document.getElementById('bookings-list');
   const countEl = document.getElementById('bookings-list-count');
@@ -221,39 +229,126 @@ function displayBookings(bookings) {
       minute: '2-digit'
     });
     
+    const bookingIdLower = (booking.id || '').toLowerCase();
+    let envName = 'Prod / Admin TJ';
+    let envColor = '#0066cc';
+    let envBg = 'rgba(0, 102, 204, 0.08)';
+    let envBorder = 'rgba(0, 102, 204, 0.2)';
+    let defaultApiKey = '751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9';
+    
+    if (bookingIdLower.startsWith('tgp')) {
+      envName = 'API Test Server (Sandbox)';
+      envColor = '#10b981';
+      envBg = 'rgba(16, 185, 129, 0.08)';
+      envBorder = 'rgba(16, 185, 129, 0.2)';
+      defaultApiKey = '6116982da6b759-28f8-4cdf-b210-04cb98116165';
+    }
+    
+    const apiKey = booking.usedApiKey || defaultApiKey;
+
     const totalTime = booking.totalResponseTime || 0;
     const totalSeconds = (totalTime / 1000).toFixed(2);
     
+    // Latency steps breakdown
+    const rt = booking.responseTimes || {};
+    const searchTime = rt.search ? `${(rt.search / 1000).toFixed(1)}s` : '—';
+    const staticDetailTime = rt.staticDetail ? `${(rt.staticDetail / 1000).toFixed(1)}s` : '—';
+    const bookTime = rt.book ? `${(rt.book / 1000).toFixed(1)}s` : '—';
+    const bookingDetailTime = rt.bookingDetail ? `${(rt.bookingDetail / 1000).toFixed(1)}s` : '—';
+    
+    const steps = [
+      { label: 'Search', time: searchTime, active: !!rt.search },
+      { label: 'Detail', time: staticDetailTime, active: !!rt.staticDetail },
+      { label: 'Book', time: bookTime, active: !!rt.book },
+      { label: 'Details', time: bookingDetailTime, active: !!rt.bookingDetail }
+    ];
+    
+    const stepsHtml = steps.map((step, idx) => `
+      <div class="timeline-step ${step.active ? 'active' : ''}">
+        <span class="step-dot">${idx + 1}</span>
+        <span class="step-label">${step.label}</span>
+        <span class="step-time">${step.time}</span>
+      </div>
+    `).join('');
+    
+    // Capping total latency visualization at 12 seconds for the progress bar
+    const latencyClass = totalSeconds < 3.0 ? 'fast' : (totalSeconds < 6.0 ? 'moderate' : 'slow');
+    const progressWidth = Math.min((totalTime / 12000) * 100, 100);
+    
     return `
-      <div class="booking-card premium-card">
+      <div class="booking-card">
+        <!-- Header -->
         <div class="booking-header">
           <div class="booking-id">
             <div class="id-badge">
               <i class="ph ph-ticket"></i>
               <span>${booking.id}</span>
             </div>
-          </div>
-          <div class="booking-header-actions">
-            <span class="booking-date">${formattedDate}</span>
-            <button class="btn-icon-sm" onclick="viewBookingDetail('${booking.id}')" title="View Detail">
-              <i class="ph ph-arrow-square-out"></i>
+            <button class="btn-copy-id" onclick="copyToClipboard('${booking.id}')" title="Copy ID">
+              <i class="ph ph-copy"></i>
             </button>
+          </div>
+          
+          <div class="booking-header-actions">
+            <span class="status-badge">
+              <span class="dot"></span>CONFIRMED
+            </span>
+            <span class="booking-date">
+              <i class="ph ph-calendar" style="margin-right: 4px;"></i>
+              ${formattedDate}
+            </span>
           </div>
         </div>
         
+        <!-- Content -->
         <div class="booking-content">
-          <div class="booking-detail-item">
-            <span class="detail-label">Total Response Time</span>
-            <div class="detail-value-wrapper">
-              <span class="booking-response-time ${totalSeconds > 10 ? 'slow' : 'fast'}">${totalSeconds}s</span>
+          <!-- Environment & API Key Badge Row -->
+          <div class="booking-metadata-row" style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;">
+            <!-- Env Badge -->
+            <div class="meta-badge env" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: ${envBg}; border: 1px solid ${envBorder}; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: ${envColor};">
+              <i class="ph ph-globe" style="font-size: 1rem;"></i>
+              <span>${envName}</span>
+            </div>
+            <!-- API Key Badge -->
+            <div class="meta-badge apikey" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #d97706; font-family: monospace; letter-spacing: 0.5px; flex: 1; min-width: 200px; justify-content: space-between; position: relative;">
+              <span style="display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px;" title="Full API Key: ${apiKey}">
+                <i class="ph ph-key" style="font-size: 1rem; color: #f59e0b;"></i>
+                <span>${apiKey}</span>
+              </span>
+              <button onclick="navigator.clipboard.writeText('${apiKey}').then(() => showNotification('API Key copied to clipboard!', 'success'))" style="background: none; border: none; padding: 0 4px; color: #d97706; cursor: pointer; display: flex; align-items: center; font-size: 0.85rem;" title="Copy API Key">
+                <i class="ph ph-copy"></i>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Latency Timeline -->
+          <div class="latency-timeline">
+            <div class="timeline-header">
+              <span>API Latency Timeline</span>
+              <span style="font-family: monospace; font-weight: 800;">Breakdown</span>
+            </div>
+            <div class="timeline-steps">
+              ${stepsHtml}
+            </div>
+          </div>
+          
+          <!-- Overall Latency Bar -->
+          <div class="latency-bar-container">
+            <div class="latency-bar-header">
+              <span>Total Latency</span>
+              <span style="font-family: monospace; font-weight: 800;">${totalSeconds}s</span>
+            </div>
+            <div class="latency-bar-bg">
+              <div class="latency-bar-fill ${latencyClass}" style="width: ${progressWidth}%"></div>
             </div>
           </div>
         </div>
         
+        <!-- Footer -->
         <div class="booking-footer">
           <div class="booking-actions">
             <button class="btn-dashboard-action btn-view" onclick="viewBookingDetail('${booking.id}')">
-              <i class="ph ph-eye"></i> View Detail
+              <i class="ph ph-arrow-square-out"></i> Details
             </button>
             <button class="btn-dashboard-action btn-delete" onclick="deleteBooking('${booking.id}')">
               <i class="ph ph-trash"></i> Delete
@@ -409,6 +504,16 @@ function showSection(sectionName) {
     loadIPList();
   } else if (sectionName === 'api-config') {
     loadAPIConfiguration();
+  }
+  
+  // Close mobile sidebar if open
+  const sidebar = document.querySelector('.dashboard-sidebar');
+  if (sidebar) {
+    sidebar.classList.remove('open');
+  }
+  const toggleBtn = document.querySelector('.mobile-sidebar-toggle i');
+  if (toggleBtn) {
+    toggleBtn.className = 'ph ph-list';
   }
 }
 
@@ -1024,4 +1129,20 @@ async function approveRelease(releaseId) {
 // Load deployment data when deployment section is shown
 function loadDeploymentSection() {
   loadDeploymentStatus();
+}
+
+// Mobile sidebar drawer toggler
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.dashboard-sidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('open');
+  
+  const toggleBtn = document.querySelector('.mobile-sidebar-toggle i');
+  if (toggleBtn) {
+    if (sidebar.classList.contains('open')) {
+      toggleBtn.className = 'ph ph-x';
+    } else {
+      toggleBtn.className = 'ph ph-list';
+    }
+  }
 }

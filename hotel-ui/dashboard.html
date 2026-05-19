@@ -13,17 +13,166 @@
   <link rel="stylesheet" href="/ui/style.css" />
   <link rel="stylesheet" href="/ui/premium-animations.css" />
   <link rel="stylesheet" href="/ui/dashboard.css" />
+  
+  <style>
+    /* ========================================================
+       PREMIUM MOBILE RESPONSIVE TOP BAR & NAVIGATION DRAWER
+       ======================================================== */
+    .mobile-header-bar {
+      display: none;
+    }
+    
+    .mobile-sidebar-close {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      /* Show Mobile Top Bar */
+      .mobile-header-bar {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(135deg, #202843 0%, #161c30 100%);
+        border-bottom: 2px solid #D4AF37;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        z-index: 9999;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+      }
+
+      /* Mobile Menu Toggle (Hamburger) */
+      .mobile-menu-toggle {
+        background: none;
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        color: #ffffff;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .mobile-menu-toggle:active {
+        background: rgba(212, 175, 55, 0.15);
+        border-color: #D4AF37;
+      }
+
+      /* Logo and Title in header */
+      .mobile-header-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .mobile-logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4));
+      }
+
+      .mobile-header-logo span {
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        background: linear-gradient(90deg, #D4AF37, #FFD700, #D4AF37);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      /* Sleek Back to App button */
+      .mobile-back-btn {
+        background: rgba(212, 175, 55, 0.1);
+        border: 1px solid #D4AF37;
+        border-radius: 8px;
+        width: 40px;
+        height: 40px;
+        color: #D4AF37;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .mobile-back-btn:active {
+        background: #D4AF37;
+        color: #202843;
+      }
+
+      /* Close drawer button inside sidebar header */
+      .mobile-sidebar-close {
+        display: flex !important;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        width: 36px;
+        height: 36px;
+        color: #ffffff;
+        font-size: 1.2rem;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .mobile-sidebar-close:active {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: #ef4444;
+        color: #ef4444;
+      }
+
+      /* Hide old floating toggle button */
+      .mobile-sidebar-toggle {
+        display: none !important;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Premium Mobile Header Bar -->
+  <header class="mobile-header-bar">
+    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" aria-label="Toggle Menu">
+      <i class="ph ph-list"></i>
+    </button>
+    <div class="mobile-header-logo">
+      <img src="/ui/logo.png" alt="Logo" class="mobile-logo-img">
+      <span>Tripjack Panel</span>
+    </div>
+    <a href="/ui/search" class="mobile-back-btn" aria-label="Back to App">
+      <i class="ph ph-arrow-left"></i>
+    </a>
+  </header>
+
   <div class="dashboard-container">
     <!-- Left Sidebar Navigation -->
     <aside class="dashboard-sidebar">
-      <div class="sidebar-header">
+      <div class="sidebar-header" style="position: relative;">
         <img src="/ui/logo.png" alt="API-V3 Luxury Hotel" class="logo-image">
         <div>
           <h2>Dashboard</h2>
           <p>Admin Panel</p>
         </div>
+        <!-- Close Drawer Button (Mobile Only) -->
+        <button class="mobile-sidebar-close" onclick="toggleMobileSidebar()" aria-label="Close Menu">
+          <i class="ph ph-x"></i>
+        </button>
       </div>
       
       <nav class="sidebar-nav">

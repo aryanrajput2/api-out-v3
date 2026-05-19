@@ -64,7 +64,8 @@ def add_booking(booking_id, booking_data=None):
         'id': booking_id,
         'createdAt': datetime.now().isoformat(),
         'responseTimes': response_times,
-        'totalResponseTime': total_ms
+        'totalResponseTime': total_ms,
+        'usedApiKey': booking_data.get('usedApiKey', '') if booking_data else ''
     }
     bookings.insert(0, new_booking)
     

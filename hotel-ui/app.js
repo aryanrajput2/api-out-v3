@@ -1,6 +1,19 @@
 const API_BASE = window.location.origin;
 let globalSearchBody = null; // Store the last search used for dynamic-detail
 
+// Clean text by replacing raw HTML entities with their proper characters
+const cleanText = (str) => {
+  if (!str) return "";
+  return str
+    .replace(/&ndash;?/gi, "–")
+    .replace(/&rsquo;?/gi, "'")
+    .replace(/&lsquo;?/gi, "'")
+    .replace(/&rdquo;?/gi, '"')
+    .replace(/&ldquo;?/gi, '"')
+    .replace(/&amp;?/gi, "&")
+    .replace(/&nbsp;?/gi, " ");
+};
+
 // Store last API transactions for Technical Details View
 let lastApiTransactions = {
   search: { req: null, res: null, time: null, status: null, url: '/search' },
@@ -16,6 +29,98 @@ let lastApiTransactions = {
  * @returns {string} HTML string
  */
 function renderTechnicalDetails(step) {
+  if (step === 'detail') {
+    const staticTx = lastApiTransactions.staticDetail;
+    const dynamicTx = lastApiTransactions.detail;
+    
+    if ((!staticTx || !staticTx.res) && (!dynamicTx || !dynamicTx.res)) return '';
+    
+    const id = `tech-detail-${Math.floor(Math.random() * 1000)}`;
+    const staticStatusClass = staticTx && staticTx.status < 400 ? 'success' : 'error';
+    const dynamicStatusClass = dynamicTx && dynamicTx.status < 400 ? 'success' : 'error';
+    
+    return `
+      <div class="tech-details-container dual-tech-details">
+        <details>
+          <summary class="tech-details-summary">
+            <i class="ph ph-caret-down"></i>
+            <span>View Technical Response Details (JSON)</span>
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+              <span class="tech-status-badge success">200</span>
+              <span style="font-size: 0.7rem; color: #94a3b8;">Both APIs Loaded</span>
+            </div>
+          </summary>
+          
+          <div class="tech-details-card" style="margin-top: 12px; border: 1px solid rgba(212, 175, 55, 0.2); overflow: hidden; border-radius: 8px;">
+            <!-- Master Tabs for API Selection -->
+            <div class="tech-master-tabs" style="display: flex; background: rgba(32, 40, 67, 0.04); border-bottom: 1px solid rgba(212, 175, 55, 0.15); padding: 4px; gap: 4px;">
+              <button class="tech-master-tab active" onclick="switchMasterTechTab(this, '${id}-static-pane')" style="flex: 1; padding: 12px; border: none; background: #ffffff; font-weight: 700; font-size: 0.85rem; color: #202843; cursor: pointer; border-radius: 6px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="ph ph-database" style="color: #D4AF37;"></i> Static Detail API
+              </button>
+              <button class="tech-master-tab" onclick="switchMasterTechTab(this, '${id}-dynamic-pane')" style="flex: 1; padding: 12px; border: none; background: none; font-weight: 700; font-size: 0.85rem; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="ph ph-lightning"></i> Dynamic Pricing API
+              </button>
+            </div>
+            
+            <!-- Static Detail API Pane -->
+            <div id="${id}-static-pane" class="tech-pane-content" style="display: block;">
+              <div class="tech-tabs">
+                <div class="tech-tab active" onclick="switchTechTab(this, '${id}-static-req')">Request</div>
+                <div class="tech-tab" onclick="switchTechTab(this, '${id}-static-res')">Response</div>
+              </div>
+              <div class="tech-content" style="position: relative;">
+                <button class="copy-btn" onclick="copyTechJson('${id}-static')" title="Copy JSON">
+                  <i class="ph ph-copy"></i>
+                </button>
+                <div id="${id}-static-req" class="tech-tab-content">
+                  <div class="tech-meta">
+                    <div class="tech-meta-item"><strong>Method:</strong> POST</div>
+                    <div class="tech-meta-item"><strong>URL:</strong> /static-detail</div>
+                  </div>
+                  <pre class="tech-json" id="${id}-static-req-pre">${syntaxHighlightJson(staticTx ? staticTx.req : {})}</pre>
+                </div>
+                <div id="${id}-static-res" class="tech-tab-content" style="display: none;">
+                  <div class="tech-meta">
+                    <div class="tech-meta-item"><strong>Status:</strong> <span class="${staticStatusClass}">${staticTx ? staticTx.status : 200}</span></div>
+                    <div class="tech-meta-item"><strong>Time:</strong> ${staticTx ? staticTx.time : 0}ms</div>
+                  </div>
+                  <pre class="tech-json" id="${id}-static-res-pre">${syntaxHighlightJson(staticTx ? staticTx.res : {})}</pre>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Dynamic Detail & Pricing API Pane -->
+            <div id="${id}-dynamic-pane" class="tech-pane-content" style="display: none;">
+              <div class="tech-tabs">
+                <div class="tech-tab active" onclick="switchTechTab(this, '${id}-dynamic-req')">Request</div>
+                <div class="tech-tab" onclick="switchTechTab(this, '${id}-dynamic-res')">Response</div>
+              </div>
+              <div class="tech-content" style="position: relative;">
+                <button class="copy-btn" onclick="copyTechJson('${id}-dynamic')" title="Copy JSON">
+                  <i class="ph ph-copy"></i>
+                </button>
+                <div id="${id}-dynamic-req" class="tech-tab-content">
+                  <div class="tech-meta">
+                    <div class="tech-meta-item"><strong>Method:</strong> POST</div>
+                    <div class="tech-meta-item"><strong>URL:</strong> /hms/v3/hotel/pricing</div>
+                  </div>
+                  <pre class="tech-json" id="${id}-dynamic-req-pre">${syntaxHighlightJson(dynamicTx ? dynamicTx.req : {})}</pre>
+                </div>
+                <div id="${id}-dynamic-res" class="tech-tab-content" style="display: none;">
+                  <div class="tech-meta">
+                    <div class="tech-meta-item"><strong>Status:</strong> <span class="${dynamicStatusClass}">${dynamicTx ? dynamicTx.status : 200}</span></div>
+                    <div class="tech-meta-item"><strong>Time:</strong> ${dynamicTx ? dynamicTx.time : 0}ms</div>
+                  </div>
+                  <pre class="tech-json" id="${id}-dynamic-res-pre">${syntaxHighlightJson(dynamicTx ? dynamicTx.res : {})}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
   const transaction = lastApiTransactions[step];
   if (!transaction || !transaction.res) return '';
 
@@ -68,8 +173,29 @@ function renderTechnicalDetails(step) {
   `;
 }
 
-function switchTechTab(el, contentId) {
+function switchMasterTechTab(el, paneId) {
   const container = el.closest('.tech-details-card');
+  container.querySelectorAll('.tech-master-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.background = 'none';
+    t.style.color = '#64748b';
+    t.style.boxShadow = 'none';
+    const icon = t.querySelector('i');
+    if (icon) icon.style.color = '#64748b';
+  });
+  el.classList.add('active');
+  el.style.background = '#ffffff';
+  el.style.color = '#202843';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.05)';
+  const icon = el.querySelector('i');
+  if (icon) icon.style.color = '#D4AF37';
+  
+  container.querySelectorAll('.tech-pane-content').forEach(p => p.style.display = 'none');
+  document.getElementById(paneId).style.display = 'block';
+}
+
+function switchTechTab(el, contentId) {
+  const container = el.closest('.tech-pane-content') || el.closest('.tech-details-card');
   container.querySelectorAll('.tech-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   
@@ -1064,9 +1190,30 @@ function updateGlobalSecurityBadge() {
 }
 
 function getConfigPayload() {
+  let env = localStorage.getItem("tj_env");
+  if (!env) {
+    const envEl = document.getElementById("config-env");
+    env = envEl ? envEl.value : "";
+  }
+
+  let apiKey = localStorage.getItem("tj_apikey");
+  if (!apiKey) {
+    const selectEl = document.getElementById("config-apikey-select");
+    const customEl = document.getElementById("config-apikey-custom");
+    if (selectEl && selectEl.value && selectEl.value !== "custom") {
+      apiKey = selectEl.value;
+    } else if (customEl && customEl.value) {
+      // Remove mask placeholders if any
+      const val = customEl.value;
+      if (!val.includes("***")) {
+        apiKey = val;
+      }
+    }
+  }
+
   return {
-    env: localStorage.getItem("tj_env") || "https://tj-hotel-admin.tripjack.com/",
-    apiKey: localStorage.getItem("tj_apikey") || ""
+    env: env || "https://tj-hotel-admin.tripjack.com/",
+    apiKey: apiKey || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
   };
 }
 
@@ -1418,12 +1565,24 @@ function displayHotels(data) {
 
     let inclusionsHtml = "";
     if (option.inclusions && option.inclusions.length > 0) {
-      const incList = option.inclusions.map(inc => `<li style="font-size:0.75rem; color:#64748b; margin-bottom:2px;">${inc}</li>`).join("");
+      const incList = option.inclusions.map(inc => `<li style="font-size:0.75rem; color:#64748b; margin-bottom:4px; line-height:1.4;">${cleanText(inc)}</li>`).join("");
       inclusionsHtml = `
-        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #e2e8f0;">
-          <div style="font-size:0.75rem; font-weight:700; color:#475569; margin-bottom:4px;"><i class="ph ph-check-square-offset"></i> Inclusions:</div>
-          <ul style="margin:0; padding-left:16px;">${incList}</ul>
-        </div>
+        <details style="margin-top:10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; overflow:hidden; transition: all 0.3s ease;">
+          <summary style="font-size:0.75rem; font-weight:600; color:#475569; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; list-style:none; user-select:none;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <i class="ph ph-check-square-offset" style="color:var(--primary); font-size:0.95rem;"></i>
+              <span>Inclusions & Policies</span>
+            </div>
+            <div style="font-size: 0.7rem; color: #475569; background: #e2e8f0; padding: 1px 6px; border-radius: 12px; font-weight: 700; display: flex; align-items: center; gap: 3px;">
+              ${option.inclusions.length} <i class="ph ph-caret-down"></i>
+            </div>
+          </summary>
+          <div style="padding: 10px 12px 12px 12px; border-top: 1px dashed #cbd5e1; background: white; max-height: 150px; overflow-y: auto;">
+            <ul style="margin:0; padding-left:14px;">
+              ${incList}
+            </ul>
+          </div>
+        </details>
       `;
     }
 
@@ -1819,6 +1978,15 @@ async function fetchHotelDetails(hotelId, optionId) {
     const staticData = await staticRes.json();
     const staticDurationMs = Math.round(performance.now() - startTime);
     
+    // Store for Tech Details (Static Detail API)
+    lastApiTransactions.staticDetail = {
+      req: staticBody,
+      res: staticData,
+      time: staticDurationMs,
+      status: staticRes.status,
+      url: '/static-detail'
+    };
+    
     console.log('API_STATIC_DETAIL_REQUEST', { duration: staticDurationMs, status: staticRes.status, ok: staticData.ok });
     
     // Track response time
@@ -1846,13 +2014,27 @@ async function fetchHotelDetails(hotelId, optionId) {
     console.log('Dynamic detail response received:', dynamicRes.status);
     const dynamicData = await dynamicRes.json();
     
-    // Store for Tech Details
+    // Create clean dynamic pricing request in exact downstream cURL format for display
+    const cleanDynamicRequest = {
+      correlationId: dynamicBody.correlationId || "ui-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+      hid: hotelId,
+      checkIn: dynamicBody.checkIn,
+      checkOut: dynamicBody.checkOut,
+      rooms: (dynamicBody.rooms || []).map(r => ({
+        adults: parseInt(r.adults) || 1,
+        children: parseInt(r.children) || 0,
+        childAge: r.childAge || []
+      })),
+      currency: dynamicBody.currency || "INR"
+    };
+
+    // Store for Tech Details (Dynamic Pricing API)
     lastApiTransactions.detail = {
-      req: dynamicBody,
+      req: cleanDynamicRequest,
       res: dynamicData,
       time: responseTime,
       status: dynamicRes.status,
-      url: '/dynamic-detail'
+      url: '/hms/v3/hotel/pricing'
     };
     console.log('Dynamic detail data parsed:', dynamicData);
     const durationMs = Math.round(performance.now() - startTime);
@@ -2876,7 +3058,7 @@ function renderHotelDetails(data) {
     card.className = "hotel-card detail-option-card fade-in";
     card.style.animation = `slideUp 0.5s ease-out ${0.5 + idx * 0.08}s both`;
 
-    const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; margin-left:6px; background:rgba(255,255,255,0.6);"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
+    const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; margin-left:6px; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
     const roomIdsString = option.roomInfo?.map(r => r.id).join(" ").toLowerCase() || "";
 
     const currency = option.pricing?.currency ?? "INR";
@@ -2905,16 +3087,24 @@ function renderHotelDetails(data) {
 
     let inclusionsHtml = "";
     if (option.inclusions && option.inclusions.length > 0) {
-      const incList = option.inclusions.map(i => `<li style="font-size:0.85rem; color:#475569; margin-bottom:4px;">${i}</li>`).join("");
+      const incList = option.inclusions.map(i => `<li style="font-size:0.83rem; color:#475569; margin-bottom:6px; line-height:1.4;">${cleanText(i)}</li>`).join("");
       inclusionsHtml = `
-        <div style="margin-top:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px;">
-          <div style="font-size:0.85rem; font-weight:600; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:6px;">
-            <i class="ph ph-check-square-offset"></i> Inclusions & Special Requests
+        <details style="margin-top:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; transition: all 0.3s ease;">
+          <summary style="font-size:0.85rem; font-weight:600; color:#0f172a; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; list-style:none; user-select:none;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i class="ph ph-check-square-offset" style="color:var(--primary); font-size:1.05rem;"></i>
+              <span>Inclusions & Special Requests</span>
+            </div>
+            <div style="font-size: 0.72rem; color: #475569; background: #e2e8f0; padding: 2px 8px; border-radius: 20px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+              ${option.inclusions.length} Item(s) <i class="ph ph-caret-down"></i>
+            </div>
+          </summary>
+          <div style="padding: 12px 14px 14px 14px; border-top: 1px dashed #cbd5e1; background: white; max-height: 200px; overflow-y: auto;">
+            <ul style="margin:0; padding-left:18px;">
+              ${incList}
+            </ul>
           </div>
-          <ul style="margin:0; padding-left:20px;">
-            ${incList}
-          </ul>
-        </div>
+        </details>
       `;
     }
 
@@ -3035,13 +3225,15 @@ function renderHotelDetails(data) {
 
     card.innerHTML = `
       <div class="room-details-section">
-        <div class="room-title" style="flex-direction: column; align-items: flex-start; gap: 8px;">
-          ${roomNames}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="room-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; flex-direction: row;">
+            ${roomNames}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="hotel-id-badge" style="font-size: 0.72rem; background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i class="ph ph-hash"></i> ${option.optionId}</span>
+          </div>
         </div>
-        <div style="margin-top: 12px; margin-bottom: 8px;">
-          <span class="hotel-id-badge" style="font-size: 0.75rem;"><i class="ph ph-hash"></i> ${option.optionId}</span>
-        </div>
-        <div class="hotel-tags">
+        <div class="hotel-tags" style="margin-top: 16px;">
           <span class="data-pill pill-warning" ${optionTypeTitle}><i class="ph ph-tag"></i> ${optionTypeData.name}</span>
           <span class="data-pill pill-primary"><i class="ph ph-fork-knife"></i> ${mealBasis}</span>
           ${refundPill}
@@ -3552,22 +3744,50 @@ function renderReviewDetails(data, responseMs) {
   // Inclusions pills
   let inclusionsHtml = '';
   if (option.inclusions && option.inclusions.length > 0) {
-    const pills = option.inclusions.map(function(inc) {
-      return '<span style="background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;padding:4px 10px;border-radius:6px;font-size:0.75rem;font-weight:500;display:inline-block;margin:3px 3px 3px 0;">' + inc + '</span>';
+    const incList = option.inclusions.map(function(inc) {
+      return '<li style="font-size:0.83rem; color:#475569; margin-bottom:6px; line-height:1.4;">' + cleanText(inc) + '</li>';
     }).join('');
-    inclusionsHtml = '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">'
-      + '<div style="font-size:0.8rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ph ph-list-checks"></i> Package Inclusions</div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:4px;">' + pills + '</div>'
-      + '</div>';
+    
+    inclusionsHtml = `
+      <details style="margin-top:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; transition: all 0.3s ease;">
+        <summary style="font-size:0.85rem; font-weight:600; color:#0f172a; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; list-style:none; user-select:none;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="ph ph-list-checks" style="color:var(--primary); font-size:1.05rem;"></i>
+            <span>Package Inclusions & Requests</span>
+          </div>
+          <div style="font-size: 0.72rem; color: #475569; background: #e2e8f0; padding: 2px 8px; border-radius: 20px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+            ${option.inclusions.length} Item(s) <i class="ph ph-caret-down"></i>
+          </div>
+        </summary>
+        <div style="padding: 12px 14px 14px 14px; border-top: 1px dashed #cbd5e1; background: white; max-height: 200px; overflow-y: auto;">
+          <ul style="margin:0; padding-left:18px;">
+            ${incList}
+          </ul>
+        </div>
+      </details>
+    `;
   }
 
   // Booking Notes
   let bookingNotesHtml = '';
   if (option.bookingNotes) {
-    bookingNotesHtml = '<div style="margin-top:16px;padding:14px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;">'
-      + '<div style="font-size:0.8rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:flex;align-items:center;gap:6px;"><i class="ph ph-note"></i> Important Booking Notes</div>'
-      + '<div style="font-size:0.85rem;color:#92400e;line-height:1.5;white-space:pre-line;">' + option.bookingNotes + '</div>'
-      + '</div>';
+    const cleanedNotes = cleanText(option.bookingNotes);
+    bookingNotesHtml = `
+      <details style="margin-top:16px; background:#fffbeb; border:1px solid #fde68a; border-radius:10px; overflow:hidden; transition: all 0.3s ease;">
+        <summary style="font-size:0.8rem; font-weight:700; color:#92400e; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; list-style:none; user-select:none;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i class="ph ph-note" style="font-size:1.05rem;"></i>
+            <span>IMPORTANT BOOKING NOTES</span>
+          </div>
+          <div style="font-size: 0.72rem; color: #92400e; background: rgba(253, 230, 138, 0.6); padding: 2px 8px; border-radius: 20px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+            View Notes <i class="ph ph-caret-down"></i>
+          </div>
+        </summary>
+        <div style="padding: 12px 14px 14px 14px; border-top: 1px dashed #fde68a; background: #fffdf5; max-height: 200px; overflow-y: auto; font-size:0.85rem; color:#92400e; line-height:1.6; white-space:pre-line;">
+          ${cleanedNotes}
+        </div>
+      </details>
+    `;
   }
 
   const panReq = option.compliance?.panRequired ? `<span class="data-pill pill-warning"><i class="ph ph-identification-card"></i> PAN Required</span>` : '';
@@ -4053,6 +4273,15 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     const data = await res.json();
     const responseMs = Math.round(performance.now() - t0);
     
+    // Store for Tech Details (Form Booking API)
+    lastApiTransactions.book = {
+      req: body,
+      res: data,
+      time: responseMs,
+      status: res.status,
+      url: '/book'
+    };
+    
     console.log('API_BOOKING_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
     
     // Track response time
@@ -4067,7 +4296,7 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     const typeLabel = bookingType === 'HOLD' ? 'Hold' : 'Voucher';
     if (!isSuccess) {
       bookingEl.innerHTML = `
-        <div class="alert-box error fade-in" style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 16px; padding: 20px;">
+        <div class="alert-box error fade-in" style="background: #fff1f2; border: 1px solid #fda4af; border-radius: 16px; padding: 20px; margin-bottom: 16px;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
             <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
               <i class="ph ph-warning-circle" style="color: #e11d48; font-size: 1.5rem;"></i>
@@ -4081,10 +4310,7 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
             ${data.reason || data.message || "An error occurred with the upstream provider. Please check your credentials or traveller data."}
           </div>
         </div>
-        <details style="margin-top:12px; cursor: pointer;">
-          <summary style="font-size:0.75rem; color:#94a3b8;">Technical Error Details</summary>
-          <pre style="margin-top:8px; font-size:0.75rem; background:#fdf2f2; padding:10px; border-radius:8px; overflow-x:auto; border:1px solid #fecaca;">${JSON.stringify(data, null, 2)}</pre>
-        </details>`;
+        ${renderTechnicalDetails('book')}`;
       return;
     }
 
@@ -4093,8 +4319,13 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     const successTitle = bookingType === 'HOLD' ? 'Hold Placed Successfully!' : 'Congratulations! Booking Created Successfully';
     const successMsg = bookingType === 'HOLD' ? 'Your hold has been placed' : 'Your booking has been confirmed';
     
+    // Parse status securely to avoid [object Object]
+    const statusText = typeof data.status === 'object' 
+      ? (data.status.success ? 'Confirmed' : 'Failed') 
+      : (data.status || 'Confirmed');
+
     bookingEl.innerHTML = `
-      <div class="booking-success-card fade-in" style="background: white; border: 1.5px solid ${successColor}33; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+      <div class="booking-success-card fade-in" style="background: white; border: 1.5px solid ${successColor}33; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 16px;">
         <div style="background: linear-gradient(135deg, ${successColor} 0%, ${successColor}dd 100%); padding: 24px; text-align: center; color: white;">
           <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
             <i class="ph ${successIcon}" style="font-size: 2rem;"></i>
@@ -4111,7 +4342,7 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
             </div>
             <div style="display: flex; justify-content: space-between;">
               <span style="color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Status</span>
-              <span class="data-pill pill-success" style="background: ${successColor}15; color: ${successColor}; border: none;">${data.status || 'Confirmed'}</span>
+              <span class="data-pill pill-success" style="background: ${successColor}15; color: ${successColor}; border: none;">${statusText}</span>
             </div>
           </div>
           
@@ -4122,10 +4353,7 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
           </button>
         </div>
       </div>
-      <details style="margin-top:16px; cursor: pointer;">
-        <summary style="font-size:0.75rem; color:#94a3b8; text-align:center;">View Raw API Response</summary>
-        <pre style="margin-top:8px; font-size:0.75rem; background:#f8fafc; padding:12px; border-radius:10px; overflow-x:auto; border:1px solid #e2e8f0;">${JSON.stringify(data, null, 2)}</pre>
-      </details>`;
+      ${renderTechnicalDetails('book')}`;
   } catch (err) {
     if (!bookingEl) return;
     bookingEl.innerHTML = `
@@ -4178,6 +4406,15 @@ async function viewBookingDetail(bookingId) {
     
     const data = await res.json();
     
+    // Store for Tech Details
+    lastApiTransactions.bookingDetail = {
+      req: body,
+      res: data,
+      time: responseMs,
+      status: res.status,
+      url: '/booking-detail'
+    };
+    
     console.log('API_BOOKING_DETAIL_REQUEST', { duration: responseMs, status: res.status, ok: data.ok });
     
     // Track response time
@@ -4194,15 +4431,16 @@ async function viewBookingDetail(bookingId) {
       
       if (bookingEl) {
         bookingEl.innerHTML = `
-          <div class="alert-box error fade-in" style="flex-direction: column; align-items: flex-start;">
+          <div class="alert-box error fade-in" style="flex-direction: column; align-items: flex-start; margin-bottom: 16px;">
             <div style="display: flex; gap: 8px; align-items: center; font-weight: 600;">
               <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i> Failed to Load Booking Details
             </div>
             <div style="margin-top: 8px; font-size: 0.9rem;">${errorMsg}</div>
-          </div>`;
+          </div>
+          ${renderTechnicalDetails('bookingDetail')}`;
       } else if (detailContainer) {
         detailContainer.innerHTML = `
-          <div class="alert-box error fade-in" style="margin: 20px; padding: 24px; border-radius: 16px;">
+          <div class="alert-box error fade-in" style="margin: 20px; padding: 24px; border-radius: 16px; margin-bottom: 16px;">
             <div style="display: flex; gap: 12px; align-items: center; font-weight: 700; font-size: 1.1rem; color: #991b1b; margin-bottom: 12px;">
               <i class="ph ph-warning-circle" style="font-size: 1.5rem;"></i> Error Retrieving Booking
             </div>
@@ -4210,7 +4448,8 @@ async function viewBookingDetail(bookingId) {
             <button onclick="window.location.reload()" class="btn-primary" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer;">
               <i class="ph ph-arrows-clockwise"></i> Try Again
             </button>
-          </div>`;
+          </div>
+          ${renderTechnicalDetails('bookingDetail')}`;
       }
       return;
     }
@@ -4659,17 +4898,17 @@ async function bookRoom(optionId, correlationId) {
 
     if (!res.ok || data.ok === false) {
       bookingEl.innerHTML = `
-        <div class="alert-box error fade-in">
+        <div class="alert-box error fade-in" style="margin-bottom: 16px;">
           <i class="ph ph-warning-circle"></i>
           <span class="message">Booking failed: ${data.reason || "Check response"}</span>
         </div>
-        <pre style="margin-top:12px; font-size: 0.8rem; background: #fdf2f2; padding: 10px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(data, null, 2)}</pre>
+        ${renderTechnicalDetails('book')}
       `;
       return;
     }
 
     bookingEl.innerHTML = `
-      <div class="alert-box success fade-in">
+      <div class="alert-box success fade-in" style="margin-bottom: 16px;">
         <i class="ph ph-check-circle"></i>
         <span class="message">Booking confirmed successfully!</span>
       </div>
@@ -4752,24 +4991,71 @@ function renderRecentSearches() {
     const guestCount = s.rooms.reduce((acc, r) => acc + (parseInt(r.adults) || 0) + (r.children ? r.children.length : 0), 0);
     const roomCount = s.rooms.length;
     
+    // Resolve environment information
+    const envUrl = s.env || "https://tj-hotel-admin.tripjack.com/";
+    let envName = "Prod Tripjack";
+    let envColor = "#dc2626"; // red
+    let envBg = "rgba(220, 38, 38, 0.08)";
+
+    if (envUrl.includes("apitest-hms") || envUrl.includes("apitest")) {
+      envName = "API Test Sandbox";
+      envColor = "#0284c7"; // blue
+      envBg = "rgba(2, 132, 199, 0.08)";
+    } else if (envUrl.includes("admin")) {
+      envName = "Admin TJ";
+      envColor = "#ea580c"; // orange
+      envBg = "rgba(234, 88, 12, 0.08)";
+    }
+
+    // Resolve API key information
+    const rawKey = s.apiKey || "";
+    let keyName = "Default Key";
+    let keyStrDisplay = "751045f64b";
+    
+    if (rawKey.trim()) {
+      keyName = "Custom Key";
+      keyStrDisplay = rawKey.trim().substring(0, 10);
+    }
+    
     return `
-      <div class="recent-search-item" onclick="applyRecentSearch(${idx})">
-        <div class="recent-search-top">
-          <div class="recent-search-icon"><i class="ph ph-clock-counter-clockwise"></i></div>
-          <div class="recent-search-main">
-            <h4 class="recent-search-title-text">${title}</h4>
+      <div class="recent-search-item" onclick="applyRecentSearch(${idx})" style="min-height: 250px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="recent-search-top">
+            <div class="recent-search-icon"><i class="ph ph-clock-counter-clockwise"></i></div>
+            <div class="recent-search-main">
+              <h4 class="recent-search-title-text">${title}</h4>
+            </div>
+          </div>
+          <div class="recent-search-meta">
+            <div class="recent-search-detail">
+              <i class="ph ph-calendar"></i> ${dates}
+            </div>
+            <div class="recent-search-detail">
+              <i class="ph ph-users"></i> ${roomCount} Room${roomCount > 1 ? 's' : ''}, ${guestCount} Guest${guestCount > 1 ? 's' : ''}
+            </div>
           </div>
         </div>
-        <div class="recent-search-meta">
-          <div class="recent-search-detail">
-            <i class="ph ph-calendar"></i> ${dates}
+        
+        <div>
+          <!-- Credentials and Environment Meta Block -->
+          <div class="recent-search-credentials" style="margin-top: 10px; margin-bottom: 12px; padding-top: 10px; border-top: 1px dashed rgba(32, 40, 67, 0.12); display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-weight: 600;">Environment:</span>
+              <span style="color: ${envColor}; background: ${envBg}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.65rem; border: 1px solid ${envColor}1a;">${envName}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-weight: 600;">Key Type:</span>
+              <span style="color: #475569; font-weight: 700; font-size: 0.7rem;">${keyName}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: #64748b; font-weight: 600;">API Key (10d):</span>
+              <span style="color: #0f172a; font-family: 'Outfit', monospace; font-weight: 700; background: rgba(32, 40, 67, 0.05); padding: 1px 6px; border-radius: 4px; font-size: 0.7rem;">${keyStrDisplay}</span>
+            </div>
           </div>
-          <div class="recent-search-detail">
-            <i class="ph ph-users"></i> ${roomCount} Room${roomCount > 1 ? 's' : ''}, ${guestCount} Guest${guestCount > 1 ? 's' : ''}
+          
+          <div class="recent-search-tag">
+            <i class="ph ph-clock" style="margin-right: 4px;"></i> History
           </div>
-        </div>
-        <div class="recent-search-tag">
-          <i class="ph ph-clock" style="margin-right: 4px;"></i> History
         </div>
       </div>
     `;
@@ -4811,6 +5097,21 @@ function applyRecentSearch(index) {
           agesInput.value = r.children.join(', ');
         }
       });
+    }
+    
+    // Restore saved environment and api key if available
+    if (s.env) {
+      localStorage.setItem("tj_env", s.env);
+      const envSelect = document.getElementById("env-select");
+      if (envSelect) envSelect.value = s.env;
+    }
+    if (s.apiKey !== undefined) {
+      localStorage.setItem("tj_apikey", s.apiKey);
+      const apikeyInput = document.getElementById("apikey-input");
+      if (apikeyInput) apikeyInput.value = s.apiKey;
+    }
+    if (typeof updateSecurityBanner === "function") {
+      updateSecurityBanner();
     }
     
     // Visual feedback
