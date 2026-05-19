@@ -1241,7 +1241,7 @@ async function loadLogs() {
               <button onclick="copyLogJson(${index})" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px 8px; color: #fff; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                 <i class="ph ph-copy"></i> Copy
               </button>
-              <pre id="log-pre-${index}" style="margin: 0; color: #38bdf8; font-family: monospace; font-size: 0.8rem; overflow-x: auto; max-height: 250px; line-height: 1.4;">${rawJson}</pre>
+              <div id="log-pre-${index}" style="margin: 0; color: #38bdf8; font-family: monospace; font-size: 0.8rem; overflow: auto; max-height: 250px; line-height: 1.4; white-space: pre; text-align: left;">${rawJson}</div>
             </div>
           </div>
         </div>`;

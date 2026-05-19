@@ -15,6 +15,12 @@
   <link rel="stylesheet" href="/ui/dashboard.css" />
   
   <style>
+    /* Hover overrides to prevent JSON text block hiding in API logs inspect window */
+    .booking-card:hover [id^="log-pre-"],
+    .booking-card:hover [id^="log-pre-"] * {
+      color: #38bdf8 !important;
+    }
+
     /* ========================================================
        PREMIUM MOBILE RESPONSIVE TOP BAR & NAVIGATION DRAWER
        ======================================================== */

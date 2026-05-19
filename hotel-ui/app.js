@@ -2219,6 +2219,26 @@ function updateMainImage(imageUrl, idx) {
   }
 }
 
+function updateReviewMainImage(imageUrl, idx) {
+  const mainImage = document.getElementById("review-gallery-image");
+  const mainContainer = document.querySelector(".review-gallery-main");
+  if (mainImage && mainContainer) {
+    mainImage.src = imageUrl;
+    mainContainer.setAttribute("data-idx", idx);
+    
+    // Update active thumb styling
+    document.querySelectorAll(".review-gallery-thumb").forEach((thumb, i) => {
+      if (i === parseInt(idx)) {
+        thumb.style.borderColor = "var(--primary)";
+        thumb.style.transform = "scale(1.05)";
+      } else {
+        thumb.style.borderColor = "transparent";
+        thumb.style.transform = "scale(1)";
+      }
+    });
+  }
+}
+
 // Image error handling functions
 function handleImageError(img) {
   console.warn('Image failed to load:', img.src);
@@ -3860,6 +3880,38 @@ function renderReviewDetails(data, responseMs) {
     </div>
   `;
 
+  let galleryHtml = "";
+  if (window.galleryImages && window.galleryImages.length > 0) {
+    const validImages = window.galleryImages;
+    galleryHtml = `
+      <div class="hotel-gallery-section" style="margin-top: 16px; margin-bottom: 16px; animation: fadeInUp 0.8s ease-out;">
+        <!-- Main Image with Click to Zoom -->
+        <div style="margin-bottom: 10px; position: relative;">
+          <div class="review-gallery-main" data-idx="0" onclick="openImageZoom(document.getElementById('review-gallery-image').src)" style="width: 100%; height: 280px; border-radius: 12px; overflow: hidden; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(0,0,0,0.1); position: relative;">
+            <img id="review-gallery-image" src="${validImages[0]}" alt="Hotel main image" style="width: 100%; height: 100%; object-fit: cover;" onerror="handleImageError(this)" onload="handleImageLoad(this)">
+            <div class="zoom-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease;">
+              <div style="background: white; color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <i class="ph ph-magnifying-glass-plus" style="font-size: 1rem;"></i>
+                Click to zoom
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Thumbnail Grid -->
+        ${validImages.length > 1 ? `
+          <div class="gallery-thumbs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; max-height: 90px; overflow-y: auto; padding: 6px; background: rgba(0,0,0,0.02); border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);">
+            ${validImages.map((img, idx) => `
+              <div class="review-gallery-thumb" data-idx="${idx}" onclick="updateReviewMainImage(window.galleryImages[${idx}], ${idx})" style="aspect-ratio: 1; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2.5px solid ${idx === 0 ? 'var(--primary)' : 'transparent'}; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.06); position: relative;">
+                <img src="${img}" alt="Hotel image ${idx + 1}" style="width: 100%; height: 100%; object-fit: cover;" onerror="handleImageError(this)" onload="handleImageLoad(this)">
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
   container.innerHTML = `
     <!-- Search Criteria Display -->
     ${globalSearchBody ? generateSearchCriteriaDisplay(globalSearchBody, globalSearchBody.location, false) : ''}
@@ -3881,6 +3933,8 @@ function renderReviewDetails(data, responseMs) {
              </div>
            </div>
         </div>
+
+        ${galleryHtml}
 
         ${stayDetailsHtml}
 
