@@ -6,6 +6,7 @@ from api.review import review_hotel
 from api.book import book_hotel
 from api.booking_detail import fetch_booking_detail
 from api.cancel import cancel_booking
+from api.confirm import confirm_booking
 from api.hotel_detail import fetch_hotel_detail
 from api.hotel_static_detail import fetch_hotel_static_detail
 from api.detail_dynamic import dynamic_detail
@@ -236,6 +237,26 @@ def booking(request: Request, data: dict):
         response_time_ms = int((time.time() - start_time) * 1000)
         try:
             analytics.track_api_call("/booking-detail", "POST", 500, response_time_ms, False, str(e))
+        except:
+            pass
+        return {"ok": False, "error": str(e)}
+@app.post("/confirm-book")
+def confirm_book(request: Request, data: dict):
+    log_request(request, "/confirm-book", data)
+    start_time = time.time()
+    try:
+        result = confirm_booking(data)
+        response_time_ms = int((time.time() - start_time) * 1000)
+        log_response(request, "/confirm-book", 200, result)
+        try:
+            analytics.track_api_call("/confirm-book", "POST", 200, response_time_ms, True)
+        except:
+            pass
+        return result
+    except Exception as e:
+        response_time_ms = int((time.time() - start_time) * 1000)
+        try:
+            analytics.track_api_call("/confirm-book", "POST", 500, response_time_ms, False, str(e))
         except:
             pass
         return {"ok": False, "error": str(e)}

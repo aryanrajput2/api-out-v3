@@ -86,6 +86,14 @@ def book_hotel(data: dict):
     if data.get("correlationId"):
         payload["correlationId"] = data.get("correlationId")
 
+    # Add gstInfo if provided
+    gst_info = data.get("gstInfo")
+    if gst_info:
+        payload["gstInfo"] = {
+            "gstNumber": gst_info.get("gstNumber", "").strip(),
+            "registeredName": gst_info.get("registeredName", "").strip()
+        }
+
     # Only include paymentInfos for Voucher (confirmed) booking
     if booking_type == "VOUCHER":
         amount = data.get("amount")

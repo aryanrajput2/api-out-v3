@@ -419,16 +419,21 @@
       <!-- Page 2: Results -->
       <section id="results-page" class="view-page hidden">
 
-        <div class="results-header">
-          <button type="button" class="btn-ghost" onclick="backToSearch()">
-            <i class="ph ph-arrow-left"></i> Back to Search
-          </button>
-          <div class="results-summary-box">
-            <h2>Available Options <span id="results-timer" class="hidden" style="margin-left: 32px;"></span>
+        <div class="results-header" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px;">
+          <div style="display: flex; align-items: center; gap: 20px;">
+            <button type="button" class="btn-ghost" onclick="backToSearch()" style="margin: 0;">
+              <i class="ph ph-arrow-left"></i> Back to Search
+            </button>
+            <div style="width: 1px; height: 24px; background: #e2e8f0;"></div>
+            <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">
+              Available Options
             </h2>
-            <p id="results-summary">Showing hotels for your last search.</p>
+            <span id="results-timer" class="hidden"></span>
           </div>
         </div>
+
+        <!-- Dynamic Full-Width Results Summary Card -->
+        <div id="results-summary" style="display: block; width: 100%; margin-bottom: 24px;"></div>
 
         <!-- Hotels List -->
         <div class="glass-panel results-panel">
@@ -599,6 +604,121 @@
     <button class="scroll-btn" onclick="scrollToPageBottom()" title="Scroll to Bottom">
       <i class="ph ph-arrow-down"></i>
     </button>
+  </div>
+
+  <!-- Full Screen Search Loading Overlay -->
+  <div id="search-loading-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
+    <div style="background: white; padding: 40px 60px; border-radius: 24px; border: 2px solid #D4AF37; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; animation: zoomIn 0.3s ease-out; position: relative;">
+      
+      <!-- Golden Hotel Logo -->
+      <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #D4AF37 0%, #AA8222 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); margin-bottom: 20px;">
+        AH
+      </div>
+
+      <div class="loader" style="width: 50px; height: 50px; border-width: 4px; border-color: rgba(212, 175, 55, 0.2); border-top-color: #D4AF37; margin-bottom: 24px;"></div>
+      
+      <h2 style="margin: 0 0 12px 0; font-size: 1.8rem; font-weight: 700; color: #1e293b; letter-spacing: 0.5px;">Searching Best Hotels</h2>
+      <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #64748b; max-width: 320px;">Please wait while we fetch real-time availability and prices from our partners...</p>
+      
+      <div style="display: flex; align-items: center; justify-content: center; width: 100%; gap: 16px;">
+        <!-- Timer -->
+        <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 99px; font-size: 0.95rem; color: #475569; font-weight: 600;">
+          <i class="ph ph-clock" style="color: #D4AF37; font-size: 1.1rem;"></i>
+          <span id="overlay-search-timer">0s elapsed</span>
+        </div>
+
+        <!-- Cancel Button -->
+        <button onclick="cancelSearchAction()" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'" style="background: white; border: 1px solid #ef4444; color: #ef4444; padding: 10px 20px; border-radius: 99px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;">
+          <i class="ph ph-x-circle" style="font-size: 1.1rem;"></i> Stop Search
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search API Response Inspector Modal -->
+  <div id="search-api-modal" class="api-modal-overlay hidden" onclick="closeSearchApiModalOnOverlay(event)">
+    <div class="api-modal-content fade-in-up" onclick="event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="api-modal-header">
+        <div class="api-modal-title-group">
+          <div class="api-modal-icon">
+            <i class="ph-bold ph-brackets-curly"></i>
+          </div>
+          <div>
+            <h3 class="api-modal-title">Search API Inspector</h3>
+            <p class="api-modal-subtitle">Real-time Request & Response Payload</p>
+          </div>
+        </div>
+        
+        <div class="api-modal-header-actions">
+          <span id="api-modal-status" class="tech-status-badge success">200 OK</span>
+          <span id="api-modal-time" class="api-modal-meta-item"><i class="ph ph-timer"></i> 0.00s</span>
+          <button class="api-modal-close-btn" onclick="closeSearchApiModal()" title="Close Inspector">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Info Bar -->
+      <div class="api-modal-info-bar">
+        <div class="info-item">
+          <strong>Method:</strong> <span class="method-badge">POST</span>
+        </div>
+        <div class="info-item">
+          <strong>Endpoint:</strong> <code id="api-modal-endpoint">/search</code>
+        </div>
+        <div class="info-item">
+          <strong>Correlation ID:</strong> <code id="api-modal-correlation-id">--</code>
+        </div>
+      </div>
+
+      <!-- Modal Tabs & Controls -->
+      <div class="api-modal-controls">
+        <div class="api-modal-tabs">
+          <button class="api-modal-tab active" onclick="switchApiModalTab(this, 'api-modal-res-pane')">
+            <i class="ph ph-arrow-circle-down"></i> Response Payload
+          </button>
+          <button class="api-modal-tab" onclick="switchApiModalTab(this, 'api-modal-req-pane')">
+            <i class="ph ph-arrow-circle-up"></i> Request Payload
+          </button>
+        </div>
+
+        <div class="api-modal-search-wrapper">
+          <i class="ph ph-magnifying-glass search-input-icon"></i>
+          <input type="text" id="api-modal-search-input" placeholder="Search in JSON keys/values..." onkeyup="filterApiModalJson()">
+          <span id="api-modal-search-count" class="search-count hidden">0 matches</span>
+        </div>
+      </div>
+
+      <!-- Modal Content Panes -->
+      <div class="api-modal-body">
+        <!-- Response Pane -->
+        <div id="api-modal-res-pane" class="api-modal-pane active">
+          <div class="pane-action-bar">
+            <span class="pane-description">JSON formatted response from Tripjack V3 API:</span>
+            <button class="pane-action-btn" onclick="copyApiModalJson('response')" title="Copy Response JSON">
+              <i class="ph ph-copy"></i> Copy Response
+            </button>
+          </div>
+          <div class="code-container">
+            <pre class="tech-json" id="api-modal-res-pre">-- No response loaded --</pre>
+          </div>
+        </div>
+
+        <!-- Request Pane -->
+        <div id="api-modal-req-pane" class="api-modal-pane">
+          <div class="pane-action-bar">
+            <span class="pane-description">JSON request payload sent to Tripjack V3 API:</span>
+            <button class="pane-action-btn" onclick="copyApiModalJson('request')" title="Copy Request JSON">
+              <i class="ph ph-copy"></i> Copy Request
+            </button>
+          </div>
+          <div class="code-container">
+            <pre class="tech-json" id="api-modal-req-pre">-- No request loaded --</pre>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/ui/app.js"></script>
