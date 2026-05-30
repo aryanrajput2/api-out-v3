@@ -50,166 +50,24 @@ let lastApiTransactions = {
  * @returns {string} HTML string
  */
 function renderTechnicalDetails(step) {
+  let btnText = "View Technical Response Details (Inspect API JSON)";
   if (step === 'search') {
-    return `
-      <div class="tech-details-container" style="margin-top: 32px; display: flex; justify-content: center; width: 100%;">
-        <button onclick="openSearchApiModal()" style="background: rgba(212, 175, 55, 0.06); border: 2px dashed rgba(212, 175, 55, 0.35); border-radius: 16px; padding: 20px 40px; color: #AA8222; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.03); width: 100%; max-width: 600px; justify-content: center;" onmouseover="this.style.background='rgba(212, 175, 55, 0.12)'; this.style.borderColor='rgba(212, 175, 55, 0.7)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(212, 175, 55, 0.06)'; this.style.borderColor='rgba(212, 175, 55, 0.35)'; this.style.transform='none';">
-          <i class="ph-bold ph-brackets-curly" style="font-size: 1.4rem;"></i> View Technical Response Details (Inspect API JSON)
-        </button>
-      </div>
-    `;
+    btnText = "View Technical Search Details (Inspect API JSON)";
+  } else if (step === 'detail') {
+    btnText = "View Technical Room Details (Inspect API JSON)";
+  } else if (step === 'review') {
+    btnText = "View Technical Review Details (Inspect API JSON)";
+  } else if (step === 'book') {
+    btnText = "View Technical Booking Details (Inspect API JSON)";
+  } else if (step === 'bookingDetail') {
+    btnText = "View Technical Saved Booking Details (Inspect API JSON)";
   }
-  
-  if (step === 'bookingDetail') {
-    return `
-      <div class="tech-details-container" style="margin-top: 32px; display: flex; justify-content: center; width: 100%; margin-bottom: 24px;">
-        <button onclick="openSearchApiModal('bookingDetail')" style="background: rgba(212, 175, 55, 0.06); border: 2px dashed rgba(212, 175, 55, 0.35); border-radius: 16px; padding: 20px 40px; color: #AA8222; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.03); width: 100%; max-width: 600px; justify-content: center;" onmouseover="this.style.background='rgba(212, 175, 55, 0.12)'; this.style.borderColor='rgba(212, 175, 55, 0.7)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(212, 175, 55, 0.06)'; this.style.borderColor='rgba(212, 175, 55, 0.35)'; this.style.transform='none';">
-          <i class="ph-bold ph-brackets-curly" style="font-size: 1.4rem;"></i> View Technical Booking Details (Inspect API JSON)
-        </button>
-      </div>
-    `;
-  }
-  
-  if (step === 'detail') {
-    const staticTx = lastApiTransactions.staticDetail;
-    const dynamicTx = lastApiTransactions.detail;
-    
-    if ((!staticTx || !staticTx.res) && (!dynamicTx || !dynamicTx.res)) return '';
-    
-    const id = `tech-detail-${Math.floor(Math.random() * 1000)}`;
-    const staticStatusClass = staticTx && staticTx.status < 400 ? 'success' : 'error';
-    const dynamicStatusClass = dynamicTx && dynamicTx.status < 400 ? 'success' : 'error';
-    
-    return `
-      <div class="tech-details-container dual-tech-details">
-        <details>
-          <summary class="tech-details-summary">
-            <i class="ph ph-caret-down"></i>
-            <span>View Technical Response Details (JSON)</span>
-            <div style="margin-left: auto; display: flex; gap: 8px;">
-              <span class="tech-status-badge success">200</span>
-              <span style="font-size: 0.7rem; color: #94a3b8;">Both APIs Loaded</span>
-            </div>
-          </summary>
-          
-          <div class="tech-details-card" style="margin-top: 12px; border: 1px solid rgba(212, 175, 55, 0.2); overflow: hidden; border-radius: 8px;">
-            <!-- Master Tabs for API Selection -->
-            <div class="tech-master-tabs" style="display: flex; background: rgba(32, 40, 67, 0.04); border-bottom: 1px solid rgba(212, 175, 55, 0.15); padding: 4px; gap: 4px;">
-              <button class="tech-master-tab active" onclick="switchMasterTechTab(this, '${id}-static-pane')" style="flex: 1; padding: 12px; border: none; background: #ffffff; font-weight: 700; font-size: 0.85rem; color: #202843; cursor: pointer; border-radius: 6px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="ph ph-database" style="color: #D4AF37;"></i> Static Detail API
-              </button>
-              <button class="tech-master-tab" onclick="switchMasterTechTab(this, '${id}-dynamic-pane')" style="flex: 1; padding: 12px; border: none; background: none; font-weight: 700; font-size: 0.85rem; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i class="ph ph-lightning"></i> Dynamic Pricing API
-              </button>
-            </div>
-            
-            <!-- Static Detail API Pane -->
-            <div id="${id}-static-pane" class="tech-pane-content" style="display: block;">
-              <div class="tech-tabs">
-                <div class="tech-tab active" onclick="switchTechTab(this, '${id}-static-req')">Request</div>
-                <div class="tech-tab" onclick="switchTechTab(this, '${id}-static-res')">Response</div>
-              </div>
-              <div class="tech-content" style="position: relative;">
-                <button class="copy-btn" onclick="copyTechJson('${id}-static')" title="Copy JSON">
-                  <i class="ph ph-copy"></i>
-                </button>
-                <div id="${id}-static-req" class="tech-tab-content">
-                  <div class="tech-meta">
-                    <div class="tech-meta-item"><strong>Method:</strong> POST</div>
-                    <div class="tech-meta-item"><strong>URL:</strong> /static-detail</div>
-                  </div>
-                  <pre class="tech-json" id="${id}-static-req-pre">${syntaxHighlightJson(staticTx ? staticTx.req : {}, `${id}-static-req`)}</pre>
-                </div>
-                <div id="${id}-static-res" class="tech-tab-content" style="display: none;">
-                  <div class="tech-meta">
-                    <div class="tech-meta-item"><strong>Status:</strong> <span class="${staticStatusClass}">${staticTx ? staticTx.status : 200}</span></div>
-                    <div class="tech-meta-item"><strong>Time:</strong> ${staticTx ? staticTx.time : 0}ms</div>
-                  </div>
-                  <pre class="tech-json" id="${id}-static-res-pre">${syntaxHighlightJson(staticTx ? staticTx.res : {}, `${id}-static-res`)}</pre>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Dynamic Detail & Pricing API Pane -->
-            <div id="${id}-dynamic-pane" class="tech-pane-content" style="display: none;">
-              <div class="tech-tabs">
-                <div class="tech-tab active" onclick="switchTechTab(this, '${id}-dynamic-req')">Request</div>
-                <div class="tech-tab" onclick="switchTechTab(this, '${id}-dynamic-res')">Response</div>
-              </div>
-              <div class="tech-content" style="position: relative;">
-                <button class="copy-btn" onclick="copyTechJson('${id}-dynamic')" title="Copy JSON">
-                  <i class="ph ph-copy"></i>
-                </button>
-                <div id="${id}-dynamic-req" class="tech-tab-content">
-                  <div class="tech-meta">
-                    <div class="tech-meta-item"><strong>Method:</strong> POST</div>
-                    <div class="tech-meta-item"><strong>URL:</strong> /hms/v3/hotel/pricing</div>
-                  </div>
-                  <pre class="tech-json" id="${id}-dynamic-req-pre">${syntaxHighlightJson(dynamicTx ? dynamicTx.req : {}, `${id}-dynamic-req`)}</pre>
-                </div>
-                <div id="${id}-dynamic-res" class="tech-tab-content" style="display: none;">
-                  <div class="tech-meta">
-                    <div class="tech-meta-item"><strong>Status:</strong> <span class="${dynamicStatusClass}">${dynamicTx ? dynamicTx.status : 200}</span></div>
-                    <div class="tech-meta-item"><strong>Time:</strong> ${dynamicTx ? dynamicTx.time : 0}ms</div>
-                  </div>
-                  <pre class="tech-json" id="${id}-dynamic-res-pre">${syntaxHighlightJson(dynamicTx ? dynamicTx.res : {}, `${id}-dynamic-res`)}</pre>
-                </div>
-              </div>
-            </div>
-          </div>
-        </details>
-      </div>
-    `;
-  }
-
-  const transaction = lastApiTransactions[step];
-  if (!transaction || !transaction.res) return '';
-
-  const id = `tech-${step}-${Math.floor(Math.random() * 1000)}`;
-  const statusClass = transaction.status < 400 ? 'success' : 'error';
-  const timeS = (transaction.time / 1000).toFixed(2);
 
   return `
-    <div class="tech-details-container">
-      <details>
-        <summary class="tech-details-summary">
-          <i class="ph ph-caret-down"></i>
-          <span>View Technical Response Details (JSON)</span>
-          <div style="margin-left: auto; display: flex; gap: 8px;">
-            <span class="tech-status-badge ${statusClass}">${transaction.status}</span>
-            <span style="font-size: 0.7rem; color: #94a3b8;">${timeS}s</span>
-          </div>
-        </summary>
-        
-        <div class="tech-details-card" style="margin-top: 12px;">
-          <div class="tech-tabs">
-            <div class="tech-tab active" onclick="switchTechTab(this, '${id}-req')">Request</div>
-            <div class="tech-tab" onclick="switchTechTab(this, '${id}-res')">Response</div>
-          </div>
-          
-          <div class="tech-content">
-            <button class="copy-btn" onclick="copyTechJson('${id}')" title="Copy JSON">
-              <i class="ph ph-copy"></i>
-            </button>
-            
-            <div id="${id}-req" class="tech-tab-content">
-              <div class="tech-meta">
-                <div class="tech-meta-item"><strong>Method:</strong> POST</div>
-                <div class="tech-meta-item"><strong>URL:</strong> ${transaction.url}</div>
-              </div>
-              <pre class="tech-json">${syntaxHighlightJson(transaction.req, `${id}-req`)}</pre>
-            </div>
-            
-            <div id="${id}-res" class="tech-tab-content" style="display: none;">
-              <div class="tech-meta">
-                <div class="tech-meta-item"><strong>Status:</strong> <span class="${statusClass}">${transaction.status}</span></div>
-                <div class="tech-meta-item"><strong>Time:</strong> ${transaction.time}ms</div>
-              </div>
-              <pre class="tech-json">${syntaxHighlightJson(transaction.res, `${id}-res`)}</pre>
-            </div>
-          </div>
-        </div>
-      </details>
+    <div class="tech-details-container" style="margin-top: 32px; display: flex; justify-content: center; width: 100%; margin-bottom: 24px;">
+      <button onclick="openSearchApiModal('${step}')" style="background: rgba(212, 175, 55, 0.06); border: 2px dashed rgba(212, 175, 55, 0.35); border-radius: 16px; padding: 20px 40px; color: #AA8222; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(212, 175, 55, 0.03); width: 100%; max-width: 600px; justify-content: center;" onmouseover="this.style.background='rgba(212, 175, 55, 0.12)'; this.style.borderColor='rgba(212, 175, 55, 0.7)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.background='rgba(212, 175, 55, 0.06)'; this.style.borderColor='rgba(212, 175, 55, 0.35)'; this.style.transform='none';">
+        <i class="ph-bold ph-brackets-curly" style="font-size: 1.4rem;"></i> ${btnText}
+      </button>
     </div>
   `;
 }
@@ -646,16 +504,16 @@ window.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
   const bookingIdParam = urlParams.get('id');
 
-  if (currentPath === '/ui/booking-detail' && bookingIdParam) {
+  if (currentPath === '/home/booking-detail' && bookingIdParam) {
     viewBookingDetail(bookingIdParam);
-  } else if (currentPath === '/ui/detail' || currentPath === '/ui/review') {
+  } else if (currentPath === '/home/detail' || currentPath === '/home/review') {
     const savedState = sessionStorage.getItem('tj_page_state');
     
     if (savedState) {
       try {
         const state = JSON.parse(savedState);
         
-        if (state.page === 'detail' && currentPath === '/ui/detail') {
+        if (state.page === 'detail' && currentPath === '/home/detail') {
           globalSearchBody = state.searchBody;
           window.globalDetailData = state.detailData;
           
@@ -672,7 +530,7 @@ window.addEventListener("DOMContentLoaded", () => {
             }
             renderHotelDetails(state.detailData);
           }
-        } else if (state.page === 'review' && currentPath === '/ui/review') {
+        } else if (state.page === 'review' && currentPath === '/home/review') {
           globalSearchBody = state.searchBody;
           window._lastReviewData = state.reviewData;
           if (state.detailData) {
@@ -693,9 +551,9 @@ window.addEventListener("DOMContentLoaded", () => {
         // Silent fail
       }
     } else {
-      window.location.replace('/ui/search');
+      window.location.replace('/home/search');
     }
-  } else if (currentPath === '/ui/results') {
+  } else if (currentPath === '/home/results') {
     const savedState = sessionStorage.getItem('tj_page_state');
     
     if (savedState) {
@@ -1046,72 +904,72 @@ function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = 
       <!-- Content Grid -->
       <div class="search-criteria-grid" style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px;">
         ${locationText ? `
-          <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-            <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-              <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);">
-                <i class="ph ph-map-pin" style="color: white; font-size: 0.95rem;"></i>
+          <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+            <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+              <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);">
+                <i class="ph-fill ph-map-pin" style="color: white; font-size: 1.15rem;"></i>
               </div>
             </div>
-            <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Location</div>
-            <div style="font-weight: 700; color: #0f172a; font-size: 1rem; letter-spacing: -0.01em;">${locationText}</div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Location</div>
+            <div style="font-weight: 800; color: #1e293b; font-size: 1.05rem; letter-spacing: -0.2px;">${locationText}</div>
           </div>
         ` : ''}
         
-        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);">
-              <i class="ph ph-calendar" style="color: white; font-size: 0.95rem;"></i>
+        <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);">
+              <i class="ph-fill ph-calendar" style="color: white; font-size: 1.15rem;"></i>
             </div>
           </div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Dates</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem; letter-spacing: -0.01em;">${checkInFormatted} - ${checkOutFormatted}</div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Dates</div>
+          <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;">${checkInFormatted} - ${checkOutFormatted}</div>
         </div>
 
-        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25);">
-              <i class="ph ph-moon" style="color: white; font-size: 0.95rem;"></i>
+        <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(139, 92, 246, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.25);">
+              <i class="ph-fill ph-moon" style="color: white; font-size: 1.15rem;"></i>
             </div>
           </div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Nights</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 1.1rem; letter-spacing: -0.01em;">${stayNights}</div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Nights</div>
+          <div style="font-weight: 800; color: #1e293b; font-size: 1.15rem; letter-spacing: -0.2px;">${stayNights}</div>
         </div>
 
-        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);">
-              <i class="ph ph-users" style="color: white; font-size: 0.95rem;"></i>
+        <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);">
+              <i class="ph-fill ph-users" style="color: white; font-size: 1.15rem;"></i>
             </div>
           </div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Guests</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem; letter-spacing: -0.01em;">${totalAdults}A${totalChildren > 0 ? `, ${totalChildren}C` : ''}</div>
-          ${childAges.length > 0 ? `<div style="font-size: 0.7rem; color: #64748b; margin-top: 4px; font-weight: 500;">Ages: ${childAges.join(', ')}</div>` : ''}
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Guests</div>
+          <div style="font-weight: 800; color: #1e293b; font-size: 0.95rem; letter-spacing: -0.2px;">${totalAdults}A${totalChildren > 0 ? `, ${totalChildren}C` : ''}</div>
+          ${childAges.length > 0 ? `<div style="font-size: 0.7rem; color: #64748b; margin-top: 4px; font-weight: 600;">Ages: ${childAges.join(', ')}</div>` : ''}
         </div>
 
-        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);">
-              <i class="ph ph-door" style="color: white; font-size: 0.95rem;"></i>
+        <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);">
+              <i class="ph-fill ph-door" style="color: white; font-size: 1.15rem;"></i>
             </div>
           </div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Rooms</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 1.1rem; letter-spacing: -0.01em;">${roomCount}</div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Rooms</div>
+          <div style="font-weight: 800; color: #1e293b; font-size: 1.15rem; letter-spacing: -0.2px;">${roomCount}</div>
         </div>
 
-        <div style="background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%); border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.borderColor='#e2e8f0';">
-          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
-          <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px;">
-            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.25);">
-              <i class="ph ph-currency-circle-dollar" style="color: white; font-size: 0.95rem;"></i>
+        <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; text-align: center; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 25px rgba(59, 130, 246, 0.08)'; this.style.borderColor='rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.02)'; this.style.borderColor='rgba(59, 130, 246, 0.15)';">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: radial-gradient(circle, rgba(6, 182, 212, 0.06) 0%, transparent 70%); border-radius: 0 0 0 100%;"></div>
+          <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+            <div style="width: 38px; height: 38px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25);">
+              <i class="ph-fill ph-currency-circle-dollar" style="color: white; font-size: 1.15rem;"></i>
             </div>
           </div>
-          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.8px; color: #64748b; font-weight: 600; margin-bottom: 6px;">Currency</div>
-          <div style="font-weight: 700; color: #0f172a; font-size: 1rem; letter-spacing: -0.01em;">${currency}</div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: #94a3b8; font-weight: 700; margin-bottom: 6px;">Currency</div>
+          <div style="font-weight: 800; color: #1e293b; font-size: 1.05rem; letter-spacing: -0.2px;">${currency}</div>
         </div>
       </div>
     </div>
@@ -1673,13 +1531,22 @@ function displayHotels(data) {
   document.getElementById("results-filters-container").style.display = "flex";
   document.getElementById("results-count").textContent = `(${data.hotels.length} Total)`;
 
-  // Reset Results filters
+  // Sort hotels by lowest to highest price by default
+  if (Array.isArray(data.hotels)) {
+    data.hotels.sort((a, b) => {
+      const priceA = a.options?.[0]?.pricing?.totalPrice ?? 0;
+      const priceB = b.options?.[0]?.pricing?.totalPrice ?? 0;
+      return priceA - priceB;
+    });
+  }
+
+  // Reset Results filters (Default to price low to high sorting)
   document.getElementById("r-filter-name").value = "";
   document.getElementById("r-filter-meal").value = "";
   document.getElementById("r-filter-gst").value = "";
   document.getElementById("r-filter-refund").value = "";
   document.getElementById("r-filter-pan").value = "";
-  document.getElementById("r-filter-price").value = "";
+  document.getElementById("r-filter-price").value = "low_to_high";
 
   results.classList.remove("empty");
   results.innerHTML = "";
@@ -1908,6 +1775,12 @@ function applySearchFilters() {
     resultsContainer.appendChild(card);
   });
 
+  // Ensure Technical Details button is always kept at the very bottom of results list
+  const techDetails = resultsContainer.querySelector(".tech-details-container");
+  if (techDetails) {
+    resultsContainer.appendChild(techDetails);
+  }
+
   const countSpan = document.getElementById("results-count");
   if (countSpan) {
     const totalCards = resultsContainer.querySelectorAll(".hotel-card").length;
@@ -1949,8 +1822,8 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
   showActivePage("results-page");
 
   // Update URL
-  if (window.location.pathname !== '/ui/results') {
-    history.pushState({ view: 'results' }, '', '/ui/results');
+  if (window.location.pathname !== '/home/results') {
+    history.pushState({ view: 'results' }, '', '/home/results');
   }
 
   if (resultsTimer && durationMs) {
@@ -2053,7 +1926,7 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
 function backToSearch() {
   // Clear any existing search to guarantee fresh UI state
   sessionStorage.removeItem('tj_page_state');
-  window.location.href = '/ui/search';
+  window.location.href = '/home/search';
 }
 
 function backToResults() {
@@ -2063,8 +1936,8 @@ function backToResults() {
   showActivePage("results-page");
 
   // Update URL
-  if (window.location.pathname !== '/ui/results') {
-    history.pushState({ view: 'results' }, '', '/ui/results');
+  if (window.location.pathname !== '/home/results') {
+    history.pushState({ view: 'results' }, '', '/home/results');
   }
 }
 
@@ -2086,8 +1959,8 @@ async function fetchHotelDetails(hotelId, optionId) {
   showActivePage("detail-page");
 
   // Update URL
-  if (window.location.pathname !== '/ui/detail') {
-    history.pushState({ view: 'detail', hid: hotelId }, '', '/ui/detail');
+  if (window.location.pathname !== '/home/detail') {
+    history.pushState({ view: 'detail', hid: hotelId }, '', '/home/detail');
   }
 
   header.innerHTML = `<h2 class="hotel-name">Loading Details...</h2>`;
@@ -2183,7 +2056,9 @@ async function fetchHotelDetails(hotelId, optionId) {
         children: parseInt(r.children) || 0,
         childAge: r.childAge || []
       })),
-      currency: dynamicBody.currency || "INR"
+      currency: dynamicBody.currency || "INR",
+      nationality: dynamicBody.nationality || "106",
+      timeoutMs: dynamicBody.timeoutMs || 30000
     };
 
     // Store for Tech Details (Dynamic Pricing API)
@@ -2615,30 +2490,38 @@ function renderStaticDetailsOnly(staticData, durationMs) {
   }
   
   header.innerHTML = `
-    <div class="detail-header-content" style="animation: slideDown 0.6s ease-out;">
-      <h2 class="hotel-name-title" style="font-size: 2.2rem; margin: 0 0 12px 0; font-weight: 700; background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        ${name}
-      </h2>
+    <div class="detail-header-content" style="animation: slideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; gap: 20px;">
       
-      <div class="detail-badges" style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
-        ${starRating ? `
-          <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">
-            <i class="ph-fill ph-star"></i> ${starRating} Star Hotel
-          </div>
-        ` : ''}
-        ${propertyType ? `
-          <div style="background: linear-gradient(135deg, var(--primary) 0%, rgba(139, 92, 246, 0.8) 100%); color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-            <i class="ph ph-building"></i> ${propertyType}
-          </div>
-        ` : ''}
+      <!-- Top Title and Badges Row -->
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+          ${starRating ? `
+            <span style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25); text-transform: uppercase; letter-spacing: 0.5px; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <i class="ph-fill ph-star" style="font-size: 0.95rem;"></i> ${starRating} Star
+            </span>
+          ` : ''}
+          ${propertyType ? `
+            <span style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25); text-transform: uppercase; letter-spacing: 0.5px; transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+              <i class="ph-fill ph-building" style="font-size: 0.95rem;"></i> ${propertyType}
+            </span>
+          ` : ''}
+        </div>
+        
+        <h2 class="hotel-name-title" style="font-size: 2.6rem; margin: 0; font-weight: 800; line-height: 1.25; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 60%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.02));">
+          ${name}
+        </h2>
       </div>
       
+      <!-- Address Box (Luxury card design) -->
       ${addressDisplay ? `
-        <div class="detail-address-box" style="display: flex; align-items: flex-start; gap: 10px; padding: 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.15); margin-bottom: 16px;">
-          <i class="ph ph-map-pin" style="font-size: 1.5rem; color: var(--primary); margin-top: 2px; flex-shrink: 0;"></i>
-          <div>
-            <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Address</div>
-            <p style="margin: 0; color: #334155; font-size: 1rem; line-height: 1.5; font-weight: 500;">${addressDisplay}</p>
+        <div class="detail-address-box" style="display: flex; align-items: center; gap: 16px; padding: 18px 24px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.15); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.04); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.boxShadow='0 15px 35px rgba(59, 130, 246, 0.08)'" onmouseout="this.style.transform='none'; this.style.borderColor='rgba(59, 130, 246, 0.15)'; this.style.boxShadow='0 10px 30px rgba(59, 130, 246, 0.04)'">
+          <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(59, 130, 246, 0.1); position: relative; overflow: hidden;">
+            <div style="position: absolute; width: 100%; height: 100%; background: var(--primary); opacity: 0.05; animation: pulse 2s infinite;"></div>
+            <i class="ph-bold ph-map-pin" style="font-size: 1.4rem; color: var(--primary); position: relative; z-index: 2;"></i>
+          </div>
+          <div style="flex-grow: 1;">
+            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">Property Location</div>
+            <p style="margin: 0; color: #1e293b; font-size: 0.98rem; line-height: 1.5; font-weight: 600; letter-spacing: -0.1px;">${addressDisplay}</p>
           </div>
         </div>
       ` : ''}
@@ -2812,38 +2695,38 @@ function renderStaticDetailsOnly(staticData, durationMs) {
     }
   }
 
-  // Contact Info Section - Simple and modern
+  // Location Section - Luxury Card Redesign
   if (staticInfo.locale) {
     const addr = staticInfo.locale.address || {};
     staticHTML += `
-      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.3s both;">
-        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-          <i class="ph ph-map-pin" style="font-size: 1.3rem; color: var(--primary);"></i> Location
+      <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.3s both;">
+        <h3 style="margin: 0 0 14px 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1e293b;">
+          <i class="ph ph-map-pin" style="font-size: 1.45rem; color: var(--primary);"></i> Location Details
         </h3>
-        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
+        <div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.03);">
           ${addr.fulladdr ? `
-            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
-              <div style="font-size: 0.75rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Address</div>
-              <p style="margin: 0; color: #334155; font-size: 0.9rem; line-height: 1.4;">${addr.fulladdr}</p>
+            <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed rgba(226, 232, 240, 0.8);">
+              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;">Full Address</div>
+              <p style="margin: 0; color: #334155; font-size: 0.95rem; line-height: 1.5; font-weight: 600;">${addr.fulladdr}</p>
             </div>
           ` : ''}
-          <div class="location-details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+          <div class="location-details-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;">
             ${addr.city ? `
-              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
-                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">City</div>
-                <div style="font-size: 0.85rem; font-weight: 500; color: #334155;">${addr.city}</div>
+              <div style="padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(226, 232, 240, 0.8)'; this.style.transform='none'">
+                <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">City</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">${addr.city}</div>
               </div>
             ` : ''}
             ${addr.region ? `
-              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
-                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Region</div>
-                <div style="font-size: 0.85rem; font-weight: 500; color: #334155;">${addr.region}</div>
+              <div style="padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(226, 232, 240, 0.8)'; this.style.transform='none'">
+                <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Region</div>
+                <div style="font-size: 0.9rem; font-weight: 700; color: #1e293b;">${addr.region}</div>
               </div>
             ` : ''}
             ${staticInfo.locale.coordinates ? `
-              <div style="padding: 8px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
-                <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 2px;">Coordinates</div>
-                <div style="font-size: 0.8rem; font-weight: 500; color: #334155;">${staticInfo.locale.coordinates.lat}, ${staticInfo.locale.coordinates.long}</div>
+              <div style="padding: 12px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(226, 232, 240, 0.8)'; this.style.transform='none'">
+                <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Coordinates</div>
+                <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;">${staticInfo.locale.coordinates.lat}, ${staticInfo.locale.coordinates.long}</div>
               </div>
             ` : ''}
           </div>
@@ -2852,34 +2735,38 @@ function renderStaticDetailsOnly(staticData, durationMs) {
     `;
   }
 
-  // Policies Section - Simple and modern
+  // Policies Section - Check-in & Check-out Redesign
   if (staticInfo.policies?.checkInCheckOut) {
     const policy = staticInfo.policies.checkInCheckOut;
     staticHTML += `
-      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.4s both;">
-        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-          <i class="ph ph-clock" style="font-size: 1.3rem; color: var(--primary);"></i> Check-in & Check-out
+      <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.4s both;">
+        <h3 style="margin: 0 0 14px 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1e293b;">
+          <i class="ph ph-clock" style="font-size: 1.45rem; color: var(--primary);"></i> Check-in & Check-out
         </h3>
-        <div class="checkin-checkout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+        <div class="checkin-checkout-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
           <!-- Check-in Card -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.1)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-              <i class="ph ph-sign-in" style="font-size: 1rem; color: #3b82f6;"></i>
-              <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</div>
+          <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 18px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.02);" onmouseover="this.style.borderColor='#3b82f6'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 24px rgba(59, 130, 246, 0.08)';" onmouseout="this.style.borderColor='rgba(59, 130, 246, 0.15)'; this.style.transform='none'; this.style.boxShadow='0 6px 20px rgba(59, 130, 246, 0.02)';">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="background: rgba(59, 130, 246, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="ph ph-sign-in" style="font-size: 1.1rem; color: #3b82f6;"></i>
+              </div>
+              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Check-in</div>
             </div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 2px;">${policy.checkin_from || 'N/A'}</div>
-            ${policy.checkin_till ? `<div style="font-size: 0.7rem; color: #64748b;">Until ${policy.checkin_till}</div>` : ''}
-            ${policy.checkin_min_age ? `<div style="font-size: 0.65rem; color: #64748b; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f1f5f9;">Min Age: ${policy.checkin_min_age} years</div>` : ''}
+            <div style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; letter-spacing: -0.3px;">${policy.checkin_from || 'N/A'}</div>
+            ${policy.checkin_till ? `<div style="font-size: 0.8rem; color: #64748b; font-weight: 500;">Until ${policy.checkin_till}</div>` : ''}
+            ${policy.checkin_min_age ? `<div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(226, 232, 240, 0.8); font-weight: 500;">Min Age Required: <span style="font-weight: 700; color: #1e293b;">${policy.checkin_min_age} yrs</span></div>` : ''}
           </div>
           
           <!-- Check-out Card -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#f59e0b'; this.style.boxShadow='0 4px 12px rgba(245, 158, 11, 0.1)';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
-            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
-              <i class="ph ph-sign-out" style="font-size: 1rem; color: #f59e0b;"></i>
-              <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</div>
+          <div style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: 16px; padding: 18px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.02);" onmouseover="this.style.borderColor='#f59e0b'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 24px rgba(245, 158, 11, 0.08)';" onmouseout="this.style.borderColor='rgba(245, 158, 11, 0.15)'; this.style.transform='none'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.02)';">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="background: rgba(245, 158, 11, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <i class="ph ph-sign-out" style="font-size: 1.1rem; color: #f59e0b;"></i>
+              </div>
+              <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Check-out</div>
             </div>
-            <div style="font-size: 1.1rem; font-weight: 600; color: #334155; margin-bottom: 2px;">${policy.checkout_from || 'N/A'}</div>
-            <div style="font-size: 0.7rem; color: #64748b;">Before this time</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #1e293b; margin-bottom: 4px; letter-spacing: -0.3px;">${policy.checkout_from || 'N/A'}</div>
+            <div style="font-size: 0.8rem; color: #64748b; font-weight: 500;">Before this time</div>
           </div>
         </div>
       </div>
@@ -2932,16 +2819,16 @@ function renderStaticDetailsOnly(staticData, durationMs) {
 
     if (descriptionContent) {
       staticHTML += `
-        <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.15s both;">
-          <h3 style="margin: 0 0 12px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-            <i class="ph ph-book-open-text" style="font-size: 1.3rem; color: var(--primary);"></i> Hotel Description
+        <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.15s both;">
+          <h3 style="margin: 0 0 14px 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1e293b;">
+            <i class="ph ph-book-open-text" style="font-size: 1.45rem; color: var(--primary);"></i> Hotel Description
           </h3>
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
-            <div class="expandable-text" style="position: relative; max-height: 120px; overflow: hidden; transition: max-height 0.3s ease;">
+          <div style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.15); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+            <div class="expandable-text" style="position: relative; max-height: 140px; overflow: hidden; transition: max-height 0.3s ease;">
               ${descriptionContent}
               <div class="expand-fade" style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1)); pointer-events: none;"></div>
             </div>
-            <button onclick="toggleExpandText(this)" class="btn-ghost" style="margin-top: 8px; padding: 6px 12px; color: var(--primary); font-weight: 600; font-size: 0.85rem;">Read More <i class="ph ph-caret-down"></i></button>
+            <button onclick="toggleExpandText(this)" class="btn-ghost" style="margin-top: 12px; padding: 8px 16px; color: var(--primary); font-weight: 700; font-size: 0.88rem; border-radius: 8px; background: rgba(59, 130, 246, 0.05); display: inline-flex; align-items: center; gap: 6px; border: 1px solid rgba(59, 130, 246, 0.1); cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.borderColor='rgba(59, 130, 246, 0.2)';" onmouseout="this.style.background='rgba(59, 130, 246, 0.05)'; this.style.borderColor='rgba(59, 130, 246, 0.1)';">Read More <i class="ph ph-caret-down"></i></button>
           </div>
         </div>
       `;
@@ -2951,27 +2838,29 @@ function renderStaticDetailsOnly(staticData, durationMs) {
   // Chain Info Section
   if (staticInfo.chain && staticInfo.chain.name) {
     staticHTML += `
-      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.25s both;">
-        <div style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%); padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.15);">
-          <i class="ph ph-buildings" style="font-size: 1.3rem; color: #8b5cf6;"></i>
+      <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.25s both;">
+        <div style="display: inline-flex; align-items: center; gap: 12px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.06) 0%, rgba(59, 130, 246, 0.06) 100%); padding: 12px 20px; border-radius: 14px; border: 1px solid rgba(139, 92, 246, 0.15); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.05); transition: transform 0.2s ease;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="background: rgba(139, 92, 246, 0.1); width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <i class="ph ph-buildings" style="font-size: 1.25rem; color: #8b5cf6;"></i>
+          </div>
           <div>
-            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Hotel Chain</div>
-            <div style="font-size: 0.95rem; font-weight: 600; color: #334155;">${staticInfo.chain.name}</div>
+            <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px;">Hotel Chain</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: #1e293b; letter-spacing: -0.2px;">${staticInfo.chain.name}</div>
           </div>
         </div>
       </div>
     `;
   }
 
-  // Phone & Fax Section
+  // Phone & Fax Section - Redesigned Dial Buttons
   if (staticInfo.locale?.phone?.length > 0 || staticInfo.locale?.fax?.length > 0) {
     let contactItems = '';
     if (staticInfo.locale.phone && staticInfo.locale.phone.length > 0) {
       staticInfo.locale.phone.forEach(p => {
         contactItems += `
-          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
-            <i class="ph ph-phone" style="font-size: 1rem; color: #10b981;"></i>
-            <span style="font-size: 0.88rem; color: #334155; font-weight: 500;">${p}</span>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.borderColor='rgba(16, 185, 129, 0.3)'; this.style.background='rgba(16, 185, 129, 0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(16, 185, 129, 0.15)'; this.style.background='rgba(16, 185, 129, 0.05)';">
+            <i class="ph-fill ph-phone" style="font-size: 1.1rem; color: #10b981;"></i>
+            <span style="font-size: 0.92rem; color: #115e59; font-weight: 700; letter-spacing: -0.1px;">${p}</span>
           </div>
         `;
       });
@@ -2979,26 +2868,26 @@ function renderStaticDetailsOnly(staticData, durationMs) {
     if (staticInfo.locale.fax && staticInfo.locale.fax.length > 0) {
       staticInfo.locale.fax.forEach(f => {
         contactItems += `
-          <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 8px;">
-            <i class="ph ph-printer" style="font-size: 1rem; color: #6366f1;"></i>
-            <span style="font-size: 0.88rem; color: #334155; font-weight: 500;">Fax: ${f}</span>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.borderColor='rgba(99, 102, 241, 0.3)'; this.style.background='rgba(99, 102, 241, 0.08)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(99, 102, 241, 0.15)'; this.style.background='rgba(99, 102, 241, 0.05)';">
+            <i class="ph-fill ph-printer" style="font-size: 1.1rem; color: #6366f1;"></i>
+            <span style="font-size: 0.92rem; color: #3730a3; font-weight: 700; letter-spacing: -0.1px;">Fax: ${f}</span>
           </div>
         `;
       });
     }
     staticHTML += `
-      <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.35s both;">
-        <h3 style="margin: 0 0 10px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-          <i class="ph ph-phone-call" style="font-size: 1.3rem; color: var(--primary);"></i> Contact
+      <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.35s both;">
+        <h3 style="margin: 0 0 14px 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1e293b;">
+          <i class="ph ph-phone-call" style="font-size: 1.45rem; color: var(--primary);"></i> Property Contact
         </h3>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
           ${contactItems}
         </div>
       </div>
     `;
   }
 
-  // Policies Section - Special Instructions, Know Before You Go, Mandatory Fees
+  // Policies Section - Special Instructions, Know Before You Go, Mandatory Fees Redesign
   if (staticInfo.policies) {
     const pol = staticInfo.policies;
     let policyHTML = '';
@@ -3012,32 +2901,30 @@ function renderStaticDetailsOnly(staticData, durationMs) {
           return Object.entries(parsed).map(([key, value]) => {
             if (!value) return '';
             const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-            return `<div style="margin-bottom: 8px;"><strong style="color: #334155; font-size: 0.85rem;">${label}:</strong> <span style="color: #475569; font-size: 0.85rem; line-height: 1.5;">${value}</span></div>`;
+            return `<div style="margin-bottom: 10px;"><strong style="color: #1e293b; font-size: 0.88rem; font-weight: 700;">${label}:</strong> <span style="color: #475569; font-size: 0.88rem; line-height: 1.55; font-weight: 500;">${value}</span></div>`;
           }).join('');
         }
-        return `<div style="color: #475569; font-size: 0.85rem; line-height: 1.5;">${raw}</div>`;
+        return `<div style="color: #475569; font-size: 0.88rem; line-height: 1.55; font-weight: 500;">${raw}</div>`;
       } catch (e) {
-        return `<div style="color: #475569; font-size: 0.85rem; line-height: 1.5;">${raw}</div>`;
+        return `<div style="color: #475569; font-size: 0.88rem; line-height: 1.55; font-weight: 500;">${raw}</div>`;
       }
     };
 
-    const wrapExpandable = (content, bgColor = 'rgba(251, 191, 36, 0.06)') => {
-      // For policy sections, the fade color should match the background tint.
-      // Since they are mostly very light gradients, we use a light fade.
+    const wrapExpandable = (content) => {
       return `
-        <div class="expandable-text" style="position: relative; max-height: 100px; overflow: hidden; transition: max-height 0.3s ease;">
+        <div class="expandable-text" style="position: relative; max-height: 110px; overflow: hidden; transition: max-height 0.3s ease;">
           ${content}
-          <div class="expand-fade" style="position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.9)); pointer-events: none;"></div>
+          <div class="expand-fade" style="position: absolute; bottom: 0; left: 0; right: 0; height: 50px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1)); pointer-events: none;"></div>
         </div>
-        <button onclick="toggleExpandText(this)" class="btn-ghost" style="margin-top: 8px; padding: 4px 8px; color: var(--primary); font-weight: 600; font-size: 0.85rem;">Read More <i class="ph ph-caret-down"></i></button>
+        <button onclick="toggleExpandText(this)" class="btn-ghost" style="margin-top: 10px; padding: 6px 12px; color: var(--primary); font-weight: 700; font-size: 0.82rem; border-radius: 6px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.1); cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'" onmouseout="this.style.background='rgba(59, 130, 246, 0.05)'">Read More <i class="ph ph-caret-down"></i></button>
       `;
     };
 
     if (pol.special_instructions) {
       policyHTML += `
-        <div style="margin-bottom: 12px; padding: 14px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.06) 0%, rgba(245, 158, 11, 0.06) 100%); border-radius: 10px; border: 1px solid rgba(251, 191, 36, 0.2);">
-          <div style="font-size: 0.8rem; font-weight: 600; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <i class="ph ph-warning-circle" style="font-size: 1rem;"></i> Special Instructions
+        <div style="margin-bottom: 16px; padding: 18px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.03) 0%, rgba(245, 158, 11, 0.03) 100%); border-radius: 16px; border: 1px solid rgba(251, 191, 36, 0.12); border-left: 5px solid #f59e0b; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.02);">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #d97706; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-warning-circle" style="font-size: 1.15rem;"></i> Special Instructions
           </div>
           ${wrapExpandable(parsePolicyText(pol.special_instructions))}
         </div>
@@ -3046,9 +2933,9 @@ function renderStaticDetailsOnly(staticData, durationMs) {
 
     if (pol.know_before_you_go) {
       policyHTML += `
-        <div style="margin-bottom: 12px; padding: 14px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(99, 102, 241, 0.06) 100%); border-radius: 10px; border: 1px solid rgba(59, 130, 246, 0.15);">
-          <div style="font-size: 0.8rem; font-weight: 600; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <i class="ph ph-lightbulb" style="font-size: 1rem;"></i> Know Before You Go
+        <div style="margin-bottom: 16px; padding: 18px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.03) 100%); border-radius: 16px; border: 1px solid rgba(59, 130, 246, 0.12); border-left: 5px solid #3b82f6; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.02);">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-lightbulb" style="font-size: 1.15rem;"></i> Know Before You Go
           </div>
           ${wrapExpandable(parsePolicyText(pol.know_before_you_go))}
         </div>
@@ -3057,9 +2944,9 @@ function renderStaticDetailsOnly(staticData, durationMs) {
 
     if (pol.mandatory_fees) {
       policyHTML += `
-        <div style="margin-bottom: 12px; padding: 14px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.06) 0%, rgba(220, 38, 38, 0.06) 100%); border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.15);">
-          <div style="font-size: 0.8rem; font-weight: 600; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <i class="ph ph-currency-circle-dollar" style="font-size: 1rem;"></i> Mandatory Fees
+        <div style="margin-bottom: 16px; padding: 18px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 100%); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.12); border-left: 5px solid #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.02);">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-currency-circle-dollar" style="font-size: 1.15rem;"></i> Mandatory Fees
           </div>
           ${wrapExpandable(parsePolicyText(pol.mandatory_fees))}
         </div>
@@ -3068,9 +2955,9 @@ function renderStaticDetailsOnly(staticData, durationMs) {
 
     if (policyHTML) {
       staticHTML += `
-        <div style="margin-bottom: 20px; animation: fadeInUp 0.8s ease-out 0.45s both;">
-          <h3 style="margin: 0 0 12px 0; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; font-weight: 600;">
-            <i class="ph ph-scroll" style="font-size: 1.3rem; color: var(--primary);"></i> Hotel Policies
+        <div style="margin-bottom: 24px; animation: fadeInUp 0.8s ease-out 0.45s both;">
+          <h3 style="margin: 0 0 14px 0; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700; color: #1e293b;">
+            <i class="ph ph-scroll" style="font-size: 1.45rem; color: var(--primary);"></i> Hotel Policies
           </h3>
           ${policyHTML}
         </div>
@@ -3301,8 +3188,8 @@ function renderHotelDetails(data) {
             <label style="display: block; font-size: 0.8rem; font-weight: 500; color: #64748b; margin-bottom: 4px;">Sort by Price</label>
             <select id="filter-price" style="width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.85rem; transition: all 0.3s ease;" onchange="applyRoomFilters()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
               <option value="">Default Order</option>
-              <option value="low-high">Price: Low to High</option>
-              <option value="high-low">Price: High to Low</option>
+              <option value="low_to_high">Price: Low to High</option>
+              <option value="high_to_low">Price: High to Low</option>
             </select>
           </div>
           
@@ -3326,7 +3213,16 @@ function renderHotelDetails(data) {
   document.getElementById("filter-refund").value = "";
   document.getElementById("filter-pan").value = "";
   document.getElementById("filter-passport").value = "";
-  document.getElementById("filter-price").value = "";
+  document.getElementById("filter-price").value = "low_to_high";
+
+  // Sort room options by lowest price by default
+  if (Array.isArray(hotel.options)) {
+    hotel.options.sort((a, b) => {
+      const priceA = a.pricing?.totalPrice ?? 0;
+      const priceB = b.pricing?.totalPrice ?? 0;
+      return priceA - priceB;
+    });
+  }
 
   // Render each option as a card
   hotel.options.forEach((option, idx) => {
@@ -3706,6 +3602,12 @@ function applyRoomFilters() {
     resultsContainer.appendChild(card);
   });
 
+  // Ensure Technical Details button is always kept at the very bottom of detail room list
+  const techDetails = resultsContainer.querySelector(".tech-details-container");
+  if (techDetails) {
+    resultsContainer.appendChild(techDetails);
+  }
+
   const countSpan = document.getElementById("detail-room-count");
   if (countSpan) {
     const totalCards = document.querySelectorAll(".detail-option-card").length;
@@ -3732,8 +3634,8 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
   // Store the price shown in search results for comparison
   window._searchDisplayPrice = searchDisplayPrice ?? null;
   // Update URL
-  if (window.location.pathname !== '/ui/review') {
-    history.pushState({ view: 'review' }, '', '/ui/review');
+  if (window.location.pathname !== '/home/review') {
+    history.pushState({ view: 'review' }, '', '/home/review');
   }
 
   try {
@@ -3888,8 +3790,8 @@ function switchToReviewPage() {
   }
 
   // Update URL
-  if (window.location.pathname !== '/ui/review') {
-    history.pushState({ view: 'review' }, '', '/ui/review');
+  if (window.location.pathname !== '/home/review') {
+    history.pushState({ view: 'review' }, '', '/home/review');
   }
 }
 
@@ -3919,8 +3821,8 @@ function backToDetailFromReview() {
   }
 
   // Back to Detail URL
-  if (window.location.pathname !== '/ui/detail') {
-    history.pushState({ view: 'detail' }, '', '/ui/detail');
+  if (window.location.pathname !== '/home/detail') {
+    history.pushState({ view: 'detail' }, '', '/home/detail');
   }
 }
 
@@ -5144,7 +5046,7 @@ function renderBookingDetail(data) {
   const bookingId = order.bookingId || data.bookingId || data.id || 'N/A';
 
   // Update URL
-  const targetUrl = `/ui/booking-detail?id=${bookingId}`;
+  const targetUrl = `/home/booking-detail?id=${bookingId}`;
   if (window.location.pathname + window.location.search !== targetUrl) {
     history.pushState({ view: 'booking-detail', bookingId: bookingId }, '', targetUrl);
   }
@@ -5964,6 +5866,7 @@ function scrollToPageBottom() {
    API Inspector Modal Functions
    ========================================= */
 function openSearchApiModal(step = 'search') {
+  window.activeApiModalStep = step;
   const transaction = lastApiTransactions[step];
   const modal = document.getElementById("search-api-modal");
   if (!modal) return;
@@ -5971,9 +5874,64 @@ function openSearchApiModal(step = 'search') {
   const titleEl = modal.querySelector(".api-modal-title");
   if (titleEl) {
     if (step === 'bookingDetail') {
-      titleEl.textContent = "Booking Detail API Inspector";
+      titleEl.textContent = "Saved Booking Detail API Inspector";
+    } else if (step === 'detail' || step === 'staticDetail') {
+      titleEl.textContent = "Room Detail API Inspector";
+    } else if (step === 'review') {
+      titleEl.textContent = "Room Review API Inspector";
+    } else if (step === 'book') {
+      titleEl.textContent = "Hotel Booking API Inspector";
     } else {
       titleEl.textContent = "Search API Inspector";
+    }
+  }
+
+  // Handle source switcher visibility and highlighting
+  const sourceSelector = document.getElementById("api-modal-source-selector");
+  if (sourceSelector) {
+    if (step === 'detail' || step === 'staticDetail') {
+      sourceSelector.classList.remove("hidden");
+      
+      const staticBtn = document.getElementById("api-modal-source-static");
+      const dynamicBtn = document.getElementById("api-modal-source-dynamic");
+      
+      if (step === 'staticDetail') {
+        if (staticBtn) {
+          staticBtn.style.background = "#ffffff";
+          staticBtn.style.borderColor = "#D4AF37";
+          staticBtn.style.color = "#202843";
+          staticBtn.style.boxShadow = "0 2px 6px rgba(212, 175, 55, 0.15)";
+          const staticIcon = staticBtn.querySelector("i");
+          if (staticIcon) staticIcon.style.color = "#D4AF37";
+        }
+        if (dynamicBtn) {
+          dynamicBtn.style.background = "transparent";
+          dynamicBtn.style.borderColor = "rgba(0, 0, 0, 0.1)";
+          dynamicBtn.style.color = "#64748b";
+          dynamicBtn.style.boxShadow = "none";
+          const dynamicIcon = dynamicBtn.querySelector("i");
+          if (dynamicIcon) dynamicIcon.style.color = "#64748b";
+        }
+      } else {
+        if (dynamicBtn) {
+          dynamicBtn.style.background = "#ffffff";
+          dynamicBtn.style.borderColor = "#D4AF37";
+          dynamicBtn.style.color = "#202843";
+          dynamicBtn.style.boxShadow = "0 2px 6px rgba(212, 175, 55, 0.15)";
+          const dynamicIcon = dynamicBtn.querySelector("i");
+          if (dynamicIcon) dynamicIcon.style.color = "#D4AF37";
+        }
+        if (staticBtn) {
+          staticBtn.style.background = "transparent";
+          staticBtn.style.borderColor = "rgba(0, 0, 0, 0.1)";
+          staticBtn.style.color = "#64748b";
+          staticBtn.style.boxShadow = "none";
+          const staticIcon = staticBtn.querySelector("i");
+          if (staticIcon) staticIcon.style.color = "#64748b";
+        }
+      }
+    } else {
+      sourceSelector.classList.add("hidden");
     }
   }
 
@@ -6061,6 +6019,10 @@ function closeSearchApiModalOnOverlay(event) {
   }
 }
 
+function switchApiModalSource(source) {
+  openSearchApiModal(source);
+}
+
 function switchApiModalTab(btn, paneId) {
   const modal = document.getElementById("search-api-modal");
   if (!modal) return;
@@ -6111,9 +6073,8 @@ function filterApiModalJson() {
   
   const pre = activePane.querySelector("pre.tech-json");
   const countEl = document.getElementById("api-modal-search-count");
-  if (!pre) return;
-  
-  const transaction = lastApiTransactions.search;
+  const step = window.activeApiModalStep || 'search';
+  const transaction = lastApiTransactions[step];
   if (!transaction) return;
   
   const isResponse = activePane.id.includes("res-pane");

@@ -14,7 +14,7 @@
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-  <link rel="stylesheet" href="/ui/style.css" />
+  <link rel="stylesheet" href="/home/style.css" />
 </head>
 
 <body>
@@ -40,11 +40,11 @@
     <header class="app-header"
       style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
       <div class="logo-container">
-        <a href="/ui/search" style="text-decoration: none; color: inherit; cursor: pointer;">
+        <a href="/home/search" style="text-decoration: none; color: inherit; cursor: pointer;">
           <div class="logo-circle">AH</div>
         </a>
         <div>
-          <a href="/ui/search" style="text-decoration: none; color: inherit;">
+          <a href="/home/search" style="text-decoration: none; color: inherit;">
             <h1 style="cursor: pointer; margin-bottom: 4px;">API V3 TJ Hotels</h1>
           </a>
           <p class="subtitle" style="margin: 0;">Experience modern, fast hotel booking.</p>
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Dashboard Button -->
-        <a href="/ui/dashboard" class="btn-dashboard"
+        <a href="/home/dashboard" class="btn-dashboard"
           style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
           <i class="ph ph-gauge"></i> Dashboard
         </a>
@@ -672,6 +672,16 @@
         </div>
       </div>
 
+      <!-- Dynamic API Source Switcher (for Detail Page) -->
+      <div id="api-modal-source-selector" class="hidden" style="display: flex; gap: 12px; padding: 12px 24px; border-bottom: 1px solid rgba(212, 175, 55, 0.15); background: rgba(32, 40, 67, 0.02);">
+        <button id="api-modal-source-static" class="api-modal-source-btn" style="flex: 1; padding: 10px 16px; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;" onclick="switchApiModalSource('staticDetail')">
+          <i class="ph ph-database"></i> Static Detail API
+        </button>
+        <button id="api-modal-source-dynamic" class="api-modal-source-btn" style="flex: 1; padding: 10px 16px; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;" onclick="switchApiModalSource('detail')">
+          <i class="ph ph-lightning"></i> Dynamic Pricing API
+        </button>
+      </div>
+
       <!-- Modal Tabs & Controls -->
       <div class="api-modal-controls">
         <div class="api-modal-tabs">
@@ -721,7 +731,7 @@
     </div>
   </div>
 
-  <script src="/ui/app.js"></script>
+  <script src="/home/app.js"></script>
 </body>
 
 </html>

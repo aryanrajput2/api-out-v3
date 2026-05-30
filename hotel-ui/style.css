@@ -4834,3 +4834,111 @@ body.login-active .scroll-nav {
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.15) !important;
 }
 
+/* =========================================
+   API INSPECTOR MODAL: Mobile View Adaptations
+   ========================================= */
+@media (max-width: 768px) {
+  .api-modal-overlay {
+    padding: 10px !important;
+  }
+
+  .api-modal-content {
+    max-height: 96vh !important;
+    border-radius: 12px !important;
+  }
+
+  .api-modal-header {
+    padding: 14px 16px !important;
+    gap: 10px !important;
+  }
+
+  .api-modal-icon {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+  }
+
+  .api-modal-title {
+    font-size: 1.05rem !important;
+  }
+
+  .api-modal-subtitle {
+    font-size: 0.72rem !important;
+  }
+
+  .api-modal-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 1rem !important;
+  }
+
+  .api-modal-info-bar {
+    padding: 8px 16px !important;
+    gap: 10px !important;
+    font-size: 0.78rem !important;
+  }
+
+  #api-modal-source-selector {
+    padding: 8px 16px !important;
+    gap: 8px !important;
+  }
+
+  .api-modal-source-btn {
+    padding: 8px 12px !important;
+    font-size: 0.78rem !important;
+    gap: 6px !important;
+  }
+
+  .api-modal-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 16px !important;
+    gap: 10px !important;
+  }
+
+  .api-modal-tabs {
+    width: 100% !important;
+    display: flex !important;
+  }
+
+  .api-modal-tab {
+    flex: 1 !important;
+    justify-content: center !important;
+    font-size: 0.8rem !important;
+    padding: 8px 10px !important;
+  }
+
+  .api-modal-search-wrapper {
+    width: 100% !important;
+    min-width: auto !important;
+  }
+
+  .api-modal-search-wrapper input {
+    height: 36px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .pane-action-bar {
+    padding: 8px 16px !important;
+  }
+
+  .pane-description {
+    font-size: 0.72rem !important;
+  }
+
+  .pane-action-btn {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .code-container {
+    padding: 12px 16px !important;
+  }
+
+  .code-container pre.tech-json {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+  }
+}
+

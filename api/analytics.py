@@ -82,7 +82,7 @@ class AnalyticsTracker:
         self._save_data()
     
     def track_search(self, location: str, checkin: str, checkout: str, 
-                     rooms: int, guests: int, results_count: int, response_time_ms: int):
+                     rooms: int, guests: int, results_count: int, response_time_ms: int, environment: Optional[str] = None):
         """Track hotel search"""
         search = {
             "location": location,
@@ -92,6 +92,7 @@ class AnalyticsTracker:
             "guests": guests,
             "results_count": results_count,
             "response_time_ms": response_time_ms,
+            "environment": environment,
             "timestamp": datetime.now().isoformat()
         }
         self.data["searches"].append(search)

@@ -33,7 +33,7 @@ app = FastAPI()
 @app.middleware("http")
 async def ip_whitelist_middleware(request: Request, call_next):
     # Skip IP check for dashboard and whitelist API endpoints
-    if request.url.path.startswith("/ui/dashboard") or request.url.path.startswith("/api/whitelist"):
+    if request.url.path.startswith("/home/dashboard") or request.url.path.startswith("/api/whitelist"):
         response = await call_next(request)
         return response
     
@@ -69,25 +69,42 @@ async def ip_whitelist_middleware(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# Legacy UI Redirects to support old bookmarks/links and resolve 405 conflicts
+@app.get("/ui/{path:path}")
+def redirect_legacy_ui(request: Request, path: str = ""):
+    query_string = request.url.query
+    target_url = f"/home/{path}"
+    if query_string:
+        target_url += f"?{query_string}"
+    return RedirectResponse(url=target_url)
+
+@app.get("/ui")
+def redirect_legacy_ui_base(request: Request):
+    query_string = request.url.query
+    target_url = "/home/"
+    if query_string:
+        target_url += f"?{query_string}"
+    return RedirectResponse(url=target_url)
+
 # Explicit SPA routes for direct linking/refreshes
-@app.get("/ui/search")
-@app.get("/ui/results")
-@app.get("/ui/detail")
-@app.get("/ui/review")
-@app.get("/ui/booking-detail")
+@app.get("/home/search")
+@app.get("/home/results")
+@app.get("/home/detail")
+@app.get("/home/review")
+@app.get("/home/booking-detail")
 def serve_spa():
     return FileResponse("hotel-ui/index.html")
 
-@app.get("/ui/dashboard")
+@app.get("/home/dashboard")
 def serve_dashboard():
     return FileResponse("hotel-ui/dashboard.html")
 
-# Serve the demo UI at /ui (keeps API routes untouched)
-app.mount("/ui", StaticFiles(directory="hotel-ui", html=True), name="ui")
+# Serve the demo UI at /home (keeps API routes untouched)
+app.mount("/home", StaticFiles(directory="hotel-ui", html=True), name="home")
 
 @app.get("/")
 def root():
-    return RedirectResponse(url="/ui/")
+    return RedirectResponse(url="/home/")
 
 
 @app.get("/api")

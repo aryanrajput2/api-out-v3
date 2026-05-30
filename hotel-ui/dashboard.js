@@ -454,7 +454,7 @@ async function deleteBooking(bookingId) {
 
 function viewBookingDetail(bookingId) {
   // Open the booking detail page in the main app
-  window.open(`/ui/booking-detail?id=${bookingId}`, '_blank');
+  window.open(`/home/booking-detail?id=${bookingId}`, '_blank');
 }
 
 function showBookingsError() {
