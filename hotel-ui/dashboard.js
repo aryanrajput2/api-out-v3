@@ -321,6 +321,7 @@ function displayBookings(bookings) {
             </div>
           </div>
           
+          ${totalTime > 0 ? `
           <!-- Latency Timeline -->
           <div class="latency-timeline">
             <div class="timeline-header">
@@ -342,6 +343,12 @@ function displayBookings(bookings) {
               <div class="latency-bar-fill ${latencyClass}" style="width: ${progressWidth}%"></div>
             </div>
           </div>
+          ` : `
+          <div class="latency-timeline" style="opacity: 0.6; padding: 24px; text-align: center; border: 1px dashed rgba(32, 40, 67, 0.2);">
+            <i class="ph ph-clock-slash" style="font-size: 1.8rem; margin-bottom: 8px; color: var(--text-muted);"></i>
+            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Latency data unavailable</div>
+          </div>
+          `}
         </div>
         
         <!-- Footer -->
@@ -350,8 +357,8 @@ function displayBookings(bookings) {
             <button class="btn-dashboard-action btn-view" onclick="viewBookingDetail('${booking.id}')">
               <i class="ph ph-arrow-square-out"></i> Details
             </button>
-            <button class="btn-dashboard-action btn-delete" onclick="deleteBooking('${booking.id}')">
-              <i class="ph ph-trash"></i> Delete
+            <button class="btn-icon btn-delete" style="flex: none; border-radius: 12px; height: 100%; min-height: 42px; width: 42px;" onclick="deleteBooking('${booking.id}')" title="Delete">
+              <i class="ph ph-trash"></i>
             </button>
           </div>
         </div>

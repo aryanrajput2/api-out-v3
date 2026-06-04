@@ -411,6 +411,7 @@ function handleLogin(event) {
     if (otpInput.value === "7890") {
       localStorage.setItem("tj_user_logged_in", "true");
       localStorage.setItem("tj_user_email", email);
+      localStorage.setItem("tj_login_timestamp", Date.now().toString());
       loginStage = 1; // Reset for next time
       checkLoginStatus();
     } else {
@@ -439,6 +440,29 @@ function togglePasswordVisibility() {
 
 function checkLoginStatus() {
   const isLoggedIn = localStorage.getItem("tj_user_logged_in") === "true";
+  
+  // 24-Hour session expiry check
+  if (isLoggedIn) {
+    const loginTimestamp = localStorage.getItem("tj_login_timestamp");
+    if (loginTimestamp) {
+      const elapsed = Date.now() - parseInt(loginTimestamp, 10);
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      if (elapsed >= twentyFourHours) {
+        logout();
+        const errorEl = document.getElementById("login-error");
+        const errorText = document.getElementById("login-error-text");
+        if (errorEl && errorText) {
+          errorEl.classList.remove("hidden");
+          errorText.textContent = "Your session has expired. Please log in again.";
+        }
+        return;
+      }
+    } else {
+      // Set timestamp for existing sessions to expire 24 hours from now
+      localStorage.setItem("tj_login_timestamp", Date.now().toString());
+    }
+  }
+
   const logoutBtn = document.getElementById("logout-btn");
   const appHeader = document.querySelector(".app-header");
   const safeBanner = document.getElementById("env-safe-banner");
@@ -462,9 +486,12 @@ function checkLoginStatus() {
     document.querySelectorAll(".bg-blur").forEach(el => el.style.display = "none");
   } else {
     document.body.classList.remove("login-active");
-    // Show search page
+    // Show search page only if no other page is active
     document.getElementById("login-page").classList.add("hidden");
-    showActivePage("search-page");
+    const anyPageActive = Array.from(document.querySelectorAll(".view-page")).some(p => p.id !== "login-page" && !p.classList.contains("hidden"));
+    if (!anyPageActive) {
+      showActivePage("search-page");
+    }
     if (logoutBtn) logoutBtn.style.display = "flex";
     
     // Show headers and banners when logged in
@@ -484,6 +511,7 @@ function checkLoginStatus() {
 function logout() {
   localStorage.removeItem("tj_user_logged_in");
   localStorage.removeItem("tj_user_email");
+  localStorage.removeItem("tj_login_timestamp");
   
   // Reset login stage for next time
   loginStage = 1;
@@ -499,6 +527,9 @@ window.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
   initializeDates();
   loadRecentBookings();
+  
+  // Periodically check session expiry every minute
+  setInterval(checkLoginStatus, 60000);
   
   const currentPath = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
