@@ -481,6 +481,8 @@ function checkLoginStatus() {
     if (appHeader) appHeader.style.display = "none";
     if (safeBanner) safeBanner.style.display = "none";
     if (warningBanner) warningBanner.style.display = "none";
+    const responseTimesSection = document.getElementById("response-times-section");
+    if (responseTimesSection) responseTimesSection.style.display = "none";
     
     // Also hide the background blurs to let the luxury login background shine
     document.querySelectorAll(".bg-blur").forEach(el => el.style.display = "none");
@@ -805,6 +807,15 @@ function setSearchLoading(isLoading) {
   }
 
   if (isLoading) {
+    // Hide old response times section on new search
+    const responseTimesSection = document.getElementById("response-times-section");
+    if (responseTimesSection) responseTimesSection.style.display = "none";
+    
+    // Clear old response times data
+    if (typeof journeyResponseTimes !== 'undefined') {
+      journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null, cancellation: null };
+    }
+
     searchSecondsElapsed = 0;
     label.innerHTML = `Searching... <span style="opacity:0.8; margin-left:6px;">0s</span>`;
     if (overlayTimer) overlayTimer.textContent = "0s elapsed";
@@ -1344,14 +1355,14 @@ async function triggerSearchWithBody(body) {
     
     journeyResponseTimes = { search: null, batchSearch: [], staticDetail: null, dynamicDetail: null, review: null, book: null, bookingDetail: null, cancellation: null };
     journeyResponseTimes.search = duration;
-    displayResponseTimes();
-
     if (!res.ok || data.ok === false) {
       const detail = data && typeof data === "object" ? `${data.status_code || res.status} ${data.reason || ""}`.trim() : `${res.status}`;
       showSearchError("Search failed. Check API response details.", detail, data);
       displayHotels(null);
       return;
     }
+
+    displayResponseTimes();
 
     displayHotels(data);
     
@@ -1470,8 +1481,6 @@ async function searchLocationHotels(location) {
       journeyResponseTimes.batchSearch.push(duration);
     }
     
-    displayResponseTimes();
-
     if (!res.ok || data.ok === false) {
       const detail =
         data && typeof data === "object"
@@ -1481,6 +1490,8 @@ async function searchLocationHotels(location) {
       displayHotels(null);
       return;
     }
+
+    displayResponseTimes();
 
     displayHotels(data);
     

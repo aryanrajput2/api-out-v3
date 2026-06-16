@@ -26,7 +26,7 @@ def fetch_hotel_static_detail(data: dict):
     }
 
     try:
-        response = httpx.post(url, json=payload, headers=headers, timeout=20.0)
+        response = httpx.post(url, json=payload, headers=headers, timeout=60.0)
         return response.json()
     except httpx.HTTPError as e:
         logger.error(f"HTTP Exception for static detail: {e}")

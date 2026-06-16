@@ -85,16 +85,22 @@
     </header>
 
     <!-- Response Times Visualization Section (Global Persistent) -->
-    <section id="response-times-section" style="display: none; visibility: hidden; opacity: 0; margin: 0 auto; padding: 20px; max-width: 100%; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
+    <section id="response-times-section"
+      style="display: none; visibility: hidden; opacity: 0; margin: 0 auto; padding: 20px; max-width: 100%; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
-        <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+        <div
+          style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
           <i class="ph ph-timer"></i>
         </div>
-        <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response Times</h3>
+        <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response
+          Times</h3>
         <div style="flex: 1;"></div>
-        <span style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live Tracking</span>
+        <span
+          style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live
+          Tracking</span>
       </div>
-      <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px;">
+      <div id="header-response-boxes"
+        style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px;">
         <!-- Response time cards will be inserted here -->
       </div>
     </section>
@@ -102,71 +108,149 @@
     <main>
       <!-- Page 0: Login Page -->
       <section id="login-page" class="view-page hidden">
-        <div class="login-container">
-          <div class="login-card">
-            <!-- Logo Section -->
-            <div class="login-header">
-              <div class="login-logo">
-                <i class="ph ph-sign-in"></i>
-              </div>
-              <h1>Welcome Back</h1>
-              <p>Sign in to your Tripjack account</p>
-            </div>
+        <div class="auth-stage">
+          <div class="auth-card">
 
-            <!-- Login Form -->
-            <form id="login-form" onsubmit="handleLogin(event)">
-              <!-- Email Input -->
-              <div class="form-group">
-                <label for="login-email">
-                  <i class="ph ph-envelope"></i> Email Address
-                </label>
-                <input type="email" id="login-email" placeholder="Enter your email" required />
+            <!-- Left: Form -->
+            <div class="auth-form-panel">
+              <div class="auth-brand">
+                <span class="auth-brand-mark"><i class="ph-fill ph-house-line"></i></span>
+                <span class="auth-brand-name">API Hotel</span>
               </div>
 
-              <!-- Password Input -->
-              <div class="form-group">
-                <label for="login-password">
-                  <i class="ph ph-lock"></i> Password
-                </label>
-                <div class="password-wrapper">
-                  <input type="password" id="login-password" placeholder="••••••••" required />
-                  <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
-                    <i class="ph ph-eye" id="password-toggle-icon"></i>
+              <div class="auth-form-inner">
+                <div class="auth-heading">
+                  <h1>Sign In</h1>
+                  <p>Welcome back! Please enter your details to continue</p>
+                </div>
+
+                <!-- Role toggle -->
+                <div class="auth-role">
+                  <label class="auth-radio">
+                    <input type="radio" name="auth-role" value="user" checked />
+                    <span>As a User</span>
+                  </label>
+                  <label class="auth-radio">
+                    <input type="radio" name="auth-role" value="owner" />
+                    <span>As a Hotel Owner</span>
+                  </label>
+                </div>
+
+                <!-- Social sign-in -->
+                <div class="auth-social">
+                  <button type="button" class="auth-social-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" />
+                    Sign in with Google
+                  </button>
+                  <button type="button" class="auth-social-btn">
+                    <i class="ph-fill ph-apple-logo"></i>
+                    Sign in with Apple
                   </button>
                 </div>
+
+                <div class="auth-divider"><span>OR</span></div>
+
+                <!-- Login Form -->
+                <form id="login-form" onsubmit="handleLogin(event)">
+                  <!-- Email Input -->
+                  <div class="auth-field">
+                    <label for="login-email">Email <span>*</span></label>
+                    <div class="auth-input">
+                      <i class="ph ph-envelope-simple"></i>
+                      <input type="email" id="login-email" placeholder="hello@delisas.com" required />
+                    </div>
+                  </div>
+
+                  <!-- Password Input -->
+                  <div class="auth-field">
+                    <div class="auth-field-row">
+                      <label for="login-password">Password <span>*</span></label>
+                      <a href="#" class="auth-forgot" onclick="return false;">Forgot password?</a>
+                    </div>
+                    <div class="auth-input">
+                      <i class="ph ph-lock-simple"></i>
+                      <input type="password" id="login-password" placeholder="Enter password" required />
+                      <button type="button" class="auth-eye" onclick="togglePasswordVisibility()"
+                        aria-label="Toggle password">
+                        <i class="ph ph-eye" id="password-toggle-icon"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- OTP Input (Initially Hidden) -->
+                  <div id="otp-group" class="auth-field hidden">
+                    <label for="login-otp">Security OTP <span>*</span></label>
+                    <div class="auth-input">
+                      <i class="ph ph-shield-check"></i>
+                      <input type="text" id="login-otp" class="auth-otp" placeholder="Enter 4-digit OTP"
+                        maxlength="4" />
+                    </div>
+                  </div>
+
+                  <!-- Error Message -->
+                  <div id="login-error" class="auth-error hidden">
+                    <i class="ph ph-warning-circle"></i>
+                    <span id="login-error-text"></span>
+                  </div>
+
+                  <!-- Login Button -->
+                  <button type="submit" class="auth-submit" id="login-submit-btn">
+                    Sign In
+                  </button>
+                </form>
+
+                <p class="auth-signup">Don't have an account? <a href="#" onclick="return false;">Sign Up</a></p>
               </div>
-
-              <!-- Remember Me -->
-              <label class="remember-me">
-                <input type="checkbox" id="remember-me" />
-                <span>Remember me</span>
-              </label>
-
-              <!-- OTP Input (Initially Hidden) -->
-              <div id="otp-group" class="form-group hidden" style="margin-top: 16px; animation: slideInUp 0.4s ease-out;">
-                <label for="login-otp">
-                  <i class="ph ph-shield-check"></i> Security OTP
-                </label>
-                <input type="text" id="login-otp" placeholder="Enter 4-digit OTP" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 8px; font-weight: 700;" />
-                <p style="font-size: 0.75rem; color: #64748b; margin-top: 6px; text-align: center;">Enter the code sent to your device</p>
-              </div>
-
-              <!-- Login Button -->
-              <button type="submit" class="btn-login" id="login-submit-btn">
-                <i class="ph ph-sign-in"></i> Sign In
-              </button>
-
-              <!-- Error Message -->
-              <div id="login-error" class="login-error hidden">
-                <i class="ph ph-warning-circle"></i>
-                <span id="login-error-text"></span>
-              </div>
-            </form>
-
-            <!-- Footer -->
-            <div class="login-footer">
-              <p>© 2026 Tripjack Hotels. All rights reserved.</p>
             </div>
+
+            <!-- Right: Testimonial -->
+            <div class="auth-aside">
+              <div class="auth-quote">
+                <span class="auth-quote-open">&ldquo;</span>
+                <p>Seamless booking experience! The app makes finding and reserving rooms so easy. I loved the instant
+                  confirmation and personalized recommendations. Definitely my go-to for all future stays.</p>
+                <span class="auth-quote-close">&rdquo;</span>
+              </div>
+              <div class="auth-author">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Aryan Singh" />
+                <div>
+                  <strong>Aryan Singh</strong>
+                  <span>Amsterdam</span>
+                </div>
+              </div>
+              <svg class="auth-skyline" viewBox="0 0 600 320" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <g stroke="#2f4a3a" stroke-width="3" stroke-linejoin="round">
+                  <rect x="30" y="200" width="70" height="120" fill="#cfe0d6" />
+                  <rect x="110" y="120" width="80" height="200" fill="#ffffff" />
+                  <rect x="200" y="70" width="70" height="250" fill="#f7e6c4" />
+                  <rect x="280" y="150" width="60" height="170" fill="#ffffff" />
+                  <rect x="350" y="40" width="55" height="280" fill="#ffffff" />
+                  <rect x="415" y="110" width="75" height="210" fill="#f6d2c8" />
+                  <rect x="500" y="170" width="70" height="150" fill="#cfe0d6" />
+                </g>
+                <g stroke="#2f4a3a" stroke-width="2.5" stroke-linecap="round">
+                  <line x1="125" y1="150" x2="175" y2="150" />
+                  <line x1="125" y1="180" x2="175" y2="180" />
+                  <line x1="125" y1="210" x2="175" y2="210" />
+                  <line x1="125" y1="240" x2="175" y2="240" />
+                  <line x1="365" y1="80" x2="390" y2="80" />
+                  <line x1="365" y1="110" x2="390" y2="110" />
+                  <line x1="365" y1="140" x2="390" y2="140" />
+                  <line x1="365" y1="170" x2="390" y2="170" />
+                  <line x1="430" y1="140" x2="475" y2="140" />
+                  <line x1="430" y1="170" x2="475" y2="170" />
+                  <line x1="430" y1="200" x2="475" y2="200" />
+                </g>
+                <g stroke="#2f4a3a" stroke-width="3" stroke-linecap="round" fill="none">
+                  <circle cx="370" cy="270" r="28" fill="#ffffff" />
+                  <path d="M370 250 v40 M356 276 l14 14 14 -14" />
+                  <circle cx="540" cy="265" r="24" fill="#ffffff" />
+                  <path d="M540 248 v34 M528 270 l12 12 12 -12" />
+                </g>
+              </svg>
+            </div>
+
           </div>
         </div>
       </section>
@@ -294,7 +378,7 @@
                   </div>
                 </button>
                 <button type="button" class="batch-search-btn" onclick="searchLocationHotels('delhi')"
-                  title="Search 15 hotels in Delhi">
+                  title="Search 200 hotels in Delhi">
                   <div class="batch-btn-icon">
                     <i class="ph ph-buildings"></i>
                   </div>
@@ -389,7 +473,8 @@
             </div>
 
             <div class="form-actions" style="display: flex; align-items: center; gap: 16px;">
-              <button type="submit" class="btn-primary btn-large" id="search-button" style="flex: 1; min-height: 56px; border-radius: 16px;">
+              <button type="submit" class="btn-primary btn-large" id="search-button"
+                style="flex: 1; min-height: 56px; border-radius: 16px;">
                 <i class="ph ph-magnifying-glass search-icon" style="font-size: 1.4rem;"></i>
                 <span id="search-button-label" style="font-size: 1.1rem; letter-spacing: 0.5px;">Search Hotels</span>
                 <div id="search-button-spinner" class="loader hidden"></div>
@@ -419,7 +504,8 @@
       <!-- Page 2: Results -->
       <section id="results-page" class="view-page hidden">
 
-        <div class="results-header" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px;">
+        <div class="results-header"
+          style="display: flex; align-items: center; justify-content: space-between; padding: 16px 24px;">
           <div style="display: flex; align-items: center; gap: 20px;">
             <button type="button" class="btn-ghost" onclick="backToSearch()" style="margin: 0;">
               <i class="ph ph-arrow-left"></i> Back to Search
@@ -607,28 +693,38 @@
   </div>
 
   <!-- Full Screen Search Loading Overlay -->
-  <div id="search-loading-overlay" class="hidden" style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
-    <div style="background: white; padding: 40px 60px; border-radius: 24px; border: 2px solid #D4AF37; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; animation: zoomIn 0.3s ease-out; position: relative;">
-      
+  <div id="search-loading-overlay" class="hidden"
+    style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
+    <div
+      style="background: white; padding: 40px 60px; border-radius: 24px; border: 2px solid #D4AF37; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; animation: zoomIn 0.3s ease-out; position: relative;">
+
       <!-- Golden Hotel Logo -->
-      <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #D4AF37 0%, #AA8222 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); margin-bottom: 20px;">
+      <div
+        style="width: 70px; height: 70px; background: linear-gradient(135deg, #D4AF37 0%, #AA8222 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); margin-bottom: 20px;">
         AH
       </div>
 
-      <div class="loader" style="width: 50px; height: 50px; border-width: 4px; border-color: rgba(212, 175, 55, 0.2); border-top-color: #D4AF37; margin-bottom: 24px;"></div>
-      
-      <h2 style="margin: 0 0 12px 0; font-size: 1.8rem; font-weight: 700; color: #1e293b; letter-spacing: 0.5px;">Searching Best Hotels</h2>
-      <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #64748b; max-width: 320px;">Please wait while we fetch real-time availability and prices from our partners...</p>
-      
+      <div class="loader"
+        style="width: 50px; height: 50px; border-width: 4px; border-color: rgba(212, 175, 55, 0.2); border-top-color: #D4AF37; margin-bottom: 24px;">
+      </div>
+
+      <h2 style="margin: 0 0 12px 0; font-size: 1.8rem; font-weight: 700; color: #1e293b; letter-spacing: 0.5px;">
+        Searching Best Hotels</h2>
+      <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #64748b; max-width: 320px;">Please wait while we fetch
+        real-time availability and prices from our partners...</p>
+
       <div style="display: flex; align-items: center; justify-content: center; width: 100%; gap: 16px;">
         <!-- Timer -->
-        <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 99px; font-size: 0.95rem; color: #475569; font-weight: 600;">
+        <div
+          style="display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 99px; font-size: 0.95rem; color: #475569; font-weight: 600;">
           <i class="ph ph-clock" style="color: #D4AF37; font-size: 1.1rem;"></i>
           <span id="overlay-search-timer">0s elapsed</span>
         </div>
 
         <!-- Cancel Button -->
-        <button onclick="cancelSearchAction()" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'" style="background: white; border: 1px solid #ef4444; color: #ef4444; padding: 10px 20px; border-radius: 99px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;">
+        <button onclick="cancelSearchAction()" onmouseover="this.style.background='#fef2f2'"
+          onmouseout="this.style.background='white'"
+          style="background: white; border: 1px solid #ef4444; color: #ef4444; padding: 10px 20px; border-radius: 99px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;">
           <i class="ph ph-x-circle" style="font-size: 1.1rem;"></i> Stop Search
         </button>
       </div>
@@ -649,7 +745,7 @@
             <p class="api-modal-subtitle">Real-time Request & Response Payload</p>
           </div>
         </div>
-        
+
         <div class="api-modal-header-actions">
           <span id="api-modal-status" class="tech-status-badge success">200 OK</span>
           <span id="api-modal-time" class="api-modal-meta-item"><i class="ph ph-timer"></i> 0.00s</span>
@@ -673,11 +769,16 @@
       </div>
 
       <!-- Dynamic API Source Switcher (for Detail Page) -->
-      <div id="api-modal-source-selector" class="hidden" style="display: flex; gap: 12px; padding: 12px 24px; border-bottom: 1px solid rgba(212, 175, 55, 0.15); background: rgba(32, 40, 67, 0.02);">
-        <button id="api-modal-source-static" class="api-modal-source-btn" style="flex: 1; padding: 10px 16px; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;" onclick="switchApiModalSource('staticDetail')">
+      <div id="api-modal-source-selector" class="hidden"
+        style="display: flex; gap: 12px; padding: 12px 24px; border-bottom: 1px solid rgba(212, 175, 55, 0.15); background: rgba(32, 40, 67, 0.02);">
+        <button id="api-modal-source-static" class="api-modal-source-btn"
+          style="flex: 1; padding: 10px 16px; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;"
+          onclick="switchApiModalSource('staticDetail')">
           <i class="ph ph-database"></i> Static Detail API
         </button>
-        <button id="api-modal-source-dynamic" class="api-modal-source-btn" style="flex: 1; padding: 10px 16px; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;" onclick="switchApiModalSource('detail')">
+        <button id="api-modal-source-dynamic" class="api-modal-source-btn"
+          style="flex: 1; padding: 10px 16px; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;"
+          onclick="switchApiModalSource('detail')">
           <i class="ph ph-lightning"></i> Dynamic Pricing API
         </button>
       </div>
@@ -695,7 +796,8 @@
 
         <div class="api-modal-search-wrapper">
           <i class="ph ph-magnifying-glass search-input-icon"></i>
-          <input type="text" id="api-modal-search-input" placeholder="Search in JSON keys/values..." onkeyup="filterApiModalJson()">
+          <input type="text" id="api-modal-search-input" placeholder="Search in JSON keys/values..."
+            onkeyup="filterApiModalJson()">
           <span id="api-modal-search-count" class="search-count hidden">0 matches</span>
         </div>
       </div>
