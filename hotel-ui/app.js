@@ -45,6 +45,15 @@ let lastApiTransactions = {
 };
 
 /**
+ * Returns a displayable room name, falling back when the upstream sends a
+ * blank/whitespace name (it sometimes returns "" for roomInfo[].name).
+ */
+function roomDisplayName(r) {
+  const n = (r && typeof r.name === 'string') ? r.name.trim() : '';
+  return n || 'Standard Room';
+}
+
+/**
  * Renders a Postman-like technical details section
  * @param {string} step - The step name (search, detail, review, etc)
  * @returns {string} HTML string
@@ -1606,7 +1615,7 @@ function displayHotels(data) {
 
     // Basic Info
     const name = hotel.name || "Unknown Hotel";
-    const roomName = option.roomInfo?.[0]?.name ?? "Standard Room";
+    const roomName = roomDisplayName(option.roomInfo?.[0]);
 
     let locationStr = hotel.city || "";
     if (hotel.country) locationStr += (locationStr ? ", " : "") + hotel.country;
@@ -1705,7 +1714,7 @@ function displayHotels(data) {
           <span class="data-pill pill-neutral">GST: ${gstType}</span>
           <span class="data-pill pill-neutral">PAN Req: ${panRequired}</span>
           <span class="data-pill pill-neutral">PassPortRequired: ${passRequired}</span>
-          <span class="data-pill pill-purple"><i class="ph ph-receipt"></i> Type: ${commercialType} (${currency} ${commission})</span>
+          <span class="data-pill pill-purple"><i class="ph ph-briefcase"></i> ${commercialType} · Commission: ${currency} ${commission}</span>
         </div>
         ${inclusionsHtml}
       </div>
@@ -1731,6 +1740,10 @@ function displayHotels(data) {
           <div class="price-item">
             <span class="price-label">MFT</span>
             <span class="price-value">+ ${currency} ${mft}</span>
+          </div>
+          <div class="price-item">
+            <span class="price-label">Commission (${commercialType})</span>
+            <span class="price-value" style="color:var(--primary)">${currency} ${commission}</span>
           </div>
           ${gstClaimable ? `
           <div class="price-item">
@@ -2486,6 +2499,112 @@ function addImageLoader(container) {
   container.appendChild(loader);
 }
 
+// Clean up the run-on fee text the upstream returns (sentences are concatenated
+// with no separators, e.g. "per personAirport shuttle...") and highlight amounts.
+function formatFeeText(text) {
+  if (!text || typeof text !== 'string') return '';
+  let t = text
+    .replace(/([a-z.)%\d])([A-Z])/g, '$1 $2')   // un-glue: "per personAirport" -> "per person Airport"
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  // Bold currency amounts like "AED 200", "AED 797.0", "INR 1,350"
+  t = t.replace(/\b([A-Z]{3})\s?(\d[\d,]*\.?\d*)/g, '<strong style="color:#b91c1c; font-weight:700;">$1 $2</strong>');
+  return t;
+}
+
+// Render policies.mandatory_fees (a JSON string with "Mandatory"/"Optional" keys)
+// as two clearly-labelled blocks rather than one truncated blob.
+function renderFeesSection(raw) {
+  if (!raw) return '';
+  let parsed = null;
+  try {
+    if (typeof raw === 'string' && raw.trim().startsWith('{')) parsed = JSON.parse(raw);
+  } catch (e) { parsed = null; }
+
+  const block = (title, body, accent, tint) => !body ? '' : `
+    <div style="margin-bottom: 12px; padding: 14px 16px; background: ${tint}; border-radius: 12px; border-left: 4px solid ${accent};">
+      <div style="font-size: 0.8rem; font-weight: 700; color: ${accent}; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;">${title}</div>
+      <div style="color: #475569; font-size: 0.88rem; line-height: 1.6; font-weight: 500;">${formatFeeText(body)}</div>
+    </div>`;
+
+  if (parsed) {
+    let out = '';
+    out += block('Mandatory Charges (payable at the property)', parsed.Mandatory, '#b91c1c', 'rgba(239, 68, 68, 0.04)');
+    out += block('Optional Charges', parsed.Optional, '#d97706', 'rgba(245, 158, 11, 0.05)');
+    // Render any other keys generically so nothing is hidden.
+    Object.entries(parsed).forEach(([k, v]) => {
+      if (k !== 'Mandatory' && k !== 'Optional' && v) {
+        out += block(k.replace(/_/g, ' '), v, '#475569', 'rgba(100, 116, 139, 0.05)');
+      }
+    });
+    return out;
+  }
+  return block('Fees & Charges', String(raw), '#b91c1c', 'rgba(239, 68, 68, 0.04)');
+}
+
+// Pick the best available image URL from a static image's links object.
+function pickRoomImageUrl(im) {
+  const l = (im && im.links) || {};
+  return l.Standard?.href || l.original?.href || l.XXL?.href || l.XL?.href || l.L?.href || l.M?.href || '';
+}
+
+// Build the full static-detail block for a matched room: image gallery,
+// occupancy, complete bed config, and all (deduplicated) amenities.
+function buildStaticRoomDetails(room) {
+  if (!room) return '';
+  let html = '';
+
+  // ── Image gallery (all images, deduped) ──
+  const urls = [...new Set((Array.isArray(room.images) ? room.images : []).map(pickRoomImageUrl).filter(Boolean))];
+  if (urls.length) {
+    const thumbs = urls.map(u =>
+      `<img src="${u}" loading="lazy" onclick="openImageZoom('${u}')" title="Click to enlarge" style="width:104px; height:78px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; flex-shrink:0; transition:transform 0.2s ease;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='none'" onerror="this.style.display='none'">`
+    ).join('');
+    html += `
+      <div style="margin-top:12px;">
+        <div style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Room Photos (${urls.length})</div>
+        <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">${thumbs}</div>
+      </div>`;
+  }
+
+  // ── Occupancy + bed config chips ──
+  const chip = (icon, text) => `<span style="font-size:0.78rem; color:#334155; background:#f1f5f9; border:1px solid #e2e8f0; padding:4px 10px; border-radius:6px; display:inline-flex; align-items:center; gap:6px; font-weight:600;"><i class="ph ${icon}" style="color:var(--primary);"></i> ${text}</span>`;
+  const chips = [];
+  const occ = room.occupancy?.max_allowed;
+  if (occ && (occ.total || occ.adults || occ.children)) {
+    chips.push(chip('ph-users-three', `Max ${occ.total || occ.adults || 0} guests · ${occ.adults || 0} adults, ${occ.children || 0} children`));
+  }
+  const bc = room.bed_config;
+  if (bc?.configuration) {
+    const beds = Object.values(bc.configuration).filter(c => (c.quantity || 0) > 0)
+      .map(c => `${c.quantity} ${c.size || (c.type || 'Bed').replace(/Bed$/, '')}`).join(' + ');
+    if (beds) chips.push(chip('ph-bed', beds));
+  }
+  if (bc?.bedroom_count) chips.push(chip('ph-door-open', `${bc.bedroom_count} bedroom${bc.bedroom_count > 1 ? 's' : ''}`));
+  if (room.room_count) chips.push(chip('ph-buildings', `${room.room_count} room${room.room_count > 1 ? 's' : ''}`));
+  if (chips.length) html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">${chips.join('')}</div>`;
+
+  // ── All amenities (deduped by name), collapsible ──
+  if (room.amenities) {
+    const names = [...new Set(Object.values(room.amenities).map(a => a && a.name).filter(Boolean))];
+    if (names.length) {
+      const pills = names.map(n =>
+        `<span style="font-size:0.75rem; color:#475569; background:#f8fafc; border:1px solid #e2e8f0; padding:3px 8px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-check" style="color:#10b981;"></i> ${n}</span>`
+      ).join('');
+      html += `
+        <details style="margin-top:12px; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
+          <summary style="font-size:0.82rem; font-weight:700; color:#0f172a; padding:10px 14px; cursor:pointer; list-style:none; user-select:none; display:flex; align-items:center; justify-content:space-between;">
+            <span style="display:flex; align-items:center; gap:8px;"><i class="ph ph-list-checks" style="color:var(--primary); font-size:1.05rem;"></i> Room Amenities (${names.length})</span>
+            <i class="ph ph-caret-down"></i>
+          </summary>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; padding:12px 14px; border-top:1px dashed #cbd5e1;">${pills}</div>
+        </details>`;
+    }
+  }
+
+  return html;
+}
+
 function renderStaticDetailsOnly(staticData, durationMs) {
   console.log('renderStaticDetailsOnly called with:', { hasData: !!staticData, keys: staticData ? Object.keys(staticData) : [] });
   
@@ -2994,10 +3113,10 @@ function renderStaticDetailsOnly(staticData, durationMs) {
     if (pol.mandatory_fees) {
       policyHTML += `
         <div style="margin-bottom: 16px; padding: 18px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, rgba(220, 38, 38, 0.03) 100%); border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.12); border-left: 5px solid #ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.02);">
-          <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-            <i class="ph-bold ph-currency-circle-dollar" style="font-size: 1.15rem;"></i> Mandatory Fees
+          <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="ph-bold ph-currency-circle-dollar" style="font-size: 1.15rem;"></i> Fees &amp; Charges
           </div>
-          ${wrapExpandable(parsePolicyText(pol.mandatory_fees))}
+          ${renderFeesSection(pol.mandatory_fees)}
         </div>
       `;
     }
@@ -3279,7 +3398,7 @@ function renderHotelDetails(data) {
     card.className = "hotel-card detail-option-card fade-in";
     card.style.animation = `slideUp 0.5s ease-out ${0.5 + idx * 0.08}s both`;
 
-    const roomNames = option.roomInfo?.map(r => `<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><i class="ph ph-bed"></i> <span>${r.name}</span> ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}</span>`).join("") ?? '<span style="display:flex; align-items:center; gap:6px;"><i class="ph ph-bed"></i> Standard Room</span>';
+    const roomNames = option.roomInfo?.map(r => `<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><i class="ph ph-bed"></i> <span>${roomDisplayName(r)}</span> ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}</span>`).join("") ?? '<span style="display:flex; align-items:center; gap:6px;"><i class="ph ph-bed"></i> Standard Room</span>';
     const roomIdsString = option.roomInfo?.map(r => r.id).join(" ").toLowerCase() || "";
 
     const currency = option.pricing?.currency ?? "INR";
@@ -3307,52 +3426,22 @@ function renderHotelDetails(data) {
     const staticData = lastApiTransactions.staticDetail?.res || {};
     const staticRooms = staticData.rooms || {};
     
-    let roomImagesHtml = "";
-    let roomAmenitiesHtml = "";
-    let bedConfigHtml = "";
-    
+    let staticRoomDetailsHtml = "";
+
     if (option.roomInfo && option.roomInfo.length > 0) {
-      option.roomInfo.forEach(r => {
-        let matchingStaticRoom = null;
+      // Find the static room matching this option's room id.
+      let matchingStaticRoom = null;
+      for (const r of option.roomInfo) {
         for (const key in staticRooms) {
-          if (staticRooms[key].id == r.id) {
-            matchingStaticRoom = staticRooms[key];
-            break;
-          }
+          if (staticRooms[key].id == r.id) { matchingStaticRoom = staticRooms[key]; break; }
         }
-        
-        if (matchingStaticRoom) {
-          // Images
-          if (matchingStaticRoom.images && matchingStaticRoom.images.length > 0 && !roomImagesHtml) {
-            const imgSrc = matchingStaticRoom.images[0].links?.Standard?.href || matchingStaticRoom.images[0].links?.original?.href || matchingStaticRoom.images[0].links?.XXL?.href || matchingStaticRoom.images[0].links?.XL?.href;
-            if (imgSrc) {
-              roomImagesHtml = `
-                <div style="width: 120px; height: 120px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; margin-right: 16px;">
-                  <img src="${imgSrc}" alt="${matchingStaticRoom.name || 'Room Image'}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentElement.style.display='none'">
-                </div>
-              `;
-            }
-          }
-          
-          // Amenities
-          if (matchingStaticRoom.amenities && !roomAmenitiesHtml) {
-            const amenitiesArr = Object.values(matchingStaticRoom.amenities).slice(0, 4); // Take first 4
-            if (amenitiesArr.length > 0) {
-              const amList = amenitiesArr.map(a => `<span style="font-size: 0.75rem; color: #475569; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 2px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check" style="color: #10b981;"></i> ${a.name}</span>`).join("");
-              roomAmenitiesHtml = `<div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">${amList}</div>`;
-            }
-          }
-          
-          // Bed Config
-          if (matchingStaticRoom.bed_config?.configuration && !bedConfigHtml) {
-             const configs = Object.values(matchingStaticRoom.bed_config.configuration);
-             const beds = configs.map(c => `${c.quantity > 0 ? c.quantity : 1} ${c.type || 'Bed'}`).join(" & ");
-             if (beds) {
-               bedConfigHtml = `<div style="font-size: 0.82rem; color: #64748b; margin-top: 8px; display: flex; align-items: center; gap: 6px;"><i class="ph ph-bed"></i> <strong>Beds:</strong> ${beds}</div>`;
-             }
-          }
-        }
-      });
+        if (matchingStaticRoom) break;
+      }
+
+      if (matchingStaticRoom) {
+        // Full static room details: gallery, occupancy, bed config, all amenities.
+        staticRoomDetailsHtml = buildStaticRoomDetails(matchingStaticRoom);
+      }
     }
 
     const commercialType = option.commercial?.type || "Net";
@@ -3498,21 +3587,15 @@ function renderHotelDetails(data) {
 
     card.innerHTML = `
       <div class="room-details-section">
-        <div style="display: flex; align-items: flex-start;">
-          ${roomImagesHtml}
-          <div style="flex-grow: 1;">
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="room-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: flex-start; gap: 6px; margin: 0; flex-direction: column;">
-                ${roomNames}
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                <span class="hotel-id-badge" style="font-size: 0.72rem; background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i class="ph ph-hash"></i> Option ID: ${option.optionId}</span>
-              </div>
-            </div>
-            ${bedConfigHtml}
-            ${roomAmenitiesHtml}
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="room-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: flex-start; gap: 6px; margin: 0; flex-direction: column;">
+            ${roomNames}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="hotel-id-badge" style="font-size: 0.72rem; background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;"><i class="ph ph-hash"></i> Option ID: ${option.optionId}</span>
           </div>
         </div>
+        ${staticRoomDetailsHtml}
         <div class="hotel-tags" style="margin-top: 16px;">
           <span class="data-pill pill-warning" ${optionTypeTitle}><i class="ph ph-tag"></i> ${optionTypeData.name}</span>
           <span class="data-pill pill-primary"><i class="ph ph-fork-knife"></i> ${mealBasis}</span>
@@ -3560,6 +3643,10 @@ function renderHotelDetails(data) {
           <div class="price-item">
             <span class="price-label">MFT</span>
             <span class="price-value">+ ${currency} ${mft}</span>
+          </div>
+          <div class="price-item">
+            <span class="price-label">Commission (${commercialType})</span>
+            <span class="price-value" style="color:var(--primary)">${currency} ${commission}</span>
           </div>
           <div class="price-item">
             <span class="price-label">GST Claimable</span>
@@ -3985,7 +4072,7 @@ function renderReviewDetails(data, responseMs) {
        </div>`
     : '';
 
-  const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} <span style="font-size:0.75rem;color:var(--text-muted);">(ID: ${r.id})</span>`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
+  const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${roomDisplayName(r)} <span style="font-size:0.75rem;color:var(--text-muted);">(ID: ${r.id})</span>`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
 
   // Lookup static room data for image
   const staticData = lastApiTransactions.staticDetail?.res || {};

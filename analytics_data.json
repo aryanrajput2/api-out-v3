@@ -15984,6 +15984,168 @@
       "success": false,
       "error_msg": null,
       "timestamp": "2026-06-18T16:33:21.111915"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 311,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T21:59:29.032575"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 859,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T21:59:29.955018"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 232,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:02:40.243769"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 743,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:02:41.021532"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 334,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:03:15.548731"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2150,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:03:17.794168"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 360,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:08:31.757112"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2286,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:08:34.128898"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 472,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:13:33.149164"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1357,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:13:34.589652"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 920,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:15:50.255781"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2270,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:15:52.597698"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 315,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:17:48.061801"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2320,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:17:50.479815"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 275,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:17:57.926770"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 285,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:18:19.704099"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 771,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:18:20.516839"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 393,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-18T22:18:31.994959"
     }
   ],
   "errors": [
@@ -21680,6 +21842,18 @@
       "message": "Status 200",
       "type": "api_error",
       "timestamp": "2026-06-18T16:33:21.111925"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-18T22:17:57.926811"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-18T22:18:31.994991"
     }
   ],
   "searches": [
