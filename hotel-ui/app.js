@@ -1600,7 +1600,9 @@ function displayHotels(data) {
 
     const card = document.createElement("div");
     card.className = "hotel-card fade-in";
-    card.style.animationDelay = `${index * 0.05}s`;
+    // Cap the staggered entrance delay so large result sets (~200 hotels) don't
+    // leave cards invisible (opacity:0 via the `backwards` fill-mode) for up to 10s.
+    card.style.animationDelay = `${Math.min(index * 0.03, 0.5)}s`;
 
     // Basic Info
     const name = hotel.name || "Unknown Hotel";
@@ -2148,6 +2150,10 @@ async function fetchHotelDetails(hotelId, optionId) {
     window.globalDetailData = combinedData;
     // Also store the hotelId that was used for the detail request
     window.globalDetailData.requestedHotelId = hotelId;
+    // The optionId used for pricing/dynamic-detail is the SEARCH-level optionId
+    // (distinct from the per-room review optionId). Keep it so review can re-price
+    // correctly if its reviewHash expires.
+    window.globalDetailData.requestedDetailOptionId = optionId;
 
     // SAVE STATE TO SESSIONSTORE FOR PAGE REFRESH
     const stateToSave = {
@@ -2156,6 +2162,7 @@ async function fetchHotelDetails(hotelId, optionId) {
       detailData: combinedData,
       requestedHotelId: hotelId,
       requestedOptionId: optionId,
+      requestedDetailOptionId: optionId,
       timestamp: Date.now()
     };
     sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
@@ -3272,7 +3279,7 @@ function renderHotelDetails(data) {
     card.className = "hotel-card detail-option-card fade-in";
     card.style.animation = `slideUp 0.5s ease-out ${0.5 + idx * 0.08}s both`;
 
-    const roomNames = option.roomInfo?.map(r => `<i class="ph ph-bed"></i> ${r.name} ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; margin-left:6px; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}`).join("<br>") ?? '<i class="ph ph-bed"></i> Standard Room';
+    const roomNames = option.roomInfo?.map(r => `<span style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"><i class="ph ph-bed"></i> <span>${r.name}</span> ${r.id ? `<span class="hotel-id-badge" style="font-size:0.7rem; background:#f1f5f9; border:1px solid #e2e8f0; color:#475569; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px;"><i class="ph ph-identification-badge"></i> ID: ${r.id}</span>` : ''}</span>`).join("") ?? '<span style="display:flex; align-items:center; gap:6px;"><i class="ph ph-bed"></i> Standard Room</span>';
     const roomIdsString = option.roomInfo?.map(r => r.id).join(" ").toLowerCase() || "";
 
     const currency = option.pricing?.currency ?? "INR";
@@ -3495,7 +3502,7 @@ function renderHotelDetails(data) {
           ${roomImagesHtml}
           <div style="flex-grow: 1;">
             <div style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="room-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; flex-direction: row;">
+              <div class="room-title" style="font-size: 1.15rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: flex-start; gap: 6px; margin: 0; flex-direction: column;">
                 ${roomNames}
               </div>
               <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -3672,6 +3679,22 @@ function applyRoomFilters() {
   }
 }
 
+// Extract the room-option array from a detail/pricing payload regardless of shape.
+function getDetailOptions(d) {
+  if (!d) return [];
+  if (Array.isArray(d.options)) return d.options;
+  if (d.hotel && Array.isArray(d.hotel.options)) return d.hotel.options;
+  if (Array.isArray(d.hotels) && d.hotels[0] && Array.isArray(d.hotels[0].options)) return d.hotels[0].options;
+  return [];
+}
+
+// A stable identity for an option across pricing calls (optionId itself is ephemeral).
+function optionMatchKey(o) {
+  if (!o) return "";
+  const rooms = (o.roomInfo || []).map(r => r.id).sort().join("|");
+  return `${o.optionType || ""}::${rooms}::${o.mealBasis || ""}`;
+}
+
 async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
   // Store the price shown in search results for comparison
   window._searchDisplayPrice = searchDisplayPrice ?? null;
@@ -3710,6 +3733,9 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
                    detailData.review_hash || "";
     }
 
+    // The SEARCH-level optionId used for pricing (needed to re-price on hash expiry).
+    let detailOptionId = window.globalDetailData?.requestedDetailOptionId || "";
+
     // Try loading from saved sessionState if they're empty
     const savedStateStr = sessionStorage.getItem('tj_page_state');
     if (savedStateStr) {
@@ -3717,8 +3743,11 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
         const savedState = JSON.parse(savedStateStr);
         if (!hotelId) hotelId = savedState.requestedHotelId || "";
         if (!reviewHash) reviewHash = savedState.requestedReviewHash || "";
+        if (!detailOptionId) detailOptionId = savedState.requestedDetailOptionId || "";
       } catch (e) {}
     }
+    // Fall back to the review optionId if the search-level one is unknown.
+    if (!detailOptionId) detailOptionId = optionId;
 
     if (hotelId) {
       body.hotelId = hotelId;
@@ -3733,6 +3762,7 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
       searchBody: globalSearchBody,
       detailData: window.globalDetailData || null,
       requestedOptionId: optionId,
+      requestedDetailOptionId: detailOptionId,
       requestedCorrelationId: correlationId,
       requestedHotelId: hotelId,
       requestedReviewHash: reviewHash,
@@ -3769,7 +3799,13 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
     journeyResponseTimes.review = responseMs;
     displayResponseTimes();
     
-    if (!res.ok || data.ok === false) {
+    // The backend proxies the upstream response with HTTP 200, so detect failure
+    // from the body: explicit ok:false, or the upstream { status: { success: false } } shape.
+    const upstreamFailed = !res.ok
+      || data.ok === false
+      || data.status?.success === false
+      || (Array.isArray(data.errors) && data.errors.length > 0);
+    if (upstreamFailed) {
       // Check if it's an expired hash error (errCode 7104 or contains refresh hotel details)
       const isExpiredHash = data.errors?.some(e => e.errCode === "7104" || (e.message && e.message.toLowerCase().includes("refresh hotel details")) || (e.details && e.details.toLowerCase().includes("refresh hotel details")));
       
@@ -3779,14 +3815,44 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
         
         if (hotelId && optionId) {
           try {
-            // Call fetchFreshDetailDataOnly programmatically to get fresh details
-            const freshDetails = await fetchFreshDetailDataOnly(hotelId, optionId);
+            // Remember the stale option's stable identity BEFORE overwriting globalDetailData,
+            // so we can locate its equivalent in the freshly-priced data.
+            const staleOption = getDetailOptions(window.globalDetailData).find(o => o.optionId === optionId);
+            const staleKey = optionMatchKey(staleOption);
+
+            // Re-price using the SEARCH-level optionId (what /dynamic-detail expects), NOT
+            // the per-room review optionId — otherwise the returned reviewHash won't validate.
+            const freshDetails = await fetchFreshDetailDataOnly(hotelId, detailOptionId);
             if (freshDetails) {
+              freshDetails.requestedDetailOptionId = detailOptionId;
               window.globalDetailData = freshDetails;
-              // Reset auto-retry guard
-              window._autoRetryReviewCount = false; 
-              // Retry reviewRoom with the fresh reviewHash!
-              await reviewRoom(optionId, correlationId, searchDisplayPrice);
+
+              // A fresh pricing call regenerates optionId / reviewHash / correlationId together.
+              // Map the stale option to its fresh equivalent so all three stay consistent —
+              // reusing the old optionId with the new reviewHash would just re-trigger 7104.
+              const freshOptions = getDetailOptions(freshDetails);
+              const freshOption =
+                (staleKey && freshOptions.find(o => optionMatchKey(o) === staleKey)) ||
+                freshOptions.find(o => o.optionId === optionId) ||
+                null;
+              const freshOptionId = freshOption?.optionId || optionId;
+              const freshCorrelationId = freshDetails.correlationId || correlationId;
+
+              // Persist the fresh detail/hash/ids so a further refresh also starts clean.
+              try {
+                const savedStateStr = sessionStorage.getItem('tj_page_state');
+                const savedState = savedStateStr ? JSON.parse(savedStateStr) : {};
+                savedState.detailData = freshDetails;
+                savedState.requestedOptionId = freshOptionId;
+                savedState.requestedDetailOptionId = detailOptionId;
+                savedState.requestedCorrelationId = freshCorrelationId;
+                savedState.requestedReviewHash = freshDetails.reviewHash || savedState.requestedReviewHash || "";
+                sessionStorage.setItem('tj_page_state', JSON.stringify(savedState));
+              } catch (e) {}
+              // Keep the guard set so a still-stale hash can't loop; it is cleared
+              // only after a review actually succeeds (see renderReviewDetails call below).
+              // Retry reviewRoom with the fresh option/correlation/reviewHash!
+              await reviewRoom(freshOptionId, freshCorrelationId, searchDisplayPrice);
               return;
             }
           } catch (retryErr) {
@@ -3799,8 +3865,11 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
       return;
     }
 
+    // Review succeeded — clear the auto-retry guard so future stale hashes can recover too.
+    window._autoRetryReviewCount = false;
+
     renderReviewDetails(data, responseMs);
-    
+
     // Add Technical Details
     const reviewContent = document.getElementById("review-content");
     if (reviewContent) reviewContent.insertAdjacentHTML('beforeend', renderTechnicalDetails('review'));
@@ -3855,6 +3924,13 @@ function backToDetailFromReview() {
           renderStaticDetailsOnly(state.detailData.staticDetails, 0);
         }
         renderHotelDetails(state.detailData);
+
+        // Re-add the Technical Details (API Inspector) button — renderHotelDetails
+        // resets the container's innerHTML, so we must re-append it like fetchHotelDetails does.
+        const detailResults = document.getElementById("detail-results");
+        if (detailResults && lastApiTransactions.detail) {
+          detailResults.insertAdjacentHTML('beforeend', renderTechnicalDetails('detail'));
+        }
       }
       sessionStorage.setItem('tj_page_state', JSON.stringify(state));
     } catch (e) {
@@ -4598,12 +4674,12 @@ async function submitBooking(bookingType, bookingId, correlationId, amount) {
     return;
   }
 
-  // ── Guard 2: 3-month check-in minimum ────────────────────────────────
+  // ── Guard 2: 25-day check-in minimum ─────────────────────────────────
   const checkin = globalSearchBody?.checkIn;
   if (checkin) {
     const checkinDate = new Date(checkin);
     const minDate = new Date();
-    minDate.setMonth(minDate.getMonth() + 3);
+    minDate.setDate(minDate.getDate() + 25);
     if (checkinDate < minDate) {
       const minStr = minDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
       if (bookingEl) {
@@ -5436,12 +5512,12 @@ async function bookRoom(optionId, correlationId) {
     return;
   }
 
-  // ── Guard 2: Minimum 3-month check-in date ────────────────────────────
+  // ── Guard 2: Minimum 25-day check-in date ─────────────────────────────
   const checkin = globalSearchBody?.checkIn;
   if (checkin) {
     const checkinDate = new Date(checkin);
     const minDate = new Date();
-    minDate.setMonth(minDate.getMonth() + 3);
+    minDate.setDate(minDate.getDate() + 25);
     if (checkinDate < minDate) {
       const minStr = minDate.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
       if (bookingEl) {
@@ -5453,7 +5529,7 @@ async function bookRoom(optionId, correlationId) {
               Booking Blocked — Check-in Too Soon
             </div>
             <div style="margin-top:8px; font-size:0.9rem; line-height:1.6;">
-              Bookings can only be made for check-in dates <strong>at least 3 months from today</strong>.<br>
+              Bookings can only be made for check-in dates <strong>at least 25 days from today</strong>.<br>
               Earliest allowed check-in: <strong>${minStr}</strong>.<br>
               Please adjust your search dates and try again.
             </div>
