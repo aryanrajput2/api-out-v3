@@ -1,6 +1,8 @@
 import requests
 from requests import JSONDecodeError
 
+from config import OMS_BASE, DEFAULT_API_KEY, resolve_env
+
 
 def fetch_booking_detail(data: dict):
     booking_id = data.get("bookingId", "")
@@ -17,30 +19,27 @@ def fetch_booking_detail(data: dict):
     except Exception:
         pass
 
-    # 2. Determine environment based on bookingId prefix or env string
-    is_sandbox = True
-    if booking_id.startswith("TGP"):
-        is_sandbox = True
-    elif booking_id.startswith("TJ") or "admin" in env.lower() or "hmsbk-admin" in env.lower() or ("tripjack.com" in env.lower() and "apitest" not in env.lower()):
-        is_sandbox = False
-
-    # 3. Assign URL and Key
-    if is_sandbox:
-        BOOKING_DETAIL_URL = "https://apitest-hotel-booker.tripjack.com/oms/v3/hotel/booking-details"
-        if raw_api_key and raw_api_key.strip():
-            BOOKING_DETAIL_APIKEY = raw_api_key.strip()
-        elif saved_key:
-            BOOKING_DETAIL_APIKEY = saved_key
-        else:
-            BOOKING_DETAIL_APIKEY = "6116982da6b759-28f8-4cdf-b210-04cb98116165"
+    # 2. Determine environment. The `env` field is the source of truth (a "TJ"
+    #    prefix is NOT reliable — sandbox/test bookings also get TJ... ids).
+    #    Fall back to the bookingId prefix only when env is ambiguous.
+    env_lower = env.lower()
+    if "apitest" in env_lower or "admin" in env_lower or "tripjack.com" in env_lower:
+        environment = resolve_env(env_lower)
+    elif booking_id.startswith("TGP"):
+        environment = "sandbox"
+    elif booking_id.startswith("TJ"):
+        environment = "prod"
     else:
-        BOOKING_DETAIL_URL = "https://hotel-booker.tripjack.com/oms/v3/hotel/booking-details"
-        if raw_api_key and raw_api_key.strip():
-            BOOKING_DETAIL_APIKEY = raw_api_key.strip()
-        elif saved_key:
-            BOOKING_DETAIL_APIKEY = saved_key
-        else:
-            BOOKING_DETAIL_APIKEY = "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
+        environment = "sandbox"
+
+    # 3. Assign URL and Key from the central config (config.py)
+    BOOKING_DETAIL_URL = f"{OMS_BASE[environment]}/oms/v3/hotel/booking-details"
+    if raw_api_key and raw_api_key.strip():
+        BOOKING_DETAIL_APIKEY = raw_api_key.strip()
+    elif saved_key:
+        BOOKING_DETAIL_APIKEY = saved_key
+    else:
+        BOOKING_DETAIL_APIKEY = DEFAULT_API_KEY[environment]
     
     headers = {
         "Content-Type": "application/json",

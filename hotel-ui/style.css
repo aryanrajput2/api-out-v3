@@ -103,10 +103,14 @@ textarea {
   position: fixed;
   /* Changed to fixed to stay during scroll */
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(80px);
   z-index: -1;
   opacity: 0.4;
-  animation: floatBlob 20s ease-in-out infinite;
+  animation: floatBlob 22s ease-in-out infinite;
+  /* Promote to its own GPU layer so the blurred bitmap is rasterized once and
+     only cheaply translated each frame (big smoothness win on Windows). */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .bg-blur.top-left {
@@ -130,22 +134,22 @@ textarea {
 }
 
 @keyframes floatBlob {
-
+  /* translate-only (no scale) so the blurred layer is never re-rasterized */
   0%,
   100% {
-    transform: translate(0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 
   25% {
-    transform: translate(20px, -20px) scale(1.05);
+    transform: translate3d(24px, -22px, 0);
   }
 
   50% {
-    transform: translate(-20px, 20px) scale(0.95);
+    transform: translate3d(-22px, 22px, 0);
   }
 
   75% {
-    transform: translate(20px, 20px) scale(1.02);
+    transform: translate3d(22px, 20px, 0);
   }
 }
 
@@ -159,8 +163,25 @@ textarea {
 }
 
 .app-header {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+  margin-top: 18px;
+  padding: 20px 26px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 250, 252, 0.78) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 22px;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.07);
   animation: slideFadeIn 0.6s ease-out;
+}
+
+.app-header h1 {
+  background: linear-gradient(120deg, #1e3a8a 0%, #3b82f6 55%, #6366f1 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .logo-container {
@@ -170,18 +191,24 @@ textarea {
 }
 
 .logo-circle {
-  width: 48px;
-  height: 48px;
+  width: 54px;
+  height: 54px;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, #4f46e5, #0ea5e9);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: 800;
+  font-size: 1.15rem;
   letter-spacing: 0.5px;
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 8px 22px rgba(79, 70, 229, 0.4), 0 0 0 4px rgba(99, 102, 241, 0.12);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logo-container:hover .logo-circle {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 28px rgba(79, 70, 229, 0.5), 0 0 0 5px rgba(99, 102, 241, 0.16);
 }
 
 h1 {
@@ -222,8 +249,8 @@ h3 {
    ========================================= */
 .glass-panel {
   background: var(--surface);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.1);
@@ -292,13 +319,12 @@ select {
   padding: 12px 14px;
   border-radius: var(--radius-md);
   border: 1px solid #e2e8f0;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.65);
   font-family: inherit;
   font-size: 0.95rem;
   color: var(--text-main);
   outline: none;
-  transition: var(--transition-fast);
-  backdrop-filter: blur(10px);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 /* Beautiful date input styling */
@@ -1068,6 +1094,56 @@ letter-spacing: 0.5px;
   transform: translateX(4px);
 }
 
+/* ===== Search page beautification ===== */
+#search-page .hero-section h2 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(120deg, #1e3a8a 0%, #3b82f6 55%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#search-page .hero-section p {
+  font-size: 1.12rem;
+}
+
+/* Distinct, vibrant city quick-pick cards (Mumbai · Dubai · Delhi · Bangkok) */
+.batch-search-btn { background: #ffffff; border-color: #e8edf3; }
+.batch-search-btn:nth-child(1) .batch-btn-icon { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 14px rgba(239, 68, 68, 0.32); }
+.batch-search-btn:nth-child(2) .batch-btn-icon { background: linear-gradient(135deg, #0ea5e9, #6366f1); box-shadow: 0 4px 14px rgba(14, 165, 233, 0.32); }
+.batch-search-btn:nth-child(3) .batch-btn-icon { background: linear-gradient(135deg, #10b981, #0ea5e9); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.32); }
+.batch-search-btn:nth-child(4) .batch-btn-icon { background: linear-gradient(135deg, #8b5cf6, #ec4899); box-shadow: 0 4px 14px rgba(139, 92, 246, 0.32); }
+
+/* Eye-catching main search CTA */
+#search-button {
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 45%, #0ea5e9 100%);
+  background-size: 180% auto;
+  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.32);
+  transition: background-position 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+#search-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f46e5 0%, #2563eb 45%, #0ea5e9 100%);
+  background-size: 180% auto;
+  background-position: right center;
+  box-shadow: 0 14px 36px rgba(37, 99, 235, 0.42);
+}
+
+/* Section label above the destination cards */
+.destinations-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+.destinations-label i { color: var(--primary); font-size: 1rem; }
+
 /* Logout Button */
 .btn-logout {
   padding: 10px 16px;
@@ -1228,6 +1304,99 @@ letter-spacing: 0.5px;
   flex-direction: column;
   gap: 28px;
   margin-top: 24px;
+}
+
+/* Grid view for results */
+.hotels-list.view-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* Equal-height cards: fill the row and push the price/button to the bottom */
+.hotels-list.view-grid > .hotel-card {
+  height: 100%;
+}
+
+.view-grid .hotel-price-row {
+  margin-top: auto;
+}
+
+/* Full-width children (tech details, empty states) span all columns in grid view */
+.hotels-list.view-grid > .tech-details-container,
+.hotels-list.view-grid > .empty-state,
+.hotels-list.view-grid > #r-filter-empty {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .hotels-list.view-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Grid view: stack card internals so narrow columns don't overlap */
+.view-grid .hotel-name {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.view-grid .hotel-name > div {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.view-grid .hotel-id-badge {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.view-grid .hotel-price-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+}
+
+.view-grid .hotel-price-row .btn-premium {
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* View toggle control */
+.view-toggle {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle button.active {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.view-toggle button i {
+  font-size: 1.05rem;
 }
 
 .hotel-card {
@@ -1457,6 +1626,27 @@ letter-spacing: 0.5px;
 .fade-in-up {
   animation: slideFadeInUp 0.5s ease-out both;
 }
+
+/* Highlight the reviewed room option when returning from the review page */
+.option-highlight {
+  border-color: var(--primary) !important;
+  animation: optionPulse 2.2s ease;
+}
+@keyframes optionPulse {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.55); }
+  25% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.45), 0 14px 34px rgba(59, 130, 246, 0.2); }
+  100% { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0); }
+}
+
+/* Custom modal / toast animations */
+@keyframes tjPop {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tjFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tjFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes tjSlideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes tjSlideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
 
 .delay-1 {
   animation-delay: 0.1s;
@@ -1783,7 +1973,9 @@ letter-spacing: 0.5px;
 .glass-panel,
 .hotel-card,
 .login-card {
-  transition: all var(--transition-smooth);
+  /* Only animate compositor-friendly properties (not "all") so hovering over a
+     list of ~200 cards stays smooth. */
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
 }
 
 .glass-panel:hover,
@@ -5387,3 +5579,176 @@ body.login-active .scroll-nav {
   }
 }
 
+/* =========================================================================
+   MOBILE RESPONSIVE — consolidated overrides for all SPA pages.
+   Kept at the end so these rules take precedence.
+   ========================================================================= */
+@media (max-width: 768px) {
+  /* Prevent stray wide elements from causing whole-page horizontal scroll */
+  body {
+    overflow-x: hidden;
+  }
+  .app-shell {
+    padding: 24px 14px 64px;
+    max-width: 100%;
+  }
+
+  /* Header: stack logo and the env/actions group */
+  .app-header {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 14px !important;
+    padding: 16px 16px !important;
+    border-radius: 16px;
+  }
+  .app-header > div:last-child {
+    flex-direction: column;
+    align-items: stretch !important;
+    width: 100%;
+  }
+  .global-security-badge {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .app-header .btn-dashboard,
+  .app-header .btn-logout {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Hero title */
+  #search-page .hero-section h2 {
+    font-size: 1.9rem;
+  }
+  #search-page .hero-section p {
+    font-size: 1rem;
+  }
+
+  /* Panels: tighter padding on phones */
+  .glass-panel {
+    padding: 18px !important;
+  }
+
+  /* Results header: count + view toggle + meta wrap nicely */
+  .results-panel .panel-header > div:first-child {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .view-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Booking-detail: force single column, let items shrink, no overflow */
+  #booking-detail-content {
+    overflow-x: hidden;
+  }
+  #booking-detail-content .booking-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Grid/flex children default to min-width:auto and refuse to shrink below their
+     content (long booking-id), which forced the 2-col layout to overflow. */
+  #booking-detail-content .booking-detail-grid > *,
+  #booking-detail-content .booking-detail-grid > * > * {
+    min-width: 0;
+  }
+  /* Summary card not sticky on mobile */
+  #booking-detail-content [style*="position: sticky"] {
+    position: static !important;
+  }
+  /* Action bar (Back / Cancel / Print) wraps instead of overflowing */
+  #booking-detail-content [style*="justify-content: space-between"] {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Price breakdown / room cards reflow */
+  .hotel-price-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .hotel-price-row .btn-premium {
+    width: 100%;
+    white-space: nowrap;
+  }
+  /* Price breakdown: compact 2-column grid instead of a tall single stack */
+  .price-breakdown {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px !important;
+  }
+
+  /* Cancellation / penalty tables fit the card (no horizontal clipping) */
+  .detail-option-card table th, .detail-option-card table td,
+  #review-content table th, #review-content table td,
+  #booking-detail-content table th, #booking-detail-content table td {
+    padding: 7px 8px !important;
+    font-size: 0.72rem !important;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+
+  /* Header response-times boxes scroll horizontally instead of squashing */
+  #header-response-boxes {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+  }
+
+  /* Toasts fit small screens */
+  #tj-toast-container {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+  }
+  #tj-toast-container > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell {
+    padding: 18px 10px 56px;
+  }
+  #search-page .hero-section h2 {
+    font-size: 1.6rem;
+  }
+  .glass-panel {
+    padding: 14px !important;
+    border-radius: 14px;
+  }
+  .hotel-name {
+    font-size: 1.1rem;
+  }
+  .price-total {
+    font-size: 1.25rem;
+  }
+  /* Confirm modal full-width-ish on tiny screens */
+  #tj-confirm-overlay > div {
+    padding: 22px !important;
+  }
+  /* Destination cards: single column for comfortable tapping */
+  .batch-search-btn {
+    padding: 14px;
+  }
+}
+
+
+/* =========================================================================
+   Reduced motion — honor OS "reduce motion" setting and cut the most
+   expensive continuous animations (helps low-power / laggy machines).
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  .bg-blur {
+    animation: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.12s !important;
+    scroll-behavior: auto !important;
+  }
+}

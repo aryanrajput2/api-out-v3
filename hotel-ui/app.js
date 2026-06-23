@@ -53,6 +53,80 @@ function roomDisplayName(r) {
   return n || 'Standard Room';
 }
 
+// Escape text before interpolating into innerHTML (prevents markup/script injection
+// from upstream API values or user-entered traveller/PAN/contact fields).
+function esc(v) {
+  if (v == null) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Beautiful custom confirm dialog (replaces native confirm()).
+ * Returns a Promise<boolean> — true on confirm, false on cancel.
+ */
+function showConfirmModal({ title = 'Are you sure?', message = '', confirmText = 'Confirm', cancelText = 'Cancel', danger = false, icon } = {}) {
+  return new Promise((resolve) => {
+    document.getElementById('tj-confirm-overlay')?.remove();
+    const accent = danger ? '#ef4444' : '#3b82f6';
+    const accentDark = danger ? '#dc2626' : '#2563eb';
+    const tint = danger ? '#fee2e2' : '#dbeafe';
+    const ic = icon || (danger ? 'ph-warning' : 'ph-question');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tj-confirm-overlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:100001; animation:tjFadeIn 0.2s ease; padding:20px;';
+    overlay.innerHTML = `
+      <div role="dialog" aria-modal="true" style="background:#fff; border-radius:20px; padding:28px; width:min(420px,100%); box-shadow:0 24px 60px rgba(15,23,42,0.35); animation:tjPop 0.25s cubic-bezier(0.25,0.8,0.25,1);">
+        <div style="width:62px; height:62px; border-radius:50%; background:${tint}; color:${accent}; display:flex; align-items:center; justify-content:center; font-size:1.9rem; margin:0 auto 18px;"><i class="ph-bold ${ic}"></i></div>
+        <h3 style="margin:0 0 8px; text-align:center; font-size:1.25rem; font-weight:800; color:#0f172a;">${title}</h3>
+        <p style="margin:0 0 24px; text-align:center; color:#64748b; font-size:0.92rem; line-height:1.6;">${message}</p>
+        <div style="display:flex; gap:12px;">
+          <button id="tj-confirm-cancel" style="flex:1; padding:12px; border-radius:12px; border:1.5px solid #e2e8f0; background:#fff; color:#475569; font-weight:700; cursor:pointer; font-size:0.9rem; transition:all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">${cancelText}</button>
+          <button id="tj-confirm-ok" style="flex:1; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg,${accent},${accentDark}); color:#fff; font-weight:700; cursor:pointer; font-size:0.9rem; box-shadow:0 4px 14px ${accent}66; transition:transform 0.15s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">${confirmText}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close = (val) => {
+      overlay.style.animation = 'tjFadeOut 0.15s ease forwards';
+      setTimeout(() => overlay.remove(), 150);
+      document.removeEventListener('keydown', onKey);
+      resolve(val);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') close(false); if (e.key === 'Enter') close(true); };
+    overlay.querySelector('#tj-confirm-ok').onclick = () => close(true);
+    overlay.querySelector('#tj-confirm-cancel').onclick = () => close(false);
+    overlay.onclick = (e) => { if (e.target === overlay) close(false); };
+    document.addEventListener('keydown', onKey);
+  });
+}
+
+/**
+ * Lightweight toast notification (replaces native alert()).
+ */
+function showToast(message, type = 'info') {
+  const colors = { success: '#10b981', error: '#ef4444', info: '#3b82f6', warning: '#f59e0b' };
+  const icons = { success: 'ph-check-circle', error: 'ph-x-circle', info: 'ph-info', warning: 'ph-warning' };
+  const c = colors[type] || colors.info;
+  let cont = document.getElementById('tj-toast-container');
+  if (!cont) {
+    cont = document.createElement('div');
+    cont.id = 'tj-toast-container';
+    cont.style.cssText = 'position:fixed; top:20px; right:20px; z-index:100002; display:flex; flex-direction:column; gap:10px;';
+    document.body.appendChild(cont);
+  }
+  const t = document.createElement('div');
+  t.style.cssText = `background:#fff; border-left:4px solid ${c}; border-radius:12px; padding:14px 18px; box-shadow:0 10px 30px rgba(15,23,42,0.15); display:flex; align-items:center; gap:10px; min-width:280px; max-width:380px; animation:tjSlideIn 0.3s ease;`;
+  t.innerHTML = `<i class="ph-bold ${icons[type] || icons.info}" style="color:${c}; font-size:1.35rem; flex-shrink:0;"></i><span style="color:#334155; font-size:0.9rem; font-weight:600; line-height:1.45;">${message}</span>`;
+  cont.appendChild(t);
+  setTimeout(() => { t.style.animation = 'tjSlideOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 4500);
+}
+
 /**
  * Renders a Postman-like technical details section
  * @param {string} step - The step name (search, detail, review, etc)
@@ -578,16 +652,9 @@ window.addEventListener("DOMContentLoaded", () => {
           if (state.detailData) {
             window.globalDetailData = state.detailData;
           }
-          
+
           showActivePage("review-page");
-          
-          const optionId = state.requestedOptionId;
-          const correlationId = state.requestedCorrelationId;
-          if (optionId && correlationId) {
-            reviewRoom(optionId, correlationId, null);
-          } else {
-            renderReviewDetails(state.reviewData, state.responseMs || 0);
-          }
+          handleReviewRefresh(state);
         }
       } catch (e) {
         // Silent fail
@@ -1560,6 +1627,25 @@ function readRoomsFromUi() {
   return rooms.length ? rooms : [{ adults: 2 }];
 }
 
+// Switch results between list and grid view (persisted in localStorage).
+function setResultsView(view) {
+  const results = document.getElementById("results");
+  if (!results) return;
+  const isGrid = view === "grid";
+  results.classList.toggle("view-grid", isGrid);
+  results.classList.toggle("view-list", !isGrid);
+  document.getElementById("view-grid-btn")?.classList.toggle("active", isGrid);
+  document.getElementById("view-list-btn")?.classList.toggle("active", !isGrid);
+  try { localStorage.setItem("tj_results_view", view); } catch (e) {}
+}
+
+// Apply the saved view preference (defaults to list).
+function applyResultsView() {
+  let saved = "list";
+  try { saved = localStorage.getItem("tj_results_view") || "list"; } catch (e) {}
+  setResultsView(saved);
+}
+
 function displayHotels(data) {
   const results = document.getElementById("results");
   const meta = document.getElementById("results-meta");
@@ -1601,7 +1687,12 @@ function displayHotels(data) {
 
   results.classList.remove("empty");
   results.innerHTML = "";
+  applyResultsView();
   if (meta) meta.textContent = `${data.hotels.length} option(s) returned`;
+
+  // Build all cards into an off-DOM fragment, then insert once — avoids ~200
+  // separate reflows when rendering large result sets.
+  const frag = document.createDocumentFragment();
 
   data.hotels.forEach((hotel, index) => {
     const option = hotel.options?.[0];
@@ -1769,8 +1860,18 @@ function displayHotels(data) {
       </div>
     `;
 
-    results.appendChild(card);
+    frag.appendChild(card);
   });
+
+  results.appendChild(frag);
+}
+
+// Debounced filter for the search-name input so typing stays smooth on large
+// result sets (filtering only runs ~160ms after the user stops typing).
+let _filterDebounceTimer = null;
+function applySearchFiltersDebounced() {
+  clearTimeout(_filterDebounceTimer);
+  _filterDebounceTimer = setTimeout(applySearchFilters, 160);
 }
 
 function applySearchFilters() {
@@ -2542,10 +2643,11 @@ function renderFeesSection(raw) {
   return block('Fees & Charges', String(raw), '#b91c1c', 'rgba(239, 68, 68, 0.04)');
 }
 
-// Pick the best available image URL from a static image's links object.
+// Pick the HIGHEST-quality available image URL from a static image's links object
+// (largest variants first so photos render crisp).
 function pickRoomImageUrl(im) {
   const l = (im && im.links) || {};
-  return l.Standard?.href || l.original?.href || l.XXL?.href || l.XL?.href || l.L?.href || l.M?.href || '';
+  return l.original?.href || l.XXL?.href || l.XL?.href || l.L?.href || l.Standard?.href || l.M?.href || l.Thumbnail?.href || '';
 }
 
 // Build the full static-detail block for a matched room: image gallery,
@@ -3782,6 +3884,69 @@ function optionMatchKey(o) {
   return `${o.optionType || ""}::${rooms}::${o.mealBasis || ""}`;
 }
 
+// On review-page reload: ask the user whether to refresh. On "Yes" we re-hit the
+// SAME selected room option fresh (detail/pricing → review) so the data is current;
+// on "No" we just render the cached review that was saved before the reload.
+async function handleReviewRefresh(state) {
+  const optionId = state.requestedOptionId;
+  const correlationId = state.requestedCorrelationId;
+  const detailOptionId = state.requestedDetailOptionId || optionId;
+  const hotelId = state.requestedHotelId || window.globalDetailData?.requestedHotelId;
+
+  // Show the previously-saved review immediately so the page isn't blank.
+  if (state.reviewData) {
+    try { renderReviewDetails(state.reviewData, state.responseMs || 0); } catch (e) {}
+  }
+
+  // Nothing to re-hit with — the cached review (above) is all we can show.
+  if (!optionId) return;
+
+  const wantFresh = await showConfirmModal({
+    title: 'Refresh this page?',
+    message: 'Do you want to refresh? We will re-fetch the latest details &amp; pricing for the same room you selected and run a fresh review.',
+    confirmText: 'Yes, Refresh',
+    cancelText: 'No',
+    danger: false,
+    icon: 'ph-arrows-clockwise'
+  });
+
+  if (!wantFresh) return; // Keep the cached review as-is.
+
+  // Yes → show loader, re-fetch fresh detail for the same option, then review.
+  const reviewContent = document.getElementById('review-content');
+  if (reviewContent) {
+    reviewContent.innerHTML = `
+      <div class="empty-state fade-in">
+        <div class="loader" style="margin-bottom:16px; border-color:var(--primary); border-top-color:transparent; width:30px; height:30px;"></div>
+        <p>Refreshing room details &amp; pricing...</p>
+      </div>`;
+  }
+
+  if (hotelId && detailOptionId) {
+    try {
+      const staleOption = getDetailOptions(window.globalDetailData).find(o => o.optionId === optionId);
+      const staleKey = optionMatchKey(staleOption);
+      const fresh = await fetchFreshDetailDataOnly(hotelId, detailOptionId);
+      if (fresh) {
+        window.globalDetailData = fresh;
+        const freshOptions = getDetailOptions(fresh);
+        const freshOption =
+          (staleKey && freshOptions.find(o => optionMatchKey(o) === staleKey)) ||
+          freshOptions.find(o => o.optionId === optionId) ||
+          null;
+        const freshOptionId = freshOption?.optionId || optionId;
+        const freshCorrelationId = fresh.correlationId || correlationId;
+        await reviewRoom(freshOptionId, freshCorrelationId, null);
+        return;
+      }
+    } catch (e) {
+      console.error('Review refresh failed:', e);
+    }
+  }
+  // Fallback: reviewRoom recovers a stale hash via its own auto-retry.
+  await reviewRoom(optionId, correlationId, null);
+}
+
 async function reviewRoom(optionId, correlationId, searchDisplayPrice) {
   // Store the price shown in search results for comparison
   window._searchDisplayPrice = searchDisplayPrice ?? null;
@@ -3993,6 +4158,49 @@ function switchToReviewPage() {
   }
 }
 
+// Scroll to and briefly highlight the room option that was reviewed, matching by
+// optionId (falls back to the stable room/type key if the id changed).
+function scrollToReviewedOption(optionId) {
+  if (!optionId) return;
+  const targetId = String(optionId).toLowerCase();
+
+  const findTarget = () => {
+    const cards = Array.from(document.querySelectorAll('.detail-option-card'));
+    let target = cards.find(c => (c.dataset.optionId || '') === targetId);
+    if (!target) {
+      // Fallback: match by the stable option key (optionId can change after a re-price).
+      const opts = getDetailOptions(window.globalDetailData);
+      const key = optionMatchKey(opts.find(o => o.optionId === optionId));
+      const match = key ? opts.find(o => optionMatchKey(o) === key) : null;
+      if (match) target = cards.find(c => (c.dataset.optionId || '') === String(match.optionId).toLowerCase());
+    }
+    return target;
+  };
+
+  const scrollToTarget = (target, highlight) => {
+    if (!target) return;
+    const y = target.getBoundingClientRect().top + window.pageYOffset - 110; // offset for header
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    if (highlight) {
+      target.classList.add('option-highlight');
+      setTimeout(() => target.classList.remove('option-highlight'), 2400);
+    }
+  };
+
+  // First pass: scroll once the cards are in the DOM (retry if render is delayed).
+  let attempts = 0;
+  const tryScroll = () => {
+    attempts++;
+    const target = findTarget();
+    if (target) { scrollToTarget(target, true); }
+    else if (attempts < 12) { setTimeout(tryScroll, 150); }
+  };
+  setTimeout(tryScroll, 200);
+
+  // Re-correct after images / entrance animations settle and shift the layout.
+  setTimeout(() => scrollToTarget(findTarget(), false), 1200);
+}
+
 function backToDetailFromReview() {
   const reviewPage = document.getElementById("review-page");
   const detailPage = document.getElementById("detail-page");
@@ -4018,6 +4226,10 @@ function backToDetailFromReview() {
         if (detailResults && lastApiTransactions.detail) {
           detailResults.insertAdjacentHTML('beforeend', renderTechnicalDetails('detail'));
         }
+
+        // Scroll to and highlight the exact room option the user reviewed
+        // (instead of jumping to the top of the detail page).
+        scrollToReviewedOption(state.requestedOptionId);
       }
       sessionStorage.setItem('tj_page_state', JSON.stringify(state));
     } catch (e) {
@@ -4091,7 +4303,7 @@ function renderReviewDetails(data, responseMs) {
       
       if (matchingStaticRoom) {
         if (matchingStaticRoom.images && matchingStaticRoom.images.length > 0 && !roomImagesHtml) {
-          const imgSrc = matchingStaticRoom.images[0].links?.Standard?.href || matchingStaticRoom.images[0].links?.original?.href || matchingStaticRoom.images[0].links?.XXL?.href || matchingStaticRoom.images[0].links?.XL?.href;
+          const imgSrc = pickRoomImageUrl(matchingStaticRoom.images[0]);
           if (imgSrc) {
             roomImagesHtml = `
               <div style="width: 100px; height: 100px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; margin-right: 16px;">
@@ -4681,6 +4893,9 @@ function buildTravellerFormRows(searchBody) {
   const renderInput = (id, placeholder, label, val = "") =>
     `<div><label style="${labelStyle}">${label}</label><input id="${id}" type="text" placeholder="${placeholder}" value="${val}" style="${inputStyle}" /></div>`;
 
+  // Default PAN pre-filled on every adult traveller for quick test bookings.
+  const DEFAULT_PAN = "BAJPC4350M";
+
   rooms.forEach((room, rIdx) => {
     const adults = room.adults || 1;
     const children = room.children || 0;
@@ -4709,7 +4924,7 @@ function buildTravellerFormRows(searchBody) {
             ${renderInput(`t-ln-${tNum}`, 'Last Name', 'Last Name *', getName(tNum, 'last'))}
           </div>
           <div class="traveller-docs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            ${renderInput(`t-pan-${tNum}`, 'ABCDE1234F', 'PAN (optional)')}
+            ${renderInput(`t-pan-${tNum}`, 'ABCDE1234F', 'PAN (optional)', DEFAULT_PAN)}
             ${renderInput(`t-pass-${tNum}`, 'Passport No.', 'Passport (optional)')}
           </div>
         </div>`;
@@ -5109,8 +5324,16 @@ async function viewBookingDetail(bookingId) {
 
 // Function to handle booking cancellation
 async function cancelBookingRequest(bookingId) {
-  if (!confirm(`Are you sure you want to cancel booking ${bookingId}?`)) return;
-  
+  const ok = await showConfirmModal({
+    title: 'Cancel this booking?',
+    message: `Booking <strong>${bookingId}</strong> will be cancelled. This action cannot be undone.`,
+    confirmText: 'Yes, Cancel',
+    cancelText: 'Keep Booking',
+    danger: true,
+    icon: 'ph-x-circle'
+  });
+  if (!ok) return;
+
   const config = getConfigPayload();
   const body = {
     bookingId,
@@ -5168,18 +5391,26 @@ async function cancelBookingRequest(bookingId) {
       
     } else {
       // Show error
-      alert(`Cancellation failed: ${data.reason || data.message || 'Please contact support.'}`);
+      showToast(`Cancellation failed: ${data.reason || data.message || 'Please contact support.'}`, 'error');
       container.innerHTML = originalHtml;
     }
   } catch (err) {
-    alert("An error occurred during cancellation.");
+    showToast('An error occurred during cancellation.', 'error');
     container.innerHTML = originalHtml;
   }
 }
 
 async function confirmBookingRequest(bookingId, amount) {
-  if (!confirm(`Are you sure you want to confirm booking ${bookingId} for the amount of ${amount}?`)) return;
-  
+  const ok = await showConfirmModal({
+    title: 'Confirm this booking?',
+    message: `Booking <strong>${bookingId}</strong> will be confirmed for <strong>${amount}</strong>.`,
+    confirmText: 'Yes, Confirm',
+    cancelText: 'Not Now',
+    danger: false,
+    icon: 'ph-check-circle'
+  });
+  if (!ok) return;
+
   const config = getConfigPayload();
   const body = {
     bookingId,
@@ -5233,11 +5464,11 @@ async function confirmBookingRequest(bookingId, amount) {
       
     } else {
       // Show error
-      alert(`Confirmation failed: ${data.reason || data.message || data.error || 'Please check API configuration.'}`);
+      showToast(`Confirmation failed: ${data.reason || data.message || data.error || 'Please check API configuration.'}`, 'error');
       container.innerHTML = originalHtml;
     }
   } catch (err) {
-    alert("An error occurred during confirmation.");
+    showToast('An error occurred during confirmation.', 'error');
     container.innerHTML = originalHtml;
   }
 }
@@ -5274,23 +5505,10 @@ function renderBookingDetail(data) {
   const totalPrice = baseAmount + markupAmount;
   const currency = data.currency || order.currency || 'INR';
   const status = order.status || data.status?.httpStatus || data.status || 'Confirmed';
-  const confirmationNumber = order.bookingId || bookingId;
-  const mealBasis = firstRoom.mb || 'N/A';
-  const roomName = firstRoom.rc || 'N/A';
 
   // Address components
   const adr = hotelInfo.ad || {};
   const fullAddress = [adr.adr, adr.adr2, adr.ctn, adr.sn, adr.cn].filter(Boolean).join(', ');
-  
-  // Travellers list
-  const travellers = firstRoom.ti || [];
-  const travellersHtml = travellers.map(t => `
-    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem;">
-      <i class="ph ph-user-circle" style="color: var(--primary);"></i>
-      <span style="font-weight: 600;">${t.ti} ${t.fN} ${t.lN}</span>
-      <span style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">${t.pt}</span>
-    </div>
-  `).join('');
 
   // Cancellation Penalties
   const penalties = firstOp.cnp?.pd || [];
@@ -5338,21 +5556,101 @@ function renderBookingDetail(data) {
     ? new Date(order.createdOn).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
     : 'N/A';
 
-  // Refundable Badge
-  const isRefundable = firstOp.irf || firstRoom.irf || false;
-  const refundBadge = isRefundable 
-    ? `<span style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-left: auto; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-check"></i> Refundable</span>`
-    : `<span style="background: #fee2e2; color: #991b1b; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-left: auto; display: inline-flex; align-items: center; gap: 4px;"><i class="ph ph-lock"></i> Non-Refundable</span>`;
-
   // Star Rating
   const starsCount = hotelInfo.rt || 0;
-  const starsHtml = starsCount > 0 
-    ? `<div style="display: flex; gap: 2px; margin-top: 4px; color: #fbbf24;">` + 
-      `<i class="ph-fill ph-star" style="font-size: 0.95rem;"></i>`.repeat(starsCount) + 
-      `</div>` 
+  const starsHtml = starsCount > 0
+    ? `<div style="display: flex; gap: 2px; margin-top: 4px; color: #fbbf24;">` +
+      `<i class="ph-fill ph-star" style="font-size: 0.95rem;"></i>`.repeat(starsCount) +
+      `</div>`
     : '';
 
+  // ── Status category (handles pending / cancellation states properly) ──
+  const statusUpper = String(status).toUpperCase();
+  const isCancelled = statusUpper === 'CANCELLED' || statusUpper === 'CANCEL_DONE';
+  const isPending = statusUpper.includes('PENDING');
+  // Any cancel-related state (cancelled / cancellation in progress) — hides the Cancel button.
+  const isCancelling = statusUpper.includes('CANCEL');
+  const isHoldStatus = statusUpper === 'ON_HOLD' || statusUpper === 'HOLD';
+  const statusTheme = isCancelled
+    ? { bg: 'linear-gradient(135deg,#fee2e2,#fecaca)', border: '#ef4444', accent: '#dc2626', icon: 'ph-x-circle', title: 'Booking Cancelled', sub: 'This reservation has been cancelled.', color: '#991b1b', subColor: '#b91c1c' }
+    : isPending
+    ? { bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', border: '#f59e0b', accent: '#d97706', icon: 'ph-hourglass-medium', title: 'Processing', sub: 'This reservation is currently being processed.', color: '#92400e', subColor: '#b45309' }
+    : isHoldStatus
+    ? { bg: 'linear-gradient(135deg,#fef9c3,#fde68a)', border: '#f59e0b', accent: '#d97706', icon: 'ph-pause-circle', title: 'Placed on Hold', sub: 'Your hold has been successfully placed.', color: '#92400e', subColor: '#b45309' }
+    : { bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)', border: '#10b981', accent: '#059669', icon: 'ph-check-circle', title: 'Confirmed', sub: 'Your reservation has been successfully created.', color: '#065f46', subColor: '#047857' };
+
+  // Small chip helper for flags/meta
+  const flagChip = (icon, label, color = '#475569', bg = '#f1f5f9') =>
+    `<span style="font-size:0.74rem; color:${color}; background:${bg}; border:1px solid #e2e8f0; padding:4px 9px; border-radius:6px; display:inline-flex; align-items:center; gap:5px; font-weight:600;"><i class="ph ${icon}"></i> ${label}</span>`;
+
+  // ── All rooms across all ops (multi-room bookings show every room) ──
+  let roomCounter = 0;
+  const allRoomsHtml = (hotelInfo.ops || []).map(op =>
+    (op.ris || []).map(room => {
+      roomCounter++;
+      const tList = (room.ti || []).map(t => `
+        <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.85rem;">
+          <i class="ph ph-user-circle" style="color:var(--primary);"></i>
+          <span style="font-weight:600;">${esc([t.ti, t.fN, t.lN].filter(Boolean).join(' '))}</span>
+          ${t.pan ? `<span style="font-size:0.7rem; color:#64748b;">PAN: ${esc(t.pan)}</span>` : ''}
+          <span style="font-size:0.7rem; color:#94a3b8; margin-left:auto;">${t.pt || ''}</span>
+        </div>`).join('');
+      const meta = [];
+      meta.push(flagChip('ph-users', `${room.adt || 0} Adults${room.chd ? `, ${room.chd} Children` : ''}`));
+      if (room.mb) meta.push(flagChip('ph-fork-knife', room.mb));
+      if (room.tp != null) meta.push(flagChip('ph-tag', `${currency} ${Number(room.tp).toFixed(2)}`));
+      meta.push(room.irf !== false ? flagChip('ph-check', 'Refundable', '#065f46', '#d1fae5') : flagChip('ph-lock', 'Non-Refundable', '#991b1b', '#fee2e2'));
+      if (room.ddt) meta.push(flagChip('ph-clock', `Deadline: ${new Date(room.ddt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`));
+      if (room.radi?.rid) meta.push(flagChip('ph-identification-badge', `Room ID: ${room.radi.rid}`));
+      const rb = room.rexb?.BENEFIT?.[0]?.values || [];
+      const rbHtml = rb.length ? `
+        <details style="margin-top:8px;">
+          <summary style="cursor:pointer; font-size:0.78rem; font-weight:700; color:var(--primary); list-style:none;">Room Benefits (${rb.length})</summary>
+          <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px;">${rb.map(b => `<span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:5px; font-size:0.72rem;">${b}</span>`).join('')}</div>
+        </details>` : '';
+      return `
+        <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:12px; background:#fff;">
+          <div style="font-weight:700; color:#1e293b; font-size:0.92rem; margin-bottom:8px;"><i class="ph ph-door" style="color:var(--primary);"></i> Room ${roomCounter}: ${esc(room.rc || room.srn || 'Room')}</div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">${meta.join('')}</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">${tList}</div>
+          ${rbHtml}
+        </div>`;
+    }).join('')
+  ).join('');
+  const totalRoomsCount = roomCounter;
+
+  // ── Booking attributes & flags (everything from the response, surfaced) ──
+  const attrChips = [];
+  attrChips.push(flagChip('ph-tag', `Status: ${status}`, statusTheme.accent, statusTheme.bg));
+  if (data.isSystemPending) attrChips.push(flagChip('ph-hourglass-high', 'System Pending', '#92400e', '#fef9c3'));
+  attrChips.push((firstOp.irf !== false) ? flagChip('ph-check', 'Refundable', '#065f46', '#d1fae5') : flagChip('ph-lock', 'Non-Refundable', '#991b1b', '#fee2e2'));
+  if (firstOp.ipr) attrChips.push(flagChip('ph-identification-card', 'PAN Required', '#991b1b', '#fee2e2'));
+  if (firstOp.ipm) attrChips.push(flagChip('ph-passport', 'Passport Required', '#991b1b', '#fee2e2'));
+  attrChips.push(flagChip('ph-receipt', `GST Applicable: ${currency} ${Number(firstOp.gst_appl_amt || 0).toFixed(2)}`));
+  if (data.gstInfo) attrChips.push(flagChip('ph-buildings', `SEZ: ${data.gstInfo.isez ? 'Yes' : 'No'}`));
+  if (hotelInfo.tjid) attrChips.push(flagChip('ph-hash', `TJ Hotel ID: ${hotelInfo.tjid}`));
+  if (hotelInfo.uid) attrChips.push(flagChip('ph-hash', `UID: ${hotelInfo.uid}`));
+  if (hotelInfo.checkInTime?.minAge) attrChips.push(flagChip('ph-user-focus', `Min Check-in Age: ${hotelInfo.checkInTime.minAge}`));
+  if (markupAmount) attrChips.push(flagChip('ph-trend-up', `Markup: ${currency} ${markupAmount.toFixed(2)}`));
+  if (data.currentTime) attrChips.push(flagChip('ph-clock-countdown', `As of: ${new Date(data.currentTime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`));
+  const flagsHtml = `<div style="display:flex; flex-wrap:wrap; gap:6px;">${attrChips.join('')}</div>`;
+
+  // ── All emails & phone contacts (response gives arrays) ──
+  const allEmails = (delivery.emails && delivery.emails.length) ? delivery.emails : [deliveryEmail];
+  const allEmailsHtml = allEmails.map(e => `<div style="font-size:0.85rem; font-weight:600; color:#334155;">${esc(e)}</div>`).join('');
+  const allPhones = (delivery.contacts && delivery.contacts.length)
+    ? delivery.contacts.map((c, i) => `${(delivery.code && delivery.code[i]) || (delivery.code && delivery.code[0]) || ''} ${c}`.trim())
+    : [deliveryPhone];
+  const allPhonesHtml = allPhones.map(p => `<div style="font-size:0.85rem; font-weight:600; color:#334155;">${esc(p)}</div>`).join('');
+
   const bookingDetailsHtml = `
+    <style>
+      #booking-detail-content .bd-card:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(15, 23, 42, 0.10); }
+      #booking-detail-content .bd-section-title { display:flex; align-items:center; gap:10px; margin:0 0 16px; font-size:1.02rem; font-weight:800; color:#0f172a; }
+      #booking-detail-content .bd-section-title i { color:#3b82f6; font-size:1.25rem; }
+      #booking-detail-content details > summary::-webkit-details-marker { display:none; }
+      @media (max-width: 820px) { #booking-detail-content .booking-detail-grid { grid-template-columns: 1fr !important; } }
+    </style>
     <div style="display: flex; flex-direction: column; gap: 20px;">
       <!-- Actions Bar -->
       <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -5360,12 +5658,12 @@ function renderBookingDetail(data) {
           <i class="ph ph-arrow-left"></i> Back to Search
         </button>
         <div style="display: flex; gap: 12px;">
-          ${(status === 'ON_HOLD' || status === 'HOLD') ? `
+          ${isHoldStatus ? `
             <button onclick="confirmBookingRequest('${bookingId}', ${totalPrice})" class="btn-primary" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; background: #16a34a; border-color: #16a34a;">
               <i class="ph ph-check-circle"></i> Confirm Booking
             </button>
           ` : ''}
-          ${(status !== 'CANCELLED' && status !== 'CANCEL_DONE') ? `
+          ${(!isCancelling) ? `
             <button onclick="cancelBookingRequest('${bookingId}')" class="btn-danger" style="padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
               <i class="ph ph-x-circle"></i> Cancel Booking
             </button>
@@ -5377,16 +5675,16 @@ function renderBookingDetail(data) {
       </div>
 
       <!-- Status Banner -->
-      <div style="background: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)' : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)'}; border: 2px solid ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#ef4444' : '#10b981'}; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.15);">
-        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#ef4444' : '#10b981'} 0%, ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#dc2626' : '#059669'} 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0;">
-          <i class="ph ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'ph-x-circle' : 'ph-check-circle'}"></i>
+      <div style="background: ${statusTheme.bg}; border: 2px solid ${statusTheme.border}; border-radius: 16px; padding: 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);">
+        <div style="width: 56px; height: 56px; background: linear-gradient(135deg, ${statusTheme.border} 0%, ${statusTheme.accent} 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; flex-shrink: 0;">
+          <i class="ph ${statusTheme.icon}"></i>
         </div>
         <div>
-          <div style="font-size: 1.3rem; font-weight: 800; color: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#991b1b' : '#065f46'};">
-            ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'Booking Cancelled' : (status === 'ON_HOLD' ? 'Placed on Hold' : 'Confirmed')}!
+          <div style="font-size: 1.3rem; font-weight: 800; color: ${statusTheme.color};">
+            ${statusTheme.title} <span style="font-size:0.9rem; font-weight:700; opacity:0.8;">(${status})</span>
           </div>
-          <div style="font-size: 0.95rem; color: ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? '#b91c1c' : '#047857'}; margin-top: 4px;">
-            ${status === 'CANCELLED' || status === 'CANCEL_DONE' ? 'This reservation has been successfully cancelled.' : (status === 'ON_HOLD' ? 'Your hold has been successfully placed' : 'Your reservation has been successfully created')}
+          <div style="font-size: 0.95rem; color: ${statusTheme.subColor}; margin-top: 4px;">
+            ${statusTheme.sub}
           </div>
         </div>
       </div>
@@ -5397,7 +5695,7 @@ function renderBookingDetail(data) {
         <div style="display: flex; flex-direction: column; gap: 20px;">
           
           <!-- Hotel Section -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
               <div style="width: 44px; height: 44px; background: #eff6ff; color: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
                 <i class="ph ph-buildings"></i>
@@ -5425,25 +5723,24 @@ function renderBookingDetail(data) {
             </div>
           </div>
 
-          <!-- Room & Travellers -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <!-- Rooms & Travellers (all rooms) -->
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
             <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-              <i class="ph ph-bed"></i> Room & Traveller Details
+              <i class="ph ph-bed"></i> Rooms &amp; Traveller Details <span style="font-size:0.78rem; color:#64748b; font-weight:600;">(${totalRoomsCount} room${totalRoomsCount > 1 ? 's' : ''})</span>
             </h4>
-            <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-weight: 700; color: #9d174d; font-size: 0.95rem;">${roomName}</div>
-                <div style="font-size: 0.8rem; color: #be185d; margin-top: 4px; font-weight: 600;">Plan: ${mealBasis}</div>
-              </div>
-              ${refundBadge}
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              ${travellersHtml}
-            </div>
+            ${allRoomsHtml}
+          </div>
+
+          <!-- Booking Flags & Attributes -->
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
+            <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+              <i class="ph ph-flag"></i> Booking Flags &amp; Attributes
+            </h4>
+            ${flagsHtml}
           </div>
 
           <!-- Contact & Delivery Details -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
             <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
               <i class="ph ph-envelope-simple"></i> Contact & Delivery Info
             </h4>
@@ -5454,7 +5751,7 @@ function renderBookingDetail(data) {
                 </div>
                 <div>
                   <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Email</div>
-                  <div style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-top: 2px;">${deliveryEmail}</div>
+                  <div style="margin-top: 2px;">${allEmailsHtml}</div>
                 </div>
               </div>
               <div style="background: #f8fafc; border-radius: 10px; padding: 12px; display: flex; align-items: center; gap: 10px;">
@@ -5463,14 +5760,14 @@ function renderBookingDetail(data) {
                 </div>
                 <div>
                   <div style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Phone Number</div>
-                  <div style="font-size: 0.85rem; font-weight: 600; color: #334155; margin-top: 2px;">${deliveryPhone}</div>
+                  <div style="margin-top: 2px;">${allPhonesHtml}</div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Important Info -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
             <h4 style="margin: 0 0 16px; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
               <i class="ph ph-info"></i> Important Information
             </h4>
@@ -5483,13 +5780,14 @@ function renderBookingDetail(data) {
         <div style="display: flex; flex-direction: column; gap: 20px;">
           
           <!-- Booking Summary Card -->
-          <div style="background: #1e293b; color: white; border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(30, 41, 59, 0.2);">
-            <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; opacity: 0.6; letter-spacing: 1px; margin-bottom: 4px;">Booking ID</div>
-            <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; font-family: monospace;">${bookingId}</div>
+          <div style="position: sticky; top: 16px; background: linear-gradient(160deg, #243049 0%, #131c2e 100%); color: white; border-radius: 20px; padding: 26px; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.28); border: 1px solid rgba(255,255,255,0.06); overflow: hidden;">
+            <div style="position:absolute; top:-40px; right:-40px; width:140px; height:140px; background: radial-gradient(circle, ${statusTheme.accent}33 0%, transparent 70%); pointer-events:none;"></div>
+            <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; opacity: 0.55; letter-spacing: 1.2px; margin-bottom: 6px;">Booking ID</div>
+            <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 22px; font-family: ui-monospace, monospace; letter-spacing: 0.5px;">${bookingId}</div>
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <span style="opacity: 0.7; font-size: 0.9rem;">Status</span>
-              <span style="background: ${status === 'ON_HOLD' ? '#f59e0b' : '#10b981'}; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;">${status}</span>
+              <span style="background: ${statusTheme.accent}; color: white; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 700;">${status}</span>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -5513,7 +5811,7 @@ function renderBookingDetail(data) {
             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
               <span style="opacity: 0.9; font-size: 0.95rem; font-weight: 700;">Total Amount</span>
               <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <span style="font-size: 1.5rem; font-weight: 800; color: #10b981;">${currency} ${totalPrice.toFixed(2)}</span>
+                <span style="font-size: 1.7rem; font-weight: 800; color: #34d399; text-shadow: 0 2px 16px rgba(52, 211, 153, 0.35);">${currency} ${totalPrice.toFixed(2)}</span>
                 <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 4px; font-style: italic; opacity: 0.8;">
                   (${priceInWords(totalPrice.toFixed(2))} Rupees Only)
                 </div>
@@ -5541,7 +5839,7 @@ function renderBookingDetail(data) {
           </div>
 
           <!-- Benefits -->
-          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px;">
+          <div class="bd-card" style="background: white; border: 1px solid #eef2f7; border-radius: 18px; padding: 22px; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.05); transition: transform 0.25s ease, box-shadow 0.25s ease;">
             <h4 style="margin: 0 0 16px; font-size: 0.9rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
               <i class="ph ph-sparkle"></i> Included Amenities
             </h4>

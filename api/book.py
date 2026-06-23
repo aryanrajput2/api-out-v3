@@ -1,37 +1,20 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
-from api.request_logger import log_api_call
+from config import oms_base, default_key
 
 
 def book_hotel(data: dict):
     booking_type = data.get("bookingType", "VOUCHER")  # "VOUCHER" or "HOLD"
-    
+
     # Get environment from request data
     env = data.get("env", "").lower().rstrip("/")
-    
-    # Determine the correct book URL and API key based on environment
     raw_api_key = data.get("apiKey")
-    
-    # Check if it's Admin TJ environment
-    if "hmsbk-admin" in env or "admin.tripjack" in env or "tj-hotel-admin" in env:
-        # Admin TJ environment
-        BOOK_URL = "https://hotel-booker.tripjack.com/oms/v3/hotel/book"
-        BOOK_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
-        BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
-    elif "tripjack.com" in env and "apitest" not in env:
-        # Prod Tripjack environment
-        BOOK_URL = "https://hotel-booker.tripjack.com/oms/v3/hotel/book"
-        BOOK_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
-        BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
-    else:
-        # API Test Server (Sandbox) (default for all other envs)
-        BOOK_URL = "https://apitest-hotel-booker.tripjack.com/oms/v3/hotel/book"
-        BOOK_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else "6116982da6b759-28f8-4cdf-b210-04cb98116165"
-        BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
-    
-    url = BOOK_URL
+
+    # URL + key resolved from the central config (config.py)
+    url = f"{oms_base(env)}/oms/v3/hotel/book"
+    BOOK_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else default_key(env)
+    BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
 
     headers = {
         "Content-Type": "application/json",

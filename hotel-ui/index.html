@@ -26,14 +26,14 @@
   <div class="app-shell">
     <!-- Live Environment Warning Banners (Global) -->
     <div id="env-warning-banner" class="hidden"
-      style="background: #fee2e2; color: #991b1b; padding: 12px 20px; text-align: center; font-weight: 600; font-size: 0.95rem; border-bottom: 1px solid #f87171; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <i class="ph ph-warning" style="font-size: 1.2rem;"></i>
+      style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); color: #991b1b; padding: 12px 22px; margin: 16px 0 0; border-radius: 14px; text-align: center; font-weight: 600; font-size: 0.95rem; border: 1px solid #fca5a5; box-shadow: 0 6px 18px rgba(239, 68, 68, 0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <i class="ph-bold ph-warning" style="font-size: 1.2rem;"></i>
       <span>LIVE ENVIRONMENT: <strong id="banner-env-name-danger">...</strong> — Please do not make any real
         bookings!</span>
     </div>
     <div id="env-safe-banner" class="hidden"
-      style="background: #e0f2fe; color: #075985; padding: 12px 20px; text-align: center; font-weight: 600; font-size: 0.95rem; border-bottom: 1px solid #7dd3fc; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <i class="ph ph-flask" style="font-size: 1.2rem;"></i>
+      style="background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); color: #075985; padding: 12px 22px; margin: 16px 0 0; border-radius: 14px; text-align: center; font-weight: 600; font-size: 0.95rem; border: 1px solid #bae6fd; box-shadow: 0 6px 18px rgba(14, 165, 233, 0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <i class="ph-bold ph-flask" style="font-size: 1.2rem;"></i>
       <span>TEST ENVIRONMENT: <strong id="banner-env-name-safe">API Test Server (Sandbox)</strong></span>
     </div>
 
@@ -349,8 +349,11 @@
               <input type="text" id="hotelids" placeholder="e.g. 100000002784, 100000003248" required />
 
               <!-- Quick Batch Search Buttons -->
+              <div class="destinations-label">
+                <i class="ph ph-map-pin-line"></i> Popular Destinations
+              </div>
               <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 16px;">
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 10px;">
                 <button type="button" class="batch-search-btn" onclick="searchLocationHotels('mumbai')"
                   title="Search 200 hotels in Mumbai">
                   <div class="batch-btn-icon">
@@ -527,7 +530,17 @@
             <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
               <h3><i class="ph ph-bed"></i> Matching Hotels <span id="results-count"
                   style="font-size: 0.9rem; margin-left: 8px; font-weight: 500; color: var(--text-muted);"></span></h3>
-              <span id="results-meta" class="meta-tag"></span>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="view-toggle" role="group" aria-label="Results view">
+                  <button id="view-list-btn" type="button" class="active" onclick="setResultsView('list')" title="List view">
+                    <i class="ph ph-rows"></i> List
+                  </button>
+                  <button id="view-grid-btn" type="button" onclick="setResultsView('grid')" title="Grid view">
+                    <i class="ph ph-squares-four"></i> Grid
+                  </button>
+                </div>
+                <span id="results-meta" class="meta-tag"></span>
+              </div>
             </div>
 
             <!-- Filters Bar -->
@@ -535,7 +548,7 @@
               <div class="input-group filter-group search-flex">
                 <i class="ph ph-magnifying-glass icon-left"></i>
                 <input type="text" id="r-filter-name" placeholder="Search Hotel Name, Options, or IDs..."
-                  onkeyup="applySearchFilters()">
+                  onkeyup="applySearchFiltersDebounced()">
               </div>
               <div class="input-group filter-group">
                 <i class="ph ph-fork-knife icon-left"></i>
