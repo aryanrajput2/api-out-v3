@@ -7,7 +7,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   
   <link rel="stylesheet" href="/home/style.css" />
@@ -18,7 +18,7 @@
     /* Hover overrides to prevent JSON text block hiding in API logs inspect window */
     .booking-card:hover [id^="log-pre-"],
     .booking-card:hover [id^="log-pre-"] * {
-      color: #38bdf8 !important;
+      color: #e07a52 !important;
     }
 
     /* ========================================================
@@ -41,8 +41,8 @@
         left: 0;
         right: 0;
         height: 60px;
-        background: linear-gradient(135deg, #202843 0%, #161c30 100%);
-        border-bottom: 2px solid #D4AF37;
+        background: linear-gradient(135deg, #712B13 0%, #161c30 100%);
+        border-bottom: 2px solid #D85A30;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         z-index: 9999;
         align-items: center;
@@ -53,7 +53,7 @@
       /* Mobile Menu Toggle (Hamburger) */
       .mobile-menu-toggle {
         background: none;
-        border: 1px solid rgba(212, 175, 55, 0.4);
+        border: 1px solid rgba(216, 90, 48, 0.4);
         border-radius: 8px;
         width: 40px;
         height: 40px;
@@ -67,8 +67,8 @@
       }
 
       .mobile-menu-toggle:active {
-        background: rgba(212, 175, 55, 0.15);
-        border-color: #D4AF37;
+        background: rgba(216, 90, 48, 0.15);
+        border-color: #D85A30;
       }
 
       /* Logo and Title in header */
@@ -82,7 +82,7 @@
         width: 32px;
         height: 32px;
         object-fit: contain;
-        filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.4));
+        filter: drop-shadow(0 2px 6px rgba(216, 90, 48, 0.4));
       }
 
       .mobile-header-logo span {
@@ -91,7 +91,7 @@
         font-size: 0.95rem;
         text-transform: uppercase;
         letter-spacing: 1px;
-        background: linear-gradient(90deg, #D4AF37, #FFD700, #D4AF37);
+        background: linear-gradient(90deg, #D85A30, #e07a52, #D85A30);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -99,12 +99,12 @@
 
       /* Sleek Back to App button */
       .mobile-back-btn {
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid #D4AF37;
+        background: rgba(216, 90, 48, 0.1);
+        border: 1px solid #D85A30;
         border-radius: 8px;
         width: 40px;
         height: 40px;
-        color: #D4AF37;
+        color: #D85A30;
         font-size: 1.3rem;
         display: flex;
         align-items: center;
@@ -114,8 +114,8 @@
       }
 
       .mobile-back-btn:active {
-        background: #D4AF37;
-        color: #202843;
+        background: #D85A30;
+        color: #712B13;
       }
 
       /* Close drawer button inside sidebar header */
@@ -225,12 +225,12 @@
       <!-- Response Times Visualization Section (Global Persistent) -->
       <section id="response-times-section" style="display: none; visibility: hidden; opacity: 0; margin: 0; padding: 20px; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
-          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+          <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #D85A30 0%, #e07a52 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
             <i class="ph ph-timer"></i>
           </div>
-          <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response Times</h3>
+          <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #3a2a22; letter-spacing: -0.01em;">API Response Times</h3>
           <div style="flex: 1;"></div>
-          <span style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live Tracking</span>
+          <span style="font-size: 0.8rem; color: #9a7b6e; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live Tracking</span>
         </div>
         <div id="header-response-boxes" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 8px;">
           <!-- Response time cards will be inserted here -->
@@ -302,7 +302,7 @@
         <!-- Additional Stats Row -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
           <div class="mini-stat-card">
-            <i class="ph ph-magnifying-glass" style="color: #3b82f6;"></i>
+            <i class="ph ph-magnifying-glass" style="color: #D85A30;"></i>
             <div>
               <div class="mini-stat-value" id="total-searches">0</div>
               <div class="mini-stat-label">Searches</div>
@@ -310,7 +310,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-calendar-check" style="color: #10b981;"></i>
+            <i class="ph ph-calendar-check" style="color: #5d6a4a;"></i>
             <div>
               <div class="mini-stat-value" id="total-bookings">0</div>
               <div class="mini-stat-label">Bookings</div>
@@ -318,7 +318,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-percent" style="color: #8b5cf6;"></i>
+            <i class="ph ph-percent" style="color: #e07a52;"></i>
             <div>
               <div class="mini-stat-value" id="booking-success-rate">0%</div>
               <div class="mini-stat-label">Booking Success</div>
@@ -326,7 +326,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-eye" style="color: #06b6d4;"></i>
+            <i class="ph ph-eye" style="color: #D85A30;"></i>
             <div>
               <div class="mini-stat-value" id="total-page-views">0</div>
               <div class="mini-stat-label">Page Views</div>
@@ -428,7 +428,7 @@
         <!-- Bookings Stats -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
           <div class="mini-stat-card">
-            <i class="ph ph-calendar-check" style="color: #10b981;"></i>
+            <i class="ph ph-calendar-check" style="color: #5d6a4a;"></i>
             <div>
               <div class="mini-stat-value" id="total-bookings-count">0</div>
               <div class="mini-stat-label">Total Bookings</div>
@@ -436,7 +436,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-clock" style="color: #3b82f6;"></i>
+            <i class="ph ph-clock" style="color: #D85A30;"></i>
             <div>
               <div class="mini-stat-value" id="avg-booking-time">0ms</div>
               <div class="mini-stat-label">Avg Response Time</div>
@@ -444,7 +444,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-calendar" style="color: #8b5cf6;"></i>
+            <i class="ph ph-calendar" style="color: #e07a52;"></i>
             <div>
               <div class="mini-stat-value" id="bookings-today">0</div>
               <div class="mini-stat-label">Today</div>
@@ -452,7 +452,7 @@
           </div>
           
           <div class="mini-stat-card">
-            <i class="ph ph-calendar-dots" style="color: #06b6d4;"></i>
+            <i class="ph ph-calendar-dots" style="color: #D85A30;"></i>
             <div>
               <div class="mini-stat-value" id="bookings-this-week">0</div>
               <div class="mini-stat-label">This Week</div>
@@ -719,17 +719,17 @@
             <i class="ph ph-globe"></i> Current Environment
           </h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #0066cc;">
+            <div style="padding: 16px; background: #FBF7F4; border-radius: 8px; border-left: 4px solid #D85A30;">
               <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">Environment</div>
-              <div id="current-env-name" style="font-size: 1.2rem; font-weight: 700; color: #1a1a1a;">-</div>
+              <div id="current-env-name" style="font-size: 1.2rem; font-weight: 700; color: #3a2a22;">-</div>
             </div>
-            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #10b981;">
+            <div style="padding: 16px; background: #FBF7F4; border-radius: 8px; border-left: 4px solid #5d6a4a;">
               <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">URL</div>
-              <div id="current-env-url" style="font-size: 0.9rem; font-weight: 600; color: #0066cc; word-break: break-all;">-</div>
+              <div id="current-env-url" style="font-size: 0.9rem; font-weight: 600; color: #D85A30; word-break: break-all;">-</div>
             </div>
-            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <div style="padding: 16px; background: #FBF7F4; border-radius: 8px; border-left: 4px solid #f59e0b;">
               <div style="font-size: 0.85rem; color: #666; margin-bottom: 4px;">Status</div>
-              <div id="current-env-status" style="font-size: 1rem; font-weight: 700; color: #10b981;">Active</div>
+              <div id="current-env-status" style="font-size: 1rem; font-weight: 700; color: #5d6a4a;">Active</div>
             </div>
           </div>
         </div>
@@ -785,7 +785,7 @@
             <i class="ph ph-history"></i> Release History
           </h3>
           <div id="releases-list" style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center; color: #999;">
+            <div style="padding: 16px; background: #FBF7F4; border-radius: 8px; text-align: center; color: #999;">
               Loading releases...
             </div>
           </div>

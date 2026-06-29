@@ -89,7 +89,7 @@ function displayEndpointStats(endpointStats) {
             <div class="endpoint-stat-label">Failed</div>
           </div>
           <div class="endpoint-stat" style="background: rgba(6, 182, 212, 0.08);">
-            <div class="endpoint-stat-value" style="color: #06b6d4;">${Math.round(stats.avg_time)}ms</div>
+            <div class="endpoint-stat-value" style="color: #D85A30;">${Math.round(stats.avg_time)}ms</div>
             <div class="endpoint-stat-label">Avg Time</div>
           </div>
         </div>
@@ -231,14 +231,14 @@ function displayBookings(bookings) {
     
     const bookingIdLower = (booking.id || '').toLowerCase();
     let envName = 'Prod / Admin TJ';
-    let envColor = '#0066cc';
+    let envColor = '#D85A30';
     let envBg = 'rgba(0, 102, 204, 0.08)';
     let envBorder = 'rgba(0, 102, 204, 0.2)';
     let defaultApiKey = '751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9';
     
     if (bookingIdLower.startsWith('tgp')) {
       envName = 'API Test Server (Sandbox)';
-      envColor = '#10b981';
+      envColor = '#5d6a4a';
       envBg = 'rgba(16, 185, 129, 0.08)';
       envBorder = 'rgba(16, 185, 129, 0.2)';
       defaultApiKey = '6116982da6b759-28f8-4cdf-b210-04cb98116165';
@@ -684,7 +684,7 @@ function showNotification(message, type = 'info') {
     top: 24px;
     right: 24px;
     padding: 16px 24px;
-    background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
+    background: ${type === 'success' ? 'linear-gradient(135deg, #5d6a4a, #5d6a4a)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
     color: white;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -1080,13 +1080,13 @@ function displayReleases(releases) {
   const container = document.getElementById('releases-list');
   
   if (releases.length === 0) {
-    container.innerHTML = '<div style="padding: 16px; background: #f8fafc; border-radius: 8px; text-align: center; color: #999;">No releases yet</div>';
+    container.innerHTML = '<div style="padding: 16px; background: #FBF7F4; border-radius: 8px; text-align: center; color: #999;">No releases yet</div>';
     return;
   }
   
   container.innerHTML = releases.map(release => {
-    const statusColor = release.status === 'approved' ? '#10b981' : '#f59e0b';
-    const statusBg = release.status === 'approved' ? '#ecfdf5' : '#fffbeb';
+    const statusColor = release.status === 'approved' ? '#5d6a4a' : '#f59e0b';
+    const statusBg = release.status === 'approved' ? '#f1f1ea' : '#fffbeb';
     const timestamp = new Date(release.timestamp).toLocaleString();
     
     return `
@@ -1101,7 +1101,7 @@ function displayReleases(releases) {
           ${timestamp}
         </div>
         ${release.status === 'pending_approval' ? `
-          <button onclick="approveRelease('${release.id}')" style="margin-top: 8px; padding: 6px 12px; background: #0066cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+          <button onclick="approveRelease('${release.id}')" style="margin-top: 8px; padding: 6px 12px; background: #D85A30; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
             Approve Release
           </button>
         ` : ''}
@@ -1189,8 +1189,8 @@ async function loadLogs() {
     logs.forEach((log, index) => {
       const isReq = log.type === "REQUEST";
       const typeStyle = isReq 
-        ? "background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);"
-        : "background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.2);";
+        ? "background: rgba(16, 185, 129, 0.1); color: #5d6a4a; border: 1px solid rgba(16, 185, 129, 0.2);"
+        : "background: rgba(14, 165, 233, 0.1); color: #D85A30; border: 1px solid rgba(14, 165, 233, 0.2);";
       
       const badgeText = isReq ? "REQUEST" : `RESPONSE (${log.status_code || 200})`;
       const timestamp = log.timestamp || "Unknown Time";
@@ -1210,7 +1210,7 @@ async function loadLogs() {
         }
         if (bodyData.status && bodyData.status.success !== undefined) {
           const succ = bodyData.status.success;
-          previewInfo += `<span style="padding: 2px 6px; background: ${succ ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${succ ? '#10b981' : '#ef4444'}; border-radius: 4px; font-size:0.75rem;">Success: <b>${succ}</b></span> `;
+          previewInfo += `<span style="padding: 2px 6px; background: ${succ ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${succ ? '#5d6a4a' : '#ef4444'}; border-radius: 4px; font-size:0.75rem;">Success: <b>${succ}</b></span> `;
         }
       }
 
@@ -1229,7 +1229,7 @@ async function loadLogs() {
               </span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 0.75rem; font-weight: 700; color: #d4af37; background: rgba(212, 175, 55, 0.1); padding: 2px 8px; border-radius: 4px; font-family: monospace;">${method}</span>
+              <span style="font-size: 0.75rem; font-weight: 700; color: #D85A30; background: rgba(216, 90, 48, 0.1); padding: 2px 8px; border-radius: 4px; font-family: monospace;">${method}</span>
               <span style="font-size: 0.9rem; font-weight: 700; color: var(--primary); font-family: monospace;">${endpoint}</span>
             </div>
           </div>
@@ -1244,11 +1244,11 @@ async function loadLogs() {
           </div>
           
           <div id="log-accordion-${index}" style="display: none; margin-top: 8px;">
-            <div style="position: relative; background: #0f172a; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div style="position: relative; background: #3a2a22; border-radius: 8px; padding: 12px; border: 1px solid rgba(255,255,255,0.05);">
               <button onclick="copyLogJson(${index})" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px 8px; color: #fff; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                 <i class="ph ph-copy"></i> Copy
               </button>
-              <div id="log-pre-${index}" style="margin: 0; color: #38bdf8; font-family: monospace; font-size: 0.8rem; overflow: auto; max-height: 250px; line-height: 1.4; white-space: pre; text-align: left;">${rawJson}</div>
+              <div id="log-pre-${index}" style="margin: 0; color: #e07a52; font-family: monospace; font-size: 0.8rem; overflow: auto; max-height: 250px; line-height: 1.4; white-space: pre; text-align: left;">${rawJson}</div>
             </div>
           </div>
         </div>`;

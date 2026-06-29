@@ -6,10 +6,10 @@
   <title>Tripjack Hotel Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Fraunces (serif headings) + Inter (body), 400/500 only -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -32,7 +32,7 @@
         bookings!</span>
     </div>
     <div id="env-safe-banner" class="hidden"
-      style="background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%); color: #075985; padding: 12px 22px; margin: 16px 0 0; border-radius: 14px; text-align: center; font-weight: 600; font-size: 0.95rem; border: 1px solid #bae6fd; box-shadow: 0 6px 18px rgba(14, 165, 233, 0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
+      style="background: linear-gradient(135deg, #FAECE7 0%, #FAECE7 100%); color: #712B13; padding: 12px 22px; margin: 16px 0 0; border-radius: 14px; text-align: center; font-weight: 600; font-size: 0.95rem; border: 1px solid #FAECE7; box-shadow: 0 6px 18px rgba(14, 165, 233, 0.08); display: flex; align-items: center; justify-content: center; gap: 8px;">
       <i class="ph-bold ph-flask" style="font-size: 1.2rem;"></i>
       <span>TEST ENVIRONMENT: <strong id="banner-env-name-safe">API Test Server (Sandbox)</strong></span>
     </div>
@@ -56,7 +56,7 @@
         <div class="global-security-badge"
           style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.9); border-radius: var(--radius-md); padding: 14px 20px; box-shadow: var(--shadow-sm); font-size: 0.85rem; color: var(--text-main); display: flex; flex-direction: column; gap: 8px; min-width: 280px; animation: slideFadeIn 0.8s ease-out;">
           <div
-            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px;">
+            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #FBF7F4; padding-bottom: 6px;">
             <strong
               style="color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;"><i
                 class="ph ph-globe"></i> Active Env</strong>
@@ -67,13 +67,13 @@
               style="color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;"><i
                 class="ph ph-key"></i> API Key</strong>
             <span id="gs-api-key"
-              style="font-family: monospace; font-weight: 600; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #e2e8f0; letter-spacing: 1px;">...</span>
+              style="font-family: monospace; font-weight: 600; background: #FBF7F4; padding: 3px 8px; border-radius: 6px; border: 1px solid #ecdfd8; letter-spacing: 1px;">...</span>
           </div>
         </div>
 
         <!-- Dashboard Button -->
         <a href="/home/dashboard" class="btn-dashboard"
-          style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
+          style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: linear-gradient(135deg, #D85A30 0%, #c14e29 100%); color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); border: none; cursor: pointer;">
           <i class="ph ph-gauge"></i> Dashboard
         </a>
 
@@ -89,14 +89,14 @@
       style="display: none; visibility: hidden; opacity: 0; margin: 0 auto; padding: 20px; max-width: 100%; background: rgba(15, 23, 42, 0.02); border-bottom: 1px solid rgba(226, 232, 240, 0.4); transition: opacity 0.3s ease;">
       <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
         <div
-          style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
+          style="width: 32px; height: 32px; background: linear-gradient(135deg, #D85A30 0%, #e07a52 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.9rem;">
           <i class="ph ph-timer"></i>
         </div>
-        <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em;">API Response
+        <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #3a2a22; letter-spacing: -0.01em;">API Response
           Times</h3>
         <div style="flex: 1;"></div>
         <span
-          style="font-size: 0.8rem; color: #64748b; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live
+          style="font-size: 0.8rem; color: #9a7b6e; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Live
           Tracking</span>
       </div>
       <div id="header-response-boxes"
@@ -220,7 +220,7 @@
               </div>
               <svg class="auth-skyline" viewBox="0 0 600 320" fill="none" xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true">
-                <g stroke="#2f4a3a" stroke-width="3" stroke-linejoin="round">
+                <g stroke="#D85A30" stroke-width="3" stroke-linejoin="round">
                   <rect x="30" y="200" width="70" height="120" fill="#cfe0d6" />
                   <rect x="110" y="120" width="80" height="200" fill="#ffffff" />
                   <rect x="200" y="70" width="70" height="250" fill="#f7e6c4" />
@@ -229,7 +229,7 @@
                   <rect x="415" y="110" width="75" height="210" fill="#f6d2c8" />
                   <rect x="500" y="170" width="70" height="150" fill="#cfe0d6" />
                 </g>
-                <g stroke="#2f4a3a" stroke-width="2.5" stroke-linecap="round">
+                <g stroke="#D85A30" stroke-width="2.5" stroke-linecap="round">
                   <line x1="125" y1="150" x2="175" y2="150" />
                   <line x1="125" y1="180" x2="175" y2="180" />
                   <line x1="125" y1="210" x2="175" y2="210" />
@@ -242,7 +242,7 @@
                   <line x1="430" y1="170" x2="475" y2="170" />
                   <line x1="430" y1="200" x2="475" y2="200" />
                 </g>
-                <g stroke="#2f4a3a" stroke-width="3" stroke-linecap="round" fill="none">
+                <g stroke="#D85A30" stroke-width="3" stroke-linecap="round" fill="none">
                   <circle cx="370" cy="270" r="28" fill="#ffffff" />
                   <path d="M370 250 v40 M356 276 l14 14 14 -14" />
                   <circle cx="540" cy="265" r="24" fill="#ffffff" />
@@ -267,8 +267,8 @@
         <div class="glass-panel"
           style="margin-bottom: 24px; padding: 24px; background: rgba(239, 246, 255, 0.6); border: 1px solid rgba(191, 219, 254, 0.8);">
           <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 16px;">
-            <i class="ph ph-sliders-horizontal" style="font-size: 1.4rem; color: #3b82f6;"></i>
-            <h3 style="margin: 0; font-size: 1.1rem; color: #1e3a8a;">API Configuration</h3>
+            <i class="ph ph-sliders-horizontal" style="font-size: 1.4rem; color: #D85A30;"></i>
+            <h3 style="margin: 0; font-size: 1.1rem; color: #712B13;">API Configuration</h3>
           </div>
           <div class="input-grid">
             <div class="input-group">
@@ -513,8 +513,8 @@
             <button type="button" class="btn-ghost" onclick="backToSearch()" style="margin: 0;">
               <i class="ph ph-arrow-left"></i> Back to Search
             </button>
-            <div style="width: 1px; height: 24px; background: #e2e8f0;"></div>
-            <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #1e293b; letter-spacing: -0.5px;">
+            <div style="width: 1px; height: 24px; background: #ecdfd8;"></div>
+            <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #3a2a22; letter-spacing: -0.5px;">
               Available Options
             </h2>
             <span id="results-timer" class="hidden"></span>
@@ -709,28 +709,28 @@
   <div id="search-loading-overlay" class="hidden"
     style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s ease;">
     <div
-      style="background: white; padding: 40px 60px; border-radius: 24px; border: 2px solid #D4AF37; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; animation: zoomIn 0.3s ease-out; position: relative;">
+      style="background: white; padding: 40px 60px; border-radius: 24px; border: 2px solid #D85A30; box-shadow: 0 20px 50px rgba(216, 90, 48, 0.2); display: flex; flex-direction: column; align-items: center; text-align: center; animation: zoomIn 0.3s ease-out; position: relative;">
 
       <!-- Golden Hotel Logo -->
       <div
-        style="width: 70px; height: 70px; background: linear-gradient(135deg, #D4AF37 0%, #AA8222 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 800; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3); margin-bottom: 20px;">
+        style="width: 70px; height: 70px; background: #D85A30; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 500; letter-spacing: 1px; margin-bottom: 20px;">
         AH
       </div>
 
       <div class="loader"
-        style="width: 50px; height: 50px; border-width: 4px; border-color: rgba(212, 175, 55, 0.2); border-top-color: #D4AF37; margin-bottom: 24px;">
+        style="width: 50px; height: 50px; border-width: 4px; border-color: rgba(216, 90, 48, 0.2); border-top-color: #D85A30; margin-bottom: 24px;">
       </div>
 
-      <h2 style="margin: 0 0 12px 0; font-size: 1.8rem; font-weight: 700; color: #1e293b; letter-spacing: 0.5px;">
+      <h2 style="margin: 0 0 12px 0; font-size: 1.8rem; font-weight: 700; color: #3a2a22; letter-spacing: 0.5px;">
         Searching Best Hotels</h2>
-      <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #64748b; max-width: 320px;">Please wait while we fetch
+      <p style="margin: 0 0 24px 0; font-size: 1.1rem; color: #9a7b6e; max-width: 320px;">Please wait while we fetch
         real-time availability and prices from our partners...</p>
 
       <div style="display: flex; align-items: center; justify-content: center; width: 100%; gap: 16px;">
         <!-- Timer -->
         <div
-          style="display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 99px; font-size: 0.95rem; color: #475569; font-weight: 600;">
-          <i class="ph ph-clock" style="color: #D4AF37; font-size: 1.1rem;"></i>
+          style="display: flex; align-items: center; gap: 8px; background: #FBF7F4; border: 1px solid #ecdfd8; padding: 10px 16px; border-radius: 99px; font-size: 0.95rem; color: #7a5d50; font-weight: 600;">
+          <i class="ph ph-clock" style="color: #D85A30; font-size: 1.1rem;"></i>
           <span id="overlay-search-timer">0s elapsed</span>
         </div>
 
@@ -783,9 +783,9 @@
 
       <!-- Dynamic API Source Switcher (for Detail Page) -->
       <div id="api-modal-source-selector" class="hidden"
-        style="display: flex; gap: 12px; padding: 12px 24px; border-bottom: 1px solid rgba(212, 175, 55, 0.15); background: rgba(32, 40, 67, 0.02);">
+        style="display: flex; gap: 12px; padding: 12px 24px; border-bottom: 1px solid rgba(216, 90, 48, 0.15); background: rgba(32, 40, 67, 0.02);">
         <button id="api-modal-source-static" class="api-modal-source-btn"
-          style="flex: 1; padding: 10px 16px; border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;"
+          style="flex: 1; padding: 10px 16px; border: 1px solid rgba(216, 90, 48, 0.25); border-radius: 8px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; transition: all 0.2s;"
           onclick="switchApiModalSource('staticDetail')">
           <i class="ph ph-database"></i> Static Detail API
         </button>
