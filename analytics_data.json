@@ -20898,6 +20898,663 @@
       "success": false,
       "error_msg": null,
       "timestamp": "2026-06-29T18:14:42.753335"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 611,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:25:26.479613"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1973,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:25:28.491863"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 8166,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:25:38.995711"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 7573,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:25:52.849998"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6951,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:26:04.878921"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6045,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:26:25.260215"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2342,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:35:14.841291"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1269,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:35:32.433771"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 3940,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:35:44.077694"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 818,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:35:46.813235"
+    },
+    {
+      "endpoint": "/cancel",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 11720,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:36:21.800859"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 998,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:36:24.832481"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 213,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:01.244975"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 787,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:02.058693"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 785,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:05.795282"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 3718,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:17.833959"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 904,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:21.185984"
+    },
+    {
+      "endpoint": "/cancel",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 13256,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:39.284990"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 741,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T18:38:42.062810"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 417,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:31:16.708366"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 8565,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:31:25.335868"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 7718,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:31:44.890154"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 5447,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:38:54.206700"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 5080,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:41:20.829219"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 261,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:44:16.916016"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 5175,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:44:22.155913"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 746,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-29T23:44:31.142354"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 252,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:07:38.772687"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 7592,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:07:46.418809"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 4111,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:07:58.067473"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 228,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:10:48.621048"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6952,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:10:55.639560"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 10463,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:11:11.451956"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 506,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:18:24.099944"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 8235,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:18:32.376958"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 271,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:22:05.305816"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 8895,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:22:14.236870"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 288,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:24:27.073136"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 8026,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:24:35.206249"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 4788,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:25:06.480446"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 4671,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:25:32.611545"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 913,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:25:53.740569"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 275,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:27:38.039258"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6799,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:27:44.888240"
+    },
+    {
+      "endpoint": "/cancel",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 14752,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:29:37.698507"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 21193,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T00:30:05.412935"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 330,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T13:57:29.909353"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 2245,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T13:57:32.216171"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 346,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T13:58:06.709294"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 11253,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T13:58:18.023569"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6862,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T13:59:15.710325"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 304,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:23:38.562235"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 5987,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:23:44.598368"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 500,
+      "response_time_ms": 0,
+      "success": false,
+      "error_msg": "'hids'",
+      "timestamp": "2026-06-30T16:32:04.590020"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 500,
+      "response_time_ms": 0,
+      "success": false,
+      "error_msg": "'hids'",
+      "timestamp": "2026-06-30T16:32:08.435335"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 500,
+      "response_time_ms": 0,
+      "success": false,
+      "error_msg": "'hids'",
+      "timestamp": "2026-06-30T16:35:01.852060"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 500,
+      "response_time_ms": 0,
+      "success": false,
+      "error_msg": "'hids'",
+      "timestamp": "2026-06-30T16:35:12.516702"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 386,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:40:37.549240"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1452,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:40:39.037204"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1252,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:40:54.467162"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 5315,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:41:05.949857"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 3948,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:41:11.193090"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1406,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T16:41:17.134101"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 316,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:05.703877"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 4994,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:10.734964"
+    },
+    {
+      "endpoint": "/static-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 293,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:28.206943"
+    },
+    {
+      "endpoint": "/dynamic-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 930,
+      "success": true,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:29.164799"
+    },
+    {
+      "endpoint": "/review",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 1104,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:41.167221"
+    },
+    {
+      "endpoint": "/book",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 3243,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:03:56.114925"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 857,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:04:00.501932"
+    },
+    {
+      "endpoint": "/cancel",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 6563,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:04:42.372549"
+    },
+    {
+      "endpoint": "/booking-detail",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 679,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:04:45.091077"
+    },
+    {
+      "endpoint": "/search",
+      "method": "POST",
+      "status_code": 200,
+      "response_time_ms": 572,
+      "success": false,
+      "error_msg": null,
+      "timestamp": "2026-06-30T17:13:10.312232"
     }
   ],
   "errors": [
@@ -28238,6 +28895,276 @@
       "message": "Status 200",
       "type": "api_error",
       "timestamp": "2026-06-29T18:14:42.753362"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:25:38.995726"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:25:52.850053"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:26:04.878933"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:26:25.260227"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:35:14.841302"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:35:32.433783"
+    },
+    {
+      "source": "/book",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:35:44.077710"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:35:46.813239"
+    },
+    {
+      "source": "/cancel",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:36:21.800868"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:36:24.832487"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:38:05.795292"
+    },
+    {
+      "source": "/book",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:38:17.833965"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:38:21.186013"
+    },
+    {
+      "source": "/cancel",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:38:39.285004"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T18:38:42.062816"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T23:31:44.890176"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T23:38:54.206738"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T23:41:20.829239"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-29T23:44:31.142392"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:07:58.067486"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:11:11.451967"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:25:06.480471"
+    },
+    {
+      "source": "/book",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:25:32.611580"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:25:53.740625"
+    },
+    {
+      "source": "/cancel",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:29:37.698666"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T00:30:05.413040"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T13:59:15.710351"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:32:04.590605"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:32:04.679332"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:32:08.435351"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:32:08.477230"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:35:01.852097"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:35:01.921054"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:35:12.516727"
+    },
+    {
+      "source": "/search",
+      "message": "'hids'",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:35:12.566837"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:40:54.467179"
+    },
+    {
+      "source": "/book",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:41:05.949865"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:41:11.193095"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T16:41:17.134117"
+    },
+    {
+      "source": "/review",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:03:41.167241"
+    },
+    {
+      "source": "/book",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:03:56.114939"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:04:00.501940"
+    },
+    {
+      "source": "/cancel",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:04:42.372567"
+    },
+    {
+      "source": "/booking-detail",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:04:45.091082"
+    },
+    {
+      "source": "/search",
+      "message": "Status 200",
+      "type": "api_error",
+      "timestamp": "2026-06-30T17:13:10.312252"
     }
   ],
   "searches": [
