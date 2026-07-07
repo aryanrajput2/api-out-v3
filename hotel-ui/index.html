@@ -9,7 +9,7 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
 
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -111,62 +111,47 @@
         <div class="auth-stage">
           <div class="auth-card">
 
-            <!-- Left: Form -->
-            <div class="auth-form-panel">
-              <div class="auth-brand">
-                <span class="auth-brand-mark"><i class="ph-fill ph-house-line"></i></span>
-                <span class="auth-brand-name">API Hotel</span>
+            <!-- Left: Media / brand -->
+            <div class="auth-media">
+              <div class="auth-media-overlay"></div>
+              <svg class="auth-plane" viewBox="0 0 220 90" fill="none" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true">
+                <path
+                  d="M6 46c40-4 70-2 96 6 22 7 42 3 60-10 12-9 24-20 34-30"
+                  stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="2 9"
+                  opacity="0.85" />
+                <path
+                  d="M182 8c-3 6-8 12-15 17l-30 6c-3 1-4 3-2 5l7 6-9 6 3 5 14-4c2-1 3 0 3 2l1 12c0 3 3 4 5 1l9-16c1-2 3-3 5-4l14-6c9-4 12-13 9-24-1-4-4-6-7-6-6 0-11 0-14 3z"
+                  fill="#ffffff" />
+              </svg>
+              <div class="auth-media-brand">
+                <h2 class="auth-brand-script">Travelista Tours</h2>
+                <p>Travel is the only purchase that enriches you in ways beyond material wealth</p>
               </div>
+            </div>
 
+            <!-- Right: Form -->
+            <div class="auth-form-panel">
               <div class="auth-form-inner">
                 <div class="auth-heading">
-                  <h1>Sign In</h1>
-                  <p>Welcome back! Please enter your details to continue</p>
+                  <h1>Welcome</h1>
+                  <p>Login with Email</p>
                 </div>
-
-                <!-- Role toggle -->
-                <div class="auth-role">
-                  <label class="auth-radio">
-                    <input type="radio" name="auth-role" value="user" checked />
-                    <span>As a User</span>
-                  </label>
-                  <label class="auth-radio">
-                    <input type="radio" name="auth-role" value="owner" />
-                    <span>As a Hotel Owner</span>
-                  </label>
-                </div>
-
-                <!-- Social sign-in -->
-                <div class="auth-social">
-                  <button type="button" class="auth-social-btn">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" />
-                    Sign in with Google
-                  </button>
-                  <button type="button" class="auth-social-btn">
-                    <i class="ph-fill ph-apple-logo"></i>
-                    Sign in with Apple
-                  </button>
-                </div>
-
-                <div class="auth-divider"><span>OR</span></div>
 
                 <!-- Login Form -->
                 <form id="login-form" onsubmit="handleLogin(event)">
                   <!-- Email Input -->
                   <div class="auth-field">
-                    <label for="login-email">Email <span>*</span></label>
+                    <label for="login-email">Email Id</label>
                     <div class="auth-input">
                       <i class="ph ph-envelope-simple"></i>
-                      <input type="email" id="login-email" placeholder="hello@delisas.com" required />
+                      <input type="email" id="login-email" placeholder="thisuix@mail.com" required />
                     </div>
                   </div>
 
                   <!-- Password Input -->
                   <div class="auth-field">
-                    <div class="auth-field-row">
-                      <label for="login-password">Password <span>*</span></label>
-                      <a href="#" class="auth-forgot" onclick="return false;">Forgot password?</a>
-                    </div>
+                    <label for="login-password">Password</label>
                     <div class="auth-input">
                       <i class="ph ph-lock-simple"></i>
                       <input type="password" id="login-password" placeholder="Enter password" required />
@@ -177,9 +162,13 @@
                     </div>
                   </div>
 
+                  <div class="auth-field-row auth-forgot-row">
+                    <a href="#" class="auth-forgot" onclick="return false;">Forgot your password?</a>
+                  </div>
+
                   <!-- OTP Input (Initially Hidden) -->
                   <div id="otp-group" class="auth-field hidden">
-                    <label for="login-otp">Security OTP <span>*</span></label>
+                    <label for="login-otp">Security OTP</label>
                     <div class="auth-input">
                       <i class="ph ph-shield-check"></i>
                       <input type="text" id="login-otp" class="auth-otp" placeholder="Enter 4-digit OTP"
@@ -195,59 +184,42 @@
 
                   <!-- Login Button -->
                   <button type="submit" class="auth-submit" id="login-submit-btn">
-                    Sign In
+                    LOGIN
                   </button>
                 </form>
 
-                <p class="auth-signup">Don't have an account? <a href="#" onclick="return false;">Sign Up</a></p>
-              </div>
-            </div>
+                <div class="auth-divider"><span>OR</span></div>
 
-            <!-- Right: Testimonial -->
-            <div class="auth-aside">
-              <div class="auth-quote">
-                <span class="auth-quote-open">&ldquo;</span>
-                <p>Seamless booking experience! The app makes finding and reserving rooms so easy. I loved the instant
-                  confirmation and personalized recommendations. Definitely my go-to for all future stays.</p>
-                <span class="auth-quote-close">&rdquo;</span>
-              </div>
-              <div class="auth-author">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Aryan Singh" />
-                <div>
-                  <strong>Aryan Singh</strong>
-                  <span>Amsterdam</span>
+                <!-- Social sign-in -->
+                <div class="auth-social">
+                  <button type="button" class="auth-social-btn" aria-label="Continue with Google">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" />
+                  </button>
+                  <button type="button" class="auth-social-btn" aria-label="Continue with Facebook">
+                    <i class="ph-fill ph-facebook-logo" style="color:#1877f2;"></i>
+                  </button>
+                  <button type="button" class="auth-social-btn" aria-label="Continue with Apple">
+                    <i class="ph-fill ph-apple-logo"></i>
+                  </button>
                 </div>
+
+                <p class="auth-signup">Don't have account? <a href="#" onclick="return false;">Register Now</a></p>
               </div>
-              <svg class="auth-skyline" viewBox="0 0 600 320" fill="none" xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true">
-                <g stroke="#2f4a3a" stroke-width="3" stroke-linejoin="round">
-                  <rect x="30" y="200" width="70" height="120" fill="#cfe0d6" />
-                  <rect x="110" y="120" width="80" height="200" fill="#ffffff" />
-                  <rect x="200" y="70" width="70" height="250" fill="#f7e6c4" />
-                  <rect x="280" y="150" width="60" height="170" fill="#ffffff" />
-                  <rect x="350" y="40" width="55" height="280" fill="#ffffff" />
-                  <rect x="415" y="110" width="75" height="210" fill="#f6d2c8" />
-                  <rect x="500" y="170" width="70" height="150" fill="#cfe0d6" />
-                </g>
-                <g stroke="#2f4a3a" stroke-width="2.5" stroke-linecap="round">
-                  <line x1="125" y1="150" x2="175" y2="150" />
-                  <line x1="125" y1="180" x2="175" y2="180" />
-                  <line x1="125" y1="210" x2="175" y2="210" />
-                  <line x1="125" y1="240" x2="175" y2="240" />
-                  <line x1="365" y1="80" x2="390" y2="80" />
-                  <line x1="365" y1="110" x2="390" y2="110" />
-                  <line x1="365" y1="140" x2="390" y2="140" />
-                  <line x1="365" y1="170" x2="390" y2="170" />
-                  <line x1="430" y1="140" x2="475" y2="140" />
-                  <line x1="430" y1="170" x2="475" y2="170" />
-                  <line x1="430" y1="200" x2="475" y2="200" />
-                </g>
-                <g stroke="#2f4a3a" stroke-width="3" stroke-linecap="round" fill="none">
-                  <circle cx="370" cy="270" r="28" fill="#ffffff" />
-                  <path d="M370 250 v40 M356 276 l14 14 14 -14" />
-                  <circle cx="540" cy="265" r="24" fill="#ffffff" />
-                  <path d="M540 248 v34 M528 270 l12 12 12 -12" />
-                </g>
+
+              <svg class="auth-skyline" viewBox="0 0 640 150" fill="#4a9fe0" xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true" preserveAspectRatio="xMidYMax meet">
+                <!-- Taj Mahal-ish dome -->
+                <path d="M70 150v-46a28 28 0 0 1 56 0v46zM90 62h16v14H90zM56 150v-30h8v30zM132 150v-30h8v30z" />
+                <path d="M98 40l6 20H92z" />
+                <!-- leaning tower -->
+                <path d="M232 150l6-70 22 3-6 67zM236 78l20 3 1-8-20-3z" />
+                <!-- cathedral / notre dame -->
+                <path d="M470 150v-64h12v-14h-8l14-18 14 18h-8v14h12v64zM512 150v-70h40v70zM556 150v-56h34v56z" />
+                <path d="M494 44l4 12h-8z" />
+                <!-- generic tower right -->
+                <path d="M600 150v-40h26v40zM606 96h14v10h-14z" />
+                <!-- small buildings -->
+                <path d="M300 150v-34h30v34zM334 150v-24h24v24z" />
               </svg>
             </div>
 
@@ -324,19 +296,48 @@
         <div class="glass-panel search-panel">
           <form id="search-form" onsubmit="event.preventDefault(); searchHotels();">
 
-            <div class="input-grid">
-              <!-- Check-in / Check-out -->
-              <div class="input-group">
-                <label for="checkin">
-                  <i class="ph ph-calendar-blank"></i> Check-in
-                </label>
-                <input type="date" id="checkin" required />
+            <!-- Check-in / Check-out — custom range calendar -->
+            <div class="date-range-wrapper">
+              <div class="input-grid">
+                <div class="input-group">
+                  <label><i class="ph ph-calendar-blank"></i> Check-in</label>
+                  <button type="button" class="date-field" id="checkin-field" onclick="openDatePicker('checkin')">
+                    <span class="date-field-value" id="checkin-display">Select date</span>
+                    <i class="ph ph-caret-down date-field-caret"></i>
+                  </button>
+                  <input type="hidden" id="checkin" required />
+                </div>
+                <div class="input-group">
+                  <label><i class="ph ph-calendar-check"></i> Check-out</label>
+                  <button type="button" class="date-field" id="checkout-field" onclick="openDatePicker('checkout')">
+                    <span class="date-field-value" id="checkout-display">Select date</span>
+                    <i class="ph ph-caret-down date-field-caret"></i>
+                  </button>
+                  <input type="hidden" id="checkout" required />
+                </div>
               </div>
-              <div class="input-group">
-                <label for="checkout">
-                  <i class="ph ph-calendar-check"></i> Check-out
-                </label>
-                <input type="date" id="checkout" required />
+
+              <!-- Calendar popover -->
+              <div id="date-picker-popover" class="date-picker-popover hidden">
+                <div class="dp-header">
+                  <button type="button" class="dp-nav" id="dp-prev" title="Previous month"><i class="ph ph-caret-left"></i></button>
+                  <div class="dp-titles">
+                    <span id="dp-title-1" class="dp-title"></span>
+                    <span id="dp-title-2" class="dp-title"></span>
+                  </div>
+                  <button type="button" class="dp-nav" id="dp-next" title="Next month"><i class="ph ph-caret-right"></i></button>
+                </div>
+                <div class="dp-months">
+                  <div class="dp-month" id="dp-month-1"></div>
+                  <div class="dp-month" id="dp-month-2"></div>
+                </div>
+                <div class="dp-footer">
+                  <span class="dp-hint" id="dp-hint">Select check-in date</span>
+                  <div class="dp-actions">
+                    <button type="button" class="dp-btn dp-btn-clear" onclick="clearDatePicker()">Clear</button>
+                    <button type="button" class="dp-btn dp-btn-apply" onclick="closeDatePicker()">Done</button>
+                  </div>
+                </div>
               </div>
             </div>
 

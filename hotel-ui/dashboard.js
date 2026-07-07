@@ -783,9 +783,14 @@ function loadAPIConfiguration() {
   const envEl = document.getElementById("dashboard-env");
   const savedEnv = localStorage.getItem("tj_env") || "https://tj-hotel-admin.tripjack.com/";
   if (envEl) envEl.value = savedEnv;
-  
-  // Load API key
-  const savedApikey = localStorage.getItem("tj_apikey") || "7510455af381d5-d315-41e2-8e5e-e94cc0a960fe";
+
+  // Load API key (default matches the main app's default predefined key)
+  const savedApikey = localStorage.getItem("tj_apikey") || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9";
+
+  // Persist the resolved defaults so the dashboard, Active Configuration, and the
+  // main app all read the same values (avoids a fresh "Not Set" state).
+  if (!localStorage.getItem("tj_env")) localStorage.setItem("tj_env", savedEnv);
+  if (!localStorage.getItem("tj_apikey")) localStorage.setItem("tj_apikey", savedApikey);
   const selectEl = document.getElementById("dashboard-apikey-select");
   const customContainer = document.getElementById("dashboard-custom-apikey-container");
   

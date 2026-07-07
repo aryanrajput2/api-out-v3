@@ -243,7 +243,7 @@ function syntaxHighlightJson(json, storeId) {
 
 // Helper to convert number to words
 function priceInWords(num) {
-  if (num === 0) return 'Zero';
+  if (Number(num) === 0) return 'Zero Rupees Only';
   if (!num || isNaN(num)) return '';
   
   const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
@@ -266,13 +266,13 @@ function priceInWords(num) {
   const wholePart = amountArr[0];
   const decimalPart = amountArr[1];
   
-  let result = inWords(wholePart);
-  
+  let result = inWords(wholePart) + ' Rupees';
+
   if (decimalPart && Number(decimalPart) > 0) {
     result += ' and ' + inWords(decimalPart.padEnd(2, '0').substr(0, 2)) + ' Paise';
   }
-  
-  return result;
+
+  return result + ' Only';
 }
 
 // Hide header elements on login page only
@@ -480,7 +480,7 @@ function handleLogin(event) {
     if (email === VALID_EMAIL && password === VALID_PASSWORD) {
       // Show OTP field
       otpGroup.classList.remove("hidden");
-      loginBtn.innerHTML = '<i class="ph ph-shield-check"></i> Verify OTP';
+      loginBtn.innerHTML = 'VERIFY OTP';
       loginStage = 2;
       
       // Focus OTP field
@@ -603,7 +603,7 @@ function logout() {
   const otpGroup = document.getElementById("otp-group");
   const loginBtn = document.getElementById("login-submit-btn");
   if (otpGroup) otpGroup.classList.add("hidden");
-  if (loginBtn) loginBtn.innerHTML = '<i class="ph ph-sign-in"></i> Sign In';
+  if (loginBtn) loginBtn.innerHTML = 'LOGIN';
   
   checkLoginStatus();
 }
@@ -611,6 +611,7 @@ function logout() {
 window.addEventListener("DOMContentLoaded", () => {
   checkLoginStatus();
   initializeDates();
+  initDateRangePicker();
   loadRecentBookings();
   
   // Periodically check session expiry every minute
@@ -619,6 +620,12 @@ window.addEventListener("DOMContentLoaded", () => {
   const currentPath = window.location.pathname;
   const urlParams = new URLSearchParams(window.location.search);
   const bookingIdParam = urlParams.get('id');
+
+  // Login gate: if not authenticated, checkLoginStatus() has already shown the
+  // login page. Skip all deep-link routing so it can't override the gate.
+  if (localStorage.getItem("tj_user_logged_in") !== "true") {
+    return;
+  }
 
   if (currentPath === '/home/booking-detail' && bookingIdParam) {
     viewBookingDetail(bookingIdParam);
@@ -664,22 +671,31 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   } else if (currentPath === '/home/results') {
     const savedState = sessionStorage.getItem('tj_page_state');
-    
+
     if (savedState) {
       try {
         const state = JSON.parse(savedState);
         if (state.page === 'results') {
           globalSearchBody = state.searchBody;
-          if (state.searchBody) {
-            triggerSearchWithBody(state.searchBody);
-          } else {
+          // Prefer restoring the already-saved results instantly — re-running the
+          // search on every refresh was slow and, if it failed, dropped the user
+          // back to the home page. Only re-search if no saved results exist.
+          if (state.resultsData) {
             displayHotels(state.resultsData);
             switchToResultsPage(state.searchBody, state.duration || 0, state.resultsData);
+          } else if (state.searchBody) {
+            triggerSearchWithBody(state.searchBody);
+          } else {
+            window.location.replace('/home/search');
           }
+        } else {
+          window.location.replace('/home/search');
         }
       } catch (e) {
-        // Silent fail
+        window.location.replace('/home/search');
       }
+    } else {
+      window.location.replace('/home/search');
     }
   } else {
     sessionStorage.removeItem('tj_page_state');
@@ -1261,6 +1277,13 @@ function getConfigPayload() {
     env: env || "https://tj-hotel-admin.tripjack.com/",
     apiKey: apiKey || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
   };
+}
+
+// Non-refundable bookings are blocked ONLY on prod / admin-tj environments.
+// On the API test sandbox (apitest-hms) non-refundable bookings are allowed.
+function isNonRefundableBlockedEnv() {
+  const env = (getConfigPayload().env || "").toLowerCase();
+  return !env.includes("apitest-hms");
 }
 
 let currentSearchAbortController = null;
@@ -1849,8 +1872,8 @@ function displayHotels(data) {
               <span class="price-total">${currency} ${totalPrice}</span>
             </div>
           </div>
-          <div style="font-size: 0.75rem; color: #64748b; font-weight: 500; text-align: right; margin-top: 4px; font-style: italic;">
-            (${priceInWords(totalPrice)} Rupees Only)
+          <div style="flex:0 0 100%; width:100%; font-size: 0.75rem; color: #64748b; font-weight: 500; text-align: left; margin-top: 4px; font-style: italic;">
+            (${priceInWords(totalPrice)})
           </div>
         </div>
         
@@ -3767,7 +3790,7 @@ function renderHotelDetails(data) {
               </div>
             </div>
             <div style="font-size: 0.85rem; color: #64748b; font-weight: 600; font-style: italic;">
-              (${priceInWords(totalPrice)} Rupees Only)
+              (${priceInWords(totalPrice)})
             </div>
           </div>
 
@@ -4790,7 +4813,11 @@ function renderReviewDetails(data, responseMs) {
             <span>GST Claimable</span>
             <span style="font-weight: 500; color: var(--primary);">${currency} ${gstClaimable}</span>
           </div>
-          
+          <div style="display:flex; justify-content:space-between; margin-bottom: 10px; color: var(--text-muted); font-size:0.9rem;">
+            <span>Commission (${option.commercial?.type || "Net"})</span>
+            <span style="font-weight: 500; color: var(--primary);">${currency} ${commissionAmt}</span>
+          </div>
+
           <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 16px 0;" />
           
           <div class="summary-row total" style="display:flex; justify-content:space-between; align-items:flex-start; padding:15px; background:rgba(59,130,246,0.05); border-radius:8px;">
@@ -4798,7 +4825,7 @@ function renderReviewDetails(data, responseMs) {
             <div style="text-align: right;">
               <span style="font-weight:900; font-size:1.3rem; color:var(--primary);">${currency} ${totalPrice}</span>
               <div style="font-size: 0.8rem; color: #64748b; font-weight: 600; margin-top: 4px; font-style: italic;">
-                (${priceInWords(totalPrice)} Rupees Only)
+                (${priceInWords(totalPrice)})
               </div>
             </div>
           </div>
@@ -4955,10 +4982,10 @@ function buildTravellerFormRows(searchBody) {
 async function submitBooking(bookingType, bookingId, correlationId, amount) {
   const bookingEl = document.getElementById("booking");
 
-  // ── Guard 1: Refundability ────────────────────────────────────────────
+  // ── Guard 1: Refundability (prod / admin-tj only; allowed on sandbox) ──
   const reviewData = window._lastReviewData;
   const isRefundable = reviewData?.option?.cancellation?.isRefundable;
-  if (isRefundable === false) {
+  if (isRefundable === false && isNonRefundableBlockedEnv()) {
     if (bookingEl) {
       bookingEl.classList.remove("empty");
       bookingEl.innerHTML = `
@@ -5810,7 +5837,7 @@ function renderBookingDetail(data) {
               <div style="display: flex; flex-direction: column; align-items: flex-end;">
                 <span style="font-size: 1.7rem; font-weight: 800; color: #34d399; text-shadow: 0 2px 16px rgba(52, 211, 153, 0.35);">${currency} ${totalPrice.toFixed(2)}</span>
                 <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 4px; font-style: italic; opacity: 0.8;">
-                  (${priceInWords(totalPrice.toFixed(2))} Rupees Only)
+                  (${priceInWords(totalPrice.toFixed(2))})
                 </div>
               </div>
             </div>
@@ -5872,10 +5899,10 @@ async function bookRoom(optionId, correlationId) {
 
   const bookingEl = document.getElementById("booking");
 
-  // ── Guard 1: Refundability check ──────────────────────────────────────
+  // ── Guard 1: Refundability check (prod / admin-tj only; allowed on sandbox) ──
   const reviewData = window._lastReviewData;
   const isRefundable = reviewData?.option?.cancellation?.isRefundable;
-  if (isRefundable === false) {
+  if (isRefundable === false && isNonRefundableBlockedEnv()) {
     if (bookingEl) {
       bookingEl.classList.remove("empty");
       bookingEl.innerHTML = `
@@ -6309,6 +6336,155 @@ function initializeDates() {
     checkoutInput.value = formatIso(nextDay);
     checkoutInput.min = formatIso(nextDay);
   });
+}
+
+/* =========================================
+   Custom Range Calendar (Check-in / Check-out)
+   ========================================= */
+const DP = { view: null, checkin: null, checkout: null, selecting: 'checkin', min: null };
+const DP_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DP_DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+function dpToISO(d) {
+  const x = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return x.toISOString().split('T')[0];
+}
+function dpParse(s) {
+  if (!s) return null;
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+function dpStripTime(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function dpSameDay(a, b) { return a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function dpFmt(d) {
+  if (!d) return 'Select date';
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function initDateRangePicker() {
+  const ci = document.getElementById('checkin');
+  const co = document.getElementById('checkout');
+  if (!ci || !document.getElementById('date-picker-popover')) return;
+
+  DP.min = dpStripTime(new Date());
+  DP.checkin = dpParse(ci.value);
+  DP.checkout = dpParse(co.value);
+  DP.view = new Date((DP.checkin || DP.min).getFullYear(), (DP.checkin || DP.min).getMonth(), 1);
+
+  document.getElementById('dp-prev').onclick = () => dpNav(-1);
+  document.getElementById('dp-next').onclick = () => dpNav(1);
+
+  // Close on outside click. Use mousedown (fires BEFORE the day-grid re-render
+  // on click) so an in-calendar selection isn't mistaken for an outside click.
+  document.addEventListener('mousedown', (e) => {
+    const pop = document.getElementById('date-picker-popover');
+    const wrap = e.target.closest('.date-range-wrapper');
+    if (pop && !pop.classList.contains('hidden') && !wrap) closeDatePicker();
+  });
+
+  dpUpdateFields();
+}
+
+function openDatePicker(which) {
+  DP.selecting = which;
+  const pop = document.getElementById('date-picker-popover');
+  if (!pop) return;
+  // Anchor the view to the relevant selected month
+  const anchor = (which === 'checkout' && DP.checkout) ? DP.checkout : (DP.checkin || DP.min);
+  DP.view = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  pop.classList.remove('hidden');
+  document.getElementById('checkin-field').classList.toggle('active', which === 'checkin');
+  document.getElementById('checkout-field').classList.toggle('active', which === 'checkout');
+  dpRender();
+}
+function closeDatePicker() {
+  const pop = document.getElementById('date-picker-popover');
+  if (pop) pop.classList.add('hidden');
+  document.getElementById('checkin-field')?.classList.remove('active');
+  document.getElementById('checkout-field')?.classList.remove('active');
+}
+function clearDatePicker() {
+  DP.checkin = null; DP.checkout = null; DP.selecting = 'checkin';
+  dpUpdateFields(); dpRender();
+}
+function dpNav(delta) {
+  DP.view = new Date(DP.view.getFullYear(), DP.view.getMonth() + delta, 1);
+  dpRender();
+}
+
+function dpSelectDay(iso) {
+  const d = dpParse(iso);
+  if (!d || dpStripTime(d) < DP.min) return;
+
+  const startingFresh = DP.selecting === 'checkin' || !DP.checkin || (DP.checkin && DP.checkout);
+  if (startingFresh) {
+    DP.checkin = d; DP.checkout = null; DP.selecting = 'checkout';
+  } else {
+    // selecting checkout
+    if (d <= DP.checkin) { DP.checkin = d; DP.checkout = null; DP.selecting = 'checkout'; }
+    else { DP.checkout = d; DP.selecting = 'checkin'; }
+  }
+  dpUpdateFields();
+  dpRender();
+  if (DP.checkin && DP.checkout) setTimeout(closeDatePicker, 180);
+}
+
+function dpUpdateFields() {
+  const ci = document.getElementById('checkin');
+  const co = document.getElementById('checkout');
+  const cid = document.getElementById('checkin-display');
+  const cod = document.getElementById('checkout-display');
+  if (ci) ci.value = DP.checkin ? dpToISO(DP.checkin) : '';
+  if (co) co.value = DP.checkout ? dpToISO(DP.checkout) : '';
+  if (cid) { cid.textContent = dpFmt(DP.checkin); cid.classList.toggle('placeholder', !DP.checkin); }
+  if (cod) { cod.textContent = dpFmt(DP.checkout); cod.classList.toggle('placeholder', !DP.checkout); }
+  const hint = document.getElementById('dp-hint');
+  if (hint) {
+    if (DP.checkin && DP.checkout) {
+      const nights = Math.round((DP.checkout - DP.checkin) / 86400000);
+      hint.textContent = `${nights} night${nights > 1 ? 's' : ''} selected`;
+    } else if (DP.checkin) hint.textContent = 'Select check-out date';
+    else hint.textContent = 'Select check-in date';
+  }
+}
+
+function dpRenderMonth(base) {
+  const year = base.getFullYear(), month = base.getMonth();
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = DP.min;
+
+  let cells = '';
+  for (const d of DP_DOW) cells += `<span class="dp-dow">${d}</span>`;
+  for (let i = 0; i < startDow; i++) cells += `<span class="dp-cell dp-empty"></span>`;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const iso = dpToISO(date);
+    const disabled = date < today;
+    const isStart = dpSameDay(date, DP.checkin);
+    const isEnd = dpSameDay(date, DP.checkout);
+    const inRange = DP.checkin && DP.checkout && date > DP.checkin && date < DP.checkout;
+    const isToday = dpSameDay(date, today);
+    let cls = 'dp-cell dp-day';
+    if (disabled) cls += ' dp-disabled';
+    if (isStart) cls += ' dp-start';
+    if (isEnd) cls += ' dp-end';
+    if (inRange) cls += ' dp-inrange';
+    if (isToday) cls += ' dp-today';
+    cells += `<button type="button" class="${cls}" ${disabled ? 'disabled' : `onclick="dpSelectDay('${iso}')"`}>${day}</button>`;
+  }
+  return cells;
+}
+
+function dpRender() {
+  const left = DP.view;
+  const right = new Date(DP.view.getFullYear(), DP.view.getMonth() + 1, 1);
+  document.getElementById('dp-title-1').textContent = `${DP_MONTHS[left.getMonth()]} ${left.getFullYear()}`;
+  document.getElementById('dp-title-2').textContent = `${DP_MONTHS[right.getMonth()]} ${right.getFullYear()}`;
+  document.getElementById('dp-month-1').innerHTML = dpRenderMonth(left);
+  document.getElementById('dp-month-2').innerHTML = dpRenderMonth(right);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
