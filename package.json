@@ -22,6 +22,7 @@
     "playwright": "^1.60.0"
   },
   "dependencies": {
-    "@umami/node": "^0.4.0"
+    "@umami/node": "^0.4.0",
+    "@vercel/speed-insights": "^2.0.0"
   }
 }
