@@ -3,10 +3,16 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-LOGS_DIR = "Server_logs"
+# On Vercel (and other serverless platforms) the project filesystem is
+# read-only; only /tmp is writable. Writing anywhere else at import time
+# crashes the function with FUNCTION_INVOCATION_FAILED.
+LOGS_DIR = "/tmp/Server_logs" if os.getenv("VERCEL") else "Server_logs"
 
-# Create logs directory if it doesn't exist
-Path(LOGS_DIR).mkdir(exist_ok=True)
+# Create logs directory if it doesn't exist (never let this crash the import).
+try:
+    Path(LOGS_DIR).mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 def get_client_ip(request):
     """Extract client IP from request"""
