@@ -1,4 +1,14 @@
 // Dashboard JavaScript
+
+/* Silence verbose console output in normal use. Errors and warnings still show
+   so real problems surface. To re-enable debug logs, run in the console:
+   localStorage.setItem('tj_debug','1') and reload. */
+(function () {
+  if (localStorage.getItem('tj_debug') === '1') return;
+  var noop = function () {};
+  ['log', 'debug', 'info'].forEach(function (m) { console[m] = noop; });
+})();
+
 const API_BASE = window.location.origin;
 
 // Analytics Functions
@@ -1295,3 +1305,70 @@ function copyLogJson(index) {
       showNotification("Failed to copy JSON", "error");
     });
 }
+
+/* =========================================================================
+   Network status indicator — "You are offline" / "You are online"
+   Self-contained: injects its own styles + banner, listens to online/offline.
+   ========================================================================= */
+(function () {
+  if (window.__netStatusInit) return;
+  window.__netStatusInit = true;
+
+  var STYLE = ''
+    + '#net-status-banner{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-140%);'
+    + 'z-index:99999;display:flex;align-items:center;gap:9px;padding:11px 20px;border-radius:999px;'
+    + 'font-family:inherit;font-size:0.92rem;font-weight:700;color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.22);'
+    + 'opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .35s ease;}'
+    + '#net-status-banner.show{transform:translateX(-50%) translateY(0);opacity:1;}'
+    + '#net-status-banner.offline{background:linear-gradient(135deg,#ef4444,#b91c1c);}'
+    + '#net-status-banner.online{background:linear-gradient(135deg,#22c55e,#15803d);}'
+    + '#net-status-banner .net-dot{width:9px;height:9px;border-radius:50%;background:#fff;flex-shrink:0;}'
+    + '#net-status-banner.offline .net-dot{animation:netPulse 1.1s ease-in-out infinite;}'
+    + '@keyframes netPulse{0%,100%{opacity:1;}50%{opacity:.35;}}';
+
+  var styleEl = document.createElement('style');
+  styleEl.textContent = STYLE;
+  document.head.appendChild(styleEl);
+
+  var banner = document.createElement('div');
+  banner.id = 'net-status-banner';
+  banner.setAttribute('role', 'status');
+  banner.setAttribute('aria-live', 'polite');
+  banner.innerHTML = '<span class="net-dot"></span><span id="net-status-text"></span>';
+
+  var hideTimer = null;
+
+  function mount() {
+    if (!banner.parentNode && document.body) document.body.appendChild(banner);
+  }
+
+  function render(online) {
+    mount();
+    if (!banner.parentNode) return;
+    var text = banner.querySelector('#net-status-text');
+    banner.classList.remove('online', 'offline');
+    banner.classList.add(online ? 'online' : 'offline');
+    text.textContent = online ? 'You are online' : 'You are offline';
+    banner.classList.add('show');
+
+    if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+    // Keep the offline banner visible; auto-hide the online banner after a moment.
+    if (online) {
+      hideTimer = setTimeout(function () { banner.classList.remove('show'); }, 3500);
+    }
+  }
+
+  window.addEventListener('online', function () { render(true); });
+  window.addEventListener('offline', function () { render(false); });
+
+  // On load, only announce if we start offline (avoid a needless "online" flash).
+  function init() {
+    mount();
+    if (navigator.onLine === false) render(false);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
