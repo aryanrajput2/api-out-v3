@@ -804,8 +804,14 @@ function loadAPIConfiguration() {
   if (!localStorage.getItem("tj_apikey")) localStorage.setItem("tj_apikey", savedApikey);
   const selectEl = document.getElementById("dashboard-apikey-select");
   const customContainer = document.getElementById("dashboard-custom-apikey-container");
-  
-  if (PREDEFINED_KEYS.includes(savedApikey)) {
+
+  // Treat the key as predefined if the dropdown actually has an option for it,
+  // so it can't silently reset to "custom" on refresh when PREDEFINED_KEYS and
+  // the dropdown drift out of sync.
+  const hasOption = selectEl &&
+    Array.from(selectEl.options).some(o => o.value === savedApikey);
+
+  if (hasOption || PREDEFINED_KEYS.includes(savedApikey)) {
     if (selectEl) selectEl.value = savedApikey;
     if (customContainer) customContainer.style.display = "none";
   } else {

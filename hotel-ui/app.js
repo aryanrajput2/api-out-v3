@@ -1199,7 +1199,13 @@ function loadConfigState() {
   const selectEl = document.getElementById("config-apikey-select");
   const customContainer = document.getElementById("custom-apikey-container");
 
-  if (PREDEFINED_KEYS.includes(savedApikey)) {
+  // Treat the key as predefined if the dropdown actually has an option for it.
+  // (Relying only on PREDEFINED_KEYS breaks if the array and dropdown drift out
+  // of sync — the selection would silently reset to "custom" on refresh.)
+  const hasOption = selectEl &&
+    Array.from(selectEl.options).some(o => o.value === savedApikey);
+
+  if (hasOption || PREDEFINED_KEYS.includes(savedApikey)) {
     if (selectEl) selectEl.value = savedApikey;
     if (customContainer) customContainer.style.display = "none";
   } else {
