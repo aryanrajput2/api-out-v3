@@ -18,13 +18,10 @@ def confirm_booking(data: dict):
     CONFIRM_URL = f"{oms_base(env)}/oms/v3/hotel/confirm-book"
     CONFIRM_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else default_key(env)
 
-    # Optional authorization header, often used alongside apikey in Tripjack V3
-    BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
-
+    # apikey-only auth (see book.py). No hardcoded Authorization: Basic.
     headers = {
         "Content-Type": "application/json",
         "apikey": CONFIRM_APIKEY,
-        "Authorization": BOOK_AUTH,
     }
 
     amount = data.get("amount")

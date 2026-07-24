@@ -22,7 +22,7 @@ HMS_BASE = {
 OMS_BASE = {
     "sandbox": "https://apitest-hotel-booker.tripjack.com",
     "admin":   "https://admin-hotel-booker.tripjack.com",
-    "prod":    "https://hms-booker.tripjack.com",
+    "prod":    "https://hotel-booker.tripjack.com",
 }
 
 DEFAULT_API_KEY = {

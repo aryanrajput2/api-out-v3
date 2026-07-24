@@ -21,10 +21,10 @@ def cancel_booking(data: dict):
     CANCEL_URL = f"{oms_base(env)}/oms/v3/hotel/cancel-booking/{booking_id}"
     CANCEL_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else default_key(env)
 
+    # apikey-only auth (see book.py). No hardcoded Authorization: Basic.
     headers = {
         "Content-Type": "application/json",
         "apikey": CANCEL_APIKEY,
-        "Authorization": "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw==",
     }
 
     last_result = None

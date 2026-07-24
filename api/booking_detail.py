@@ -41,10 +41,10 @@ def fetch_booking_detail(data: dict):
     else:
         BOOKING_DETAIL_APIKEY = DEFAULT_API_KEY[environment]
     
+    # apikey-only auth (see book.py). No hardcoded Authorization: Basic.
     headers = {
         "Content-Type": "application/json",
         "apikey": BOOKING_DETAIL_APIKEY,
-        "Authorization": "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw==",
     }
 
     payload = {

@@ -14,12 +14,14 @@ def book_hotel(data: dict):
     # URL + key resolved from the central config (config.py)
     url = f"{oms_base(env)}/oms/v3/hotel/book"
     BOOK_APIKEY = raw_api_key.strip() if (raw_api_key and raw_api_key.strip()) else default_key(env)
-    BOOK_AUTH = "Basic YXNodS5ndXB0YUB0ZWNobm9ncmFtc29sdXRpb25zLmNvbTpUZXN0QHAhQFRHUw=="
 
+    # Tripjack V3 OMS authenticates on the `apikey` header alone (matches the
+    # working curl/Postman). Do NOT send a hardcoded Authorization: Basic — it
+    # belonged to one specific account and made prod reject any other agent's
+    # key with "Authentication failed".
     headers = {
         "Content-Type": "application/json",
         "apikey": BOOK_APIKEY,
-        "Authorization": BOOK_AUTH,
     }
 
     # Build roomTravellerInfo from the travellers array passed by frontend
