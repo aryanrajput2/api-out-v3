@@ -53,4 +53,21 @@ def default_key(env: str) -> str:
     """Fallback API key for the given env string."""
     return DEFAULT_API_KEY[resolve_env(env)]
 
+
+def is_transient_auth_failure(result: dict) -> bool:
+    """True if an upstream OMS JSON response looks like a transient 401 auth
+    rejection. Tripjack's sandbox intermittently rejects the first booking/
+    confirm/cancel call with a 401 "Invalid API key", then accepts an identical
+    retry seconds later. A 401 is rejected at auth (no state changes upstream),
+    so retrying the same request is safe."""
+    if not isinstance(result, dict):
+        return False
+    status = result.get("status") or {}
+    if status.get("httpStatus") == 401 and status.get("success") is False:
+        return True
+    for err in (result.get("errors") or []):
+        if str(err.get("errCode")) == "401":
+            return True
+    return False
+
 # ./start.sh

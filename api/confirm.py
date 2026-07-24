@@ -1,6 +1,6 @@
 import time
 import requests
-from config import oms_base, default_key
+from config import oms_base, default_key, is_transient_auth_failure
 
 # Tripjack's sandbox intermittently rejects the very first confirm-book with a
 # transient 401 "Invalid API key", then accepts an identical retry seconds
@@ -8,19 +8,6 @@ from config import oms_base, default_key
 # safe to retry the same request.
 _MAX_ATTEMPTS = 3
 _RETRY_DELAY_S = 1.5
-
-
-def _is_transient_auth_failure(result: dict) -> bool:
-    """True if the upstream JSON looks like a transient 401 auth rejection."""
-    if not isinstance(result, dict):
-        return False
-    status = result.get("status") or {}
-    if status.get("httpStatus") == 401 and status.get("success") is False:
-        return True
-    for err in (result.get("errors") or []):
-        if str(err.get("errCode")) == "401":
-            return True
-    return False
 
 
 def confirm_booking(data: dict):
@@ -62,7 +49,7 @@ def confirm_booking(data: dict):
             return {"error": str(e), "message": "An error occurred during the confirm-book request"}
 
         # Retry only the transient first-attempt 401; return anything else as-is.
-        if attempt < _MAX_ATTEMPTS and _is_transient_auth_failure(result):
+        if attempt < _MAX_ATTEMPTS and is_transient_auth_failure(result):
             last_result = result
             time.sleep(_RETRY_DELAY_S)
             continue
