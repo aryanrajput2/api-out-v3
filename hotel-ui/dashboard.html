@@ -624,8 +624,8 @@
                 <i class="ph ph-pencil-simple"></i> Own API Key (Masked for Security)
               </label>
               <input type="text" id="dashboard-apikey-custom" placeholder="Paste custom API key here..." 
-                onkeyup="saveDashboardCustomApiKey()" 
-                onfocus="unmaskDashboardCustomKey()" 
+                oninput="saveDashboardCustomApiKey()"
+                onfocus="unmaskDashboardCustomKey()"
                 onblur="maskDashboardCustomKey()" />
             </div>
           </div>
