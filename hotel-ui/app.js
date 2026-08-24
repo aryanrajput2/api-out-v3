@@ -2689,22 +2689,70 @@ function pickRoomImageUrl(im) {
   return l.original?.href || l.XXL?.href || l.XL?.href || l.L?.href || l.Standard?.href || l.M?.href || l.Thumbnail?.href || '';
 }
 
+// Collect ALL distinct photo URLs from a static image object. The API packs
+// several different photos into one object's `links` as Standard, Standard_1,
+// Standard_2 … so taking a single href drops most of them.
+function collectImageUrls(im) {
+  if (!im) return [];
+  if (typeof im === 'string') return [im];
+  const links = (im && im.links) || {};
+  const urls = Object.values(links).map(v => v && v.href).filter(Boolean);
+  if (!urls.length) {
+    if (im.url) urls.push(im.url);
+    else if (im.imageUrl) urls.push(im.imageUrl);
+  }
+  return urls;
+}
+
+// Fingerprint a photo by its trailing filename so the same photo served at
+// different sizes (…/w_2048/…/abc.jpg vs …/w_400/…/abc.jpg) dedupes to one,
+// while genuinely different photos stay separate.
+function imageFingerprint(url) {
+  try { return (url.split('?')[0].split('/').pop() || url).toLowerCase(); }
+  catch { return url; }
+}
+
 // Build the full static-detail block for a matched room: image gallery,
 // occupancy, complete bed config, and all (deduplicated) amenities.
 function buildStaticRoomDetails(room) {
   if (!room) return '';
   let html = '';
 
-  // ── Image gallery (all images, deduped) ──
-  const urls = [...new Set((Array.isArray(room.images) ? room.images : []).map(pickRoomImageUrl).filter(Boolean))];
-  if (urls.length) {
-    const thumbs = urls.map(u =>
-      `<img src="${u}" loading="lazy" onclick="openImageZoom('${u}')" title="Click to enlarge" style="width:104px; height:78px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; flex-shrink:0; transition:transform 0.2s ease;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='none'" onerror="this.style.display='none'">`
-    ).join('');
+  // ── Image gallery: ALL room photos, grouped by caption (Room / Bathroom /
+  //    Guestroom / Others …), deduped by filename across the whole room. ──
+  const imageObjs = Array.isArray(room.images) ? room.images : [];
+  const seen = new Set();
+  const groups = []; // { caption, urls: [] }
+  imageObjs.forEach(im => {
+    const caption = ((im && im.caption) || '').trim() || 'Room';
+    const urls = collectImageUrls(im).filter(u => {
+      const fp = imageFingerprint(u);
+      if (seen.has(fp)) return false;
+      seen.add(fp);
+      return true;
+    });
+    if (!urls.length) return;
+    let g = groups.find(x => x.caption === caption);
+    if (!g) { g = { caption, urls: [] }; groups.push(g); }
+    g.urls.push(...urls);
+  });
+  const totalImgs = groups.reduce((n, g) => n + g.urls.length, 0);
+  if (totalImgs) {
+    const thumbStyle = "width:104px; height:78px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; flex-shrink:0; transition:transform 0.2s ease;";
+    const sections = groups.map(g => {
+      const thumbs = g.urls.map(u =>
+        `<img src="${u}" loading="lazy" onclick="openImageZoom('${u}')" title="Click to enlarge" style="${thumbStyle}" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='none'" onerror="this.style.display='none'">`
+      ).join('');
+      return `
+        <div style="margin-top:8px;">
+          <div style="font-size:0.72rem; font-weight:600; color:#64748b; margin-bottom:4px;">${g.caption} (${g.urls.length})</div>
+          <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">${thumbs}</div>
+        </div>`;
+    }).join('');
     html += `
       <div style="margin-top:12px;">
-        <div style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Room Photos (${urls.length})</div>
-        <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">${thumbs}</div>
+        <div style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Room Photos (${totalImgs})</div>
+        ${sections}
       </div>`;
   }
 
