@@ -2774,9 +2774,9 @@ function buildStaticRoomDetails(room) {
     const sections = groups.map(g => {
       const thumbs = g.urls.map(u =>
         `<button type="button" onclick="openImageZoom('${u}')" title="Click to enlarge"
-           style="padding:0; margin:0; border:none; background:#f1f5f9; cursor:pointer; border-radius:12px; overflow:hidden; aspect-ratio:4/3; box-shadow:0 1px 3px rgba(15,23,42,0.10); transition:transform .18s ease, box-shadow .18s ease;"
-           onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 22px rgba(15,23,42,0.18)'"
-           onmouseout="this.style.transform='none'; this.style.boxShadow='0 1px 3px rgba(15,23,42,0.10)'">
+           style="padding:0; margin:0; border:none; background:#f1f5f9; cursor:pointer; border-radius:10px; overflow:hidden; aspect-ratio:4/3; box-shadow:0 1px 2px rgba(15,23,42,0.10); transition:transform .18s ease, box-shadow .18s ease;"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 18px rgba(15,23,42,0.16)'"
+           onmouseout="this.style.transform='none'; this.style.boxShadow='0 1px 2px rgba(15,23,42,0.10)'">
            <img src="${u}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.parentElement.style.display='none'">
          </button>`
       ).join('');
@@ -2787,7 +2787,7 @@ function buildStaticRoomDetails(room) {
             <span style="font-size:0.8rem; font-weight:700; color:#334155;">${g.caption}</span>
             <span style="font-size:0.68rem; font-weight:700; color:#64748b; background:#f1f5f9; padding:1px 7px; border-radius:999px;">${g.urls.length}</span>
           </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 200px)); gap:12px;">${thumbs}</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(112px, 128px)); gap:10px;">${thumbs}</div>
         </div>`;
     }).join('');
     html += `
