@@ -6361,7 +6361,12 @@ function applyRecentSearch(index) {
     
     // Scroll to action area
     document.querySelector('.form-actions')?.scrollIntoView({ behavior: 'smooth' });
-    
+
+    // Tell the user the fields are filled and they need to run the search.
+    if (typeof showToast === 'function') {
+      showToast('Recent search applied — now click the Search button to run it.', 'success');
+    }
+
   } catch (err) {
     console.error('Error applying recent search:', err);
   }
