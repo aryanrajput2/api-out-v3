@@ -651,6 +651,10 @@ function logout() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Sync the env/API-key dropdowns from localStorage FIRST, before any page
+  // restore (e.g. booking-detail) calls getConfigPayload — otherwise it reads
+  // the dropdown's default "Admin TJ" and the badge/config reset on refresh.
+  loadConfigState();
   checkLoginStatus();
   initializeDates();
   initDateRangePicker();
@@ -1322,11 +1326,10 @@ function getConfigPayload() {
     apiKey = localStorage.getItem("tj_apikey") || "";
   }
 
-  // Keep localStorage in sync so the security badge, env banners and other
-  // pages read the same values the search actually used.
-  if (env) localStorage.setItem("tj_env", env);
-  if (apiKey) localStorage.setItem("tj_apikey", apiKey);
-
+  // NOTE: intentionally does NOT write to localStorage. Persisting here caused
+  // a bug where, before loadConfigState() had synced the dropdowns, reading the
+  // default "Admin TJ" would clobber the real saved env/key. Selection is
+  // persisted by saveConfigState()/handleApiKeySelection() on change instead.
   return {
     env: env || "https://tj-hotel-admin.tripjack.com/",
     apiKey: apiKey || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
