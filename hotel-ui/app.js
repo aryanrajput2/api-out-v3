@@ -1301,26 +1301,31 @@ function updateGlobalSecurityBadge() {
 }
 
 function getConfigPayload() {
-  let env = localStorage.getItem("tj_env");
-  if (!env) {
-    const envEl = document.getElementById("config-env");
-    env = envEl ? envEl.value : "";
+  // Source of truth = what the user currently has selected on the page. Read
+  // the live dropdown/input first, then fall back to localStorage, then to
+  // sane defaults. Reading the live control fixes the "first selection didn't
+  // take / had to refresh" bug — previously we read localStorage first, so a
+  // fresh selection whose change event hadn't persisted yet was ignored.
+  const envEl = document.getElementById("config-env");
+  let env = (envEl && envEl.value) ? envEl.value : (localStorage.getItem("tj_env") || "");
+
+  const selectEl = document.getElementById("config-apikey-select");
+  const customEl = document.getElementById("config-apikey-custom");
+  let apiKey = "";
+  if (selectEl && selectEl.value === "custom") {
+    // Custom: prefer the typed key, but ignore the masked placeholder.
+    const val = customEl ? customEl.value : "";
+    apiKey = (val && !val.includes("***")) ? val.trim() : (localStorage.getItem("tj_apikey") || "");
+  } else if (selectEl && selectEl.value) {
+    apiKey = selectEl.value;
+  } else {
+    apiKey = localStorage.getItem("tj_apikey") || "";
   }
 
-  let apiKey = localStorage.getItem("tj_apikey");
-  if (!apiKey) {
-    const selectEl = document.getElementById("config-apikey-select");
-    const customEl = document.getElementById("config-apikey-custom");
-    if (selectEl && selectEl.value && selectEl.value !== "custom") {
-      apiKey = selectEl.value;
-    } else if (customEl && customEl.value) {
-      // Remove mask placeholders if any
-      const val = customEl.value;
-      if (!val.includes("***")) {
-        apiKey = val;
-      }
-    }
-  }
+  // Keep localStorage in sync so the security badge, env banners and other
+  // pages read the same values the search actually used.
+  if (env) localStorage.setItem("tj_env", env);
+  if (apiKey) localStorage.setItem("tj_apikey", apiKey);
 
   return {
     env: env || "https://tj-hotel-admin.tripjack.com/",
