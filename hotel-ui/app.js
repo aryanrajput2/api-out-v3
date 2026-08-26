@@ -6283,9 +6283,18 @@ function applyRecentSearch(index) {
     const s = searches[index];
     if (!s) return;
     
-    // Fill basic fields
-    if (document.getElementById('checkin')) document.getElementById('checkin').value = s.checkIn;
-    if (document.getElementById('checkout')) document.getElementById('checkout').value = s.checkOut;
+    // Restore dates into the custom date picker so the VISIBLE display updates
+    // too (checkin/checkout are hidden inputs behind checkin-display spans).
+    if (s.checkIn || s.checkOut) {
+      if (typeof DP === 'object' && DP && typeof dpParse === 'function') {
+        if (s.checkIn) DP.checkin = dpParse(s.checkIn);
+        if (s.checkOut) DP.checkout = dpParse(s.checkOut);
+        if (typeof dpUpdateFields === 'function') dpUpdateFields();
+      } else {
+        const ci = document.getElementById('checkin'); if (ci) ci.value = s.checkIn || '';
+        const co = document.getElementById('checkout'); if (co) co.value = s.checkOut || '';
+      }
+    }
     if (s.hids && document.getElementById('hotelids')) document.getElementById('hotelids').value = s.hids.join(', ');
     if (s.currency && document.getElementById('currency')) document.getElementById('currency').value = s.currency;
     if (s.nationality && document.getElementById('nationality')) document.getElementById('nationality').value = s.nationality;
@@ -6314,20 +6323,34 @@ function applyRecentSearch(index) {
       });
     }
     
-    // Restore saved environment and api key if available
+    // Restore saved environment into the real config dropdown (the old code
+    // targeted non-existent ids "env-select"/"apikey-input", so env + key were
+    // never actually restored — only localStorage was set).
     if (s.env) {
       localStorage.setItem("tj_env", s.env);
-      const envSelect = document.getElementById("env-select");
+      const envSelect = document.getElementById("config-env");
       if (envSelect) envSelect.value = s.env;
+      if (typeof updateEnvBanners === "function") updateEnvBanners(s.env);
     }
-    if (s.apiKey !== undefined) {
+    // Restore saved API key into the real config dropdown (or the custom input).
+    if (s.apiKey) {
       localStorage.setItem("tj_apikey", s.apiKey);
-      const apikeyInput = document.getElementById("apikey-input");
-      if (apikeyInput) apikeyInput.value = s.apiKey;
+      const selectEl = document.getElementById("config-apikey-select");
+      const customContainer = document.getElementById("custom-apikey-container");
+      const customEl = document.getElementById("config-apikey-custom");
+      if (selectEl) {
+        const hasOption = Array.from(selectEl.options).some(o => o.value === s.apiKey);
+        if (hasOption) {
+          selectEl.value = s.apiKey;
+          if (customContainer) customContainer.style.display = "none";
+        } else {
+          selectEl.value = "custom";
+          if (customContainer) customContainer.style.display = "grid";
+          if (customEl) customEl.value = s.apiKey;
+        }
+      }
     }
-    if (typeof updateSecurityBanner === "function") {
-      updateSecurityBanner();
-    }
+    if (typeof updateGlobalSecurityBadge === "function") updateGlobalSecurityBadge();
     
     // Visual feedback
     const item = document.querySelectorAll('.recent-search-item')[index];
