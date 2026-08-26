@@ -48,6 +48,35 @@ function showActivePage(activePageId) {
   (window.__renderedPages || (window.__renderedPages = new Set())).add(activePageId);
 }
 
+// Persist SPA page state. Besides the legacy single "tj_page_state" blob (which
+// only remembers the MOST-RECENT page), keep a per-page cache in "tj_pages" so
+// browser back/forward AND refresh can rebuild ANY page from its own saved
+// state. Without this, going back to an earlier page found the wrong page's
+// blob and the router bounced to the home/search page.
+function persistPageState(state) {
+  try { sessionStorage.setItem('tj_page_state', JSON.stringify(state)); } catch (e) {}
+  if (!state || !state.page) return;
+  try {
+    const map = JSON.parse(sessionStorage.getItem('tj_pages') || '{}');
+    map[state.page] = state;
+    sessionStorage.setItem('tj_pages', JSON.stringify(map));
+  } catch (e) {}
+}
+
+// Read the saved state for a specific page (per-page cache first, then the
+// legacy blob if it happens to be for that page).
+function getPageState(page) {
+  try {
+    const map = JSON.parse(sessionStorage.getItem('tj_pages') || '{}');
+    if (map[page]) return map[page];
+  } catch (e) {}
+  try {
+    const blob = JSON.parse(sessionStorage.getItem('tj_page_state') || 'null');
+    if (blob && blob.page === page) return blob;
+  } catch (e) {}
+  return null;
+}
+
 // Store last API transactions for Technical Details View
 let lastApiTransactions = {
   search: { req: null, res: null, time: null, status: null, url: '/search' },
@@ -640,80 +669,80 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  if (currentPath === '/home/booking-detail' && bookingIdParam) {
+  // Route by the CURRENT URL, restoring that page from its own per-page cache
+  // (getPageState). This makes refresh AND browser back/forward land on the
+  // correct page regardless of which page was visited last.
+  restorePageForPath(currentPath, bookingIdParam);
+});
+
+// Restore the SPA page that belongs to `path` from saved per-page state.
+// Returns true if it handled the path, false otherwise.
+function restorePageForPath(path, bookingIdParam) {
+  if (path === '/home/booking-detail' && bookingIdParam) {
     viewBookingDetail(bookingIdParam);
-  } else if (currentPath === '/home/detail' || currentPath === '/home/review') {
-    const savedState = sessionStorage.getItem('tj_page_state');
-    
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        
-        if (state.page === 'detail' && currentPath === '/home/detail') {
-          globalSearchBody = state.searchBody;
-          window.globalDetailData = state.detailData;
-          
-          showActivePage("detail-page");
-          
-          const hotelId = state.requestedHotelId;
-          const optionId = state.requestedOptionId;
-          if (hotelId && optionId) {
-            fetchHotelDetails(hotelId, optionId);
-          } else {
-            // Also render static details if available in stored data
-            if (state.detailData && state.detailData.staticDetails) {
-              renderStaticDetailsOnly(state.detailData.staticDetails, 0);
-            }
-            renderHotelDetails(state.detailData);
-          }
-        } else if (state.page === 'review' && currentPath === '/home/review') {
-          globalSearchBody = state.searchBody;
-          window._lastReviewData = state.reviewData;
-          if (state.detailData) {
-            window.globalDetailData = state.detailData;
-          }
+    return true;
+  }
 
-          showActivePage("review-page");
-          handleReviewRefresh(state);
+  if (path === '/home/detail') {
+    const state = getPageState('detail');
+    if (!state) { window.location.replace('/home/search'); return true; }
+    try {
+      globalSearchBody = state.searchBody;
+      window.globalDetailData = state.detailData;
+      showActivePage("detail-page");
+      const hotelId = state.requestedHotelId;
+      const optionId = state.requestedOptionId;
+      if (hotelId && optionId) {
+        fetchHotelDetails(hotelId, optionId);
+      } else {
+        if (state.detailData && state.detailData.staticDetails) {
+          renderStaticDetailsOnly(state.detailData.staticDetails, 0);
         }
-      } catch (e) {
-        // Silent fail
+        renderHotelDetails(state.detailData);
       }
-    } else {
-      window.location.replace('/home/search');
-    }
-  } else if (currentPath === '/home/results') {
-    const savedState = sessionStorage.getItem('tj_page_state');
+    } catch (e) { window.location.replace('/home/search'); }
+    return true;
+  }
 
-    if (savedState) {
-      try {
-        const state = JSON.parse(savedState);
-        if (state.page === 'results') {
-          globalSearchBody = state.searchBody;
-          // Prefer restoring the already-saved results instantly — re-running the
-          // search on every refresh was slow and, if it failed, dropped the user
-          // back to the home page. Only re-search if no saved results exist.
-          if (state.resultsData) {
-            displayHotels(state.resultsData);
-            switchToResultsPage(state.searchBody, state.duration || 0, state.resultsData);
-          } else if (state.searchBody) {
-            triggerSearchWithBody(state.searchBody);
-          } else {
-            window.location.replace('/home/search');
-          }
-        } else {
-          window.location.replace('/home/search');
-        }
-      } catch (e) {
+  if (path === '/home/review') {
+    const state = getPageState('review');
+    if (!state) { window.location.replace('/home/search'); return true; }
+    try {
+      globalSearchBody = state.searchBody;
+      window._lastReviewData = state.reviewData;
+      if (state.detailData) window.globalDetailData = state.detailData;
+      showActivePage("review-page");
+      handleReviewRefresh(state);
+    } catch (e) { window.location.replace('/home/search'); }
+    return true;
+  }
+
+  if (path === '/home/results') {
+    const state = getPageState('results');
+    if (!state) { window.location.replace('/home/search'); return true; }
+    try {
+      globalSearchBody = state.searchBody;
+      // Prefer restoring the already-saved results instantly; only re-search if
+      // no saved results exist.
+      if (state.resultsData) {
+        displayHotels(state.resultsData);
+        switchToResultsPage(state.searchBody, state.duration || 0, state.resultsData);
+      } else if (state.searchBody) {
+        triggerSearchWithBody(state.searchBody);
+      } else {
         window.location.replace('/home/search');
       }
-    } else {
-      window.location.replace('/home/search');
-    }
-  } else {
-    sessionStorage.removeItem('tj_page_state');
+    } catch (e) { window.location.replace('/home/search'); }
+    return true;
   }
-});
+
+  if (path === '/home/search' || path === '/home' || path === '/home/') {
+    showActivePage('search-page');
+    return true;
+  }
+
+  return false;
+}
 
 // Load and display recent bookings on search page
 async function loadRecentBookings() {
@@ -2013,7 +2042,7 @@ function switchToResultsPage(lastSearchBody, durationMs, data) {
     duration: durationMs,
     timestamp: Date.now()
   };
-  sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
+  persistPageState(stateToSave);
   
   const searchPage = document.getElementById("search-page");
   const resultsPage = document.getElementById("results-page");
@@ -2322,7 +2351,7 @@ async function fetchHotelDetails(hotelId, optionId) {
       requestedDetailOptionId: optionId,
       timestamp: Date.now()
     };
-    sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
+    persistPageState(stateToSave);
 
     renderHotelDetails(combinedData);
     
@@ -4111,7 +4140,7 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice, isAutoRet
       requestedReviewHash: reviewHash,
       timestamp: Date.now()
     };
-    sessionStorage.setItem('tj_page_state', JSON.stringify(tempState));
+    persistPageState(tempState);
 
     // Switch UI to review page with loading state
     switchToReviewPage();
@@ -4191,7 +4220,7 @@ async function reviewRoom(optionId, correlationId, searchDisplayPrice, isAutoRet
                 savedState.requestedDetailOptionId = detailOptionId;
                 savedState.requestedCorrelationId = freshCorrelationId;
                 savedState.requestedReviewHash = freshDetails.reviewHash || savedState.requestedReviewHash || "";
-                sessionStorage.setItem('tj_page_state', JSON.stringify(savedState));
+                persistPageState(savedState);
               } catch (e) {}
               // Retry with the fresh option/correlation/reviewHash; isAutoRetry=true so a
               // still-stale hash renders the error instead of looping forever.
@@ -4319,7 +4348,7 @@ function backToDetailFromReview() {
         // (instead of jumping to the top of the detail page).
         scrollToReviewedOption(state.requestedOptionId);
       }
-      sessionStorage.setItem('tj_page_state', JSON.stringify(state));
+      persistPageState(state);
     } catch (e) {
       console.error("Error restoring detail page state:", e);
     }
@@ -4945,7 +4974,7 @@ function renderReviewDetails(data, responseMs) {
     requestedReviewHash: savedReviewHash || window.globalDetailData?.reviewHash || "",
     timestamp: Date.now()
   };
-  sessionStorage.setItem('tj_page_state', JSON.stringify(stateToSave));
+  persistPageState(stateToSave);
 }
 
 /* =========================================
@@ -6568,14 +6597,13 @@ window.addEventListener("DOMContentLoaded", () => {
 // History API Handlers
 window.addEventListener('popstate', (e) => {
   // Browser back/forward. Previously this did a full window.location.reload(),
-  // but sessionStorage only holds the LAST page's state, so going back to an
-  // earlier page (e.g. results after visiting detail) failed the state check
-  // and redirected to /home/search — the "back button goes home" bug.
+  // but the single sessionStorage blob only holds the LAST page's state, so
+  // reloading an earlier page failed the state check and redirected to
+  // /home/search — the "back button goes home" bug.
   //
-  // Instead, map the popped URL to its SPA page and just show it. The page's
-  // DOM + in-memory data are still there from the forward navigation, so no
-  // reload is needed. Fall back to a reload only when that page was never
-  // rendered this session (e.g. a deep-link followed by back).
+  // Now: if the popped page is already rendered in this document, just show it
+  // (fast, keeps in-memory data). Otherwise rebuild it from its per-page cache
+  // via the same restore logic the initial load uses — no reload, no bounce.
   const pageByPath = {
     '/home': 'search-page',
     '/home/': 'search-page',
@@ -6589,15 +6617,21 @@ window.addEventListener('popstate', (e) => {
   const targetId = pageByPath[path];
   const rendered = window.__renderedPages && window.__renderedPages.has(targetId);
 
-  // search-page always exists in the DOM, so it's safe to show directly.
   if (targetId && (targetId === 'search-page' || rendered)) {
     showActivePage(targetId);
     window.scrollTo({ top: 0 });
     return;
   }
 
-  // Unknown route or a page not yet rendered in this session — reload so the
-  // DOMContentLoaded restore logic can rebuild it from sessionStorage.
+  // Not rendered yet in this document (e.g. refresh on an inner page, then
+  // back). Rebuild from the per-page cache instead of bouncing to home.
+  const bookingIdParam = new URLSearchParams(window.location.search).get('id');
+  if (restorePageForPath(path, bookingIdParam)) {
+    window.scrollTo({ top: 0 });
+    return;
+  }
+
+  // Truly unknown route — last-resort reload.
   window.location.reload();
 });
 
