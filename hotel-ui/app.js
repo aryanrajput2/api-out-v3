@@ -1160,7 +1160,7 @@ function generateSearchCriteriaDisplay(searchBody, location = null, isCompact = 
    Configuration & Environment
    ========================================= */
 const PREDEFINED_KEYS = [
-  "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
+  "7510459dd88a22-0b6c-41e9-8a87-b4395725e362",
   "8112616278b36e4e-6996-4088-b66b-bf5d6787fe13",
   "81139487ef4307a2-1437-43e8-b481-88a25b62076b",
   "711814269fe755f1-cdc6-44bf-acbc-d91b1a451878",
@@ -1232,7 +1232,7 @@ function loadConfigState() {
   if (envEl) envEl.value = savedEnv;
   updateEnvBanners(savedEnv);
 
-  const savedApikey = localStorage.getItem("tj_apikey") || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9";
+  const savedApikey = localStorage.getItem("tj_apikey") || "7510459dd88a22-0b6c-41e9-8a87-b4395725e362";
   const selectEl = document.getElementById("config-apikey-select");
   const customContainer = document.getElementById("custom-apikey-container");
 
@@ -1332,7 +1332,7 @@ function getConfigPayload() {
   // persisted by saveConfigState()/handleApiKeySelection() on change instead.
   return {
     env: env || "https://tj-hotel-admin.tripjack.com/",
-    apiKey: apiKey || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9"
+    apiKey: apiKey || "7510459dd88a22-0b6c-41e9-8a87-b4395725e362"
   };
 }
 
@@ -6228,7 +6228,7 @@ function renderRecentSearches() {
     // Resolve API key information
     const rawKey = s.apiKey || "";
     let keyName = "Default Key";
-    let keyStrDisplay = "751045f64b";
+    let keyStrDisplay = "7510459dd8";
     
     if (rawKey.trim()) {
       keyName = "Custom Key";

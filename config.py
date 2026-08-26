@@ -27,8 +27,8 @@ OMS_BASE = {
 
 DEFAULT_API_KEY = {
     "sandbox": "6116982da6b759-28f8-4cdf-b210-04cb98116165",
-    "admin":   "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
-    "prod":    "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
+    "admin":   "7510459dd88a22-0b6c-41e9-8a87-b4395725e362",
+    "prod":    "7510459dd88a22-0b6c-41e9-8a87-b4395725e362",
 }
 
 

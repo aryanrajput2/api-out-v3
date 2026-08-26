@@ -244,7 +244,7 @@ function displayBookings(bookings) {
     let envColor = '#0066cc';
     let envBg = 'rgba(0, 102, 204, 0.08)';
     let envBorder = 'rgba(0, 102, 204, 0.2)';
-    let defaultApiKey = '751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9';
+    let defaultApiKey = '7510459dd88a22-0b6c-41e9-8a87-b4395725e362';
     
     if (bookingIdLower.startsWith('tgp')) {
       envName = 'API Test Server (Sandbox)';
@@ -721,7 +721,7 @@ function showNotification(message, type = 'info') {
 
 // API Configuration Functions
 const PREDEFINED_KEYS = [
-  "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9",
+  "7510459dd88a22-0b6c-41e9-8a87-b4395725e362",
   "8112616278b36e4e-6996-4088-b66b-bf5d6787fe13",
   "81139487ef4307a2-1437-43e8-b481-88a25b62076b",
   "711814269fe755f1-cdc6-44bf-acbc-d91b1a451878",
@@ -796,7 +796,7 @@ function loadAPIConfiguration() {
   if (envEl) envEl.value = savedEnv;
 
   // Load API key (default matches the main app's default predefined key)
-  const savedApikey = localStorage.getItem("tj_apikey") || "751045f64b362c-7462-4f82-ad59-0a9c2b9b9fc9";
+  const savedApikey = localStorage.getItem("tj_apikey") || "7510459dd88a22-0b6c-41e9-8a87-b4395725e362";
 
   // Persist the resolved defaults so the dashboard, Active Configuration, and the
   // main app all read the same values (avoids a fresh "Not Set" state).
