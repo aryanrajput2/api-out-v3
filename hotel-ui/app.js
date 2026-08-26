@@ -42,6 +42,10 @@ function showActivePage(activePageId) {
       }
     }
   });
+  // Remember which pages have real content rendered this session so browser
+  // back/forward can restore them from memory (see the popstate handler)
+  // instead of reloading and bouncing to the home page.
+  (window.__renderedPages || (window.__renderedPages = new Set())).add(activePageId);
 }
 
 // Store last API transactions for Technical Details View
@@ -6563,7 +6567,37 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // History API Handlers
 window.addEventListener('popstate', (e) => {
-  // Simple fallback for browser back/forward buttons: reload to restore clean state
+  // Browser back/forward. Previously this did a full window.location.reload(),
+  // but sessionStorage only holds the LAST page's state, so going back to an
+  // earlier page (e.g. results after visiting detail) failed the state check
+  // and redirected to /home/search — the "back button goes home" bug.
+  //
+  // Instead, map the popped URL to its SPA page and just show it. The page's
+  // DOM + in-memory data are still there from the forward navigation, so no
+  // reload is needed. Fall back to a reload only when that page was never
+  // rendered this session (e.g. a deep-link followed by back).
+  const pageByPath = {
+    '/home': 'search-page',
+    '/home/': 'search-page',
+    '/home/search': 'search-page',
+    '/home/results': 'results-page',
+    '/home/detail': 'detail-page',
+    '/home/review': 'review-page',
+    '/home/booking-detail': 'booking-detail-page',
+  };
+  const path = window.location.pathname;
+  const targetId = pageByPath[path];
+  const rendered = window.__renderedPages && window.__renderedPages.has(targetId);
+
+  // search-page always exists in the DOM, so it's safe to show directly.
+  if (targetId && (targetId === 'search-page' || rendered)) {
+    showActivePage(targetId);
+    window.scrollTo({ top: 0 });
+    return;
+  }
+
+  // Unknown route or a page not yet rendered in this session — reload so the
+  // DOMContentLoaded restore logic can rebuild it from sessionStorage.
   window.location.reload();
 });
 
