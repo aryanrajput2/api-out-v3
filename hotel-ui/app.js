@@ -2771,20 +2771,32 @@ function buildStaticRoomDetails(room) {
   });
   const totalImgs = groups.reduce((n, g) => n + g.urls.length, 0);
   if (totalImgs) {
-    const thumbStyle = "width:104px; height:78px; object-fit:cover; border-radius:8px; border:1px solid #e2e8f0; cursor:pointer; flex-shrink:0; transition:transform 0.2s ease;";
     const sections = groups.map(g => {
       const thumbs = g.urls.map(u =>
-        `<img src="${u}" loading="lazy" onclick="openImageZoom('${u}')" title="Click to enlarge" style="${thumbStyle}" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='none'" onerror="this.style.display='none'">`
+        `<button type="button" onclick="openImageZoom('${u}')" title="Click to enlarge"
+           style="padding:0; margin:0; border:none; background:#f1f5f9; cursor:pointer; border-radius:12px; overflow:hidden; aspect-ratio:4/3; box-shadow:0 1px 3px rgba(15,23,42,0.10); transition:transform .18s ease, box-shadow .18s ease;"
+           onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 22px rgba(15,23,42,0.18)'"
+           onmouseout="this.style.transform='none'; this.style.boxShadow='0 1px 3px rgba(15,23,42,0.10)'">
+           <img src="${u}" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" onerror="this.parentElement.style.display='none'">
+         </button>`
       ).join('');
       return `
-        <div style="margin-top:8px;">
-          <div style="font-size:0.72rem; font-weight:600; color:#64748b; margin-bottom:4px;">${g.caption} (${g.urls.length})</div>
-          <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;">${thumbs}</div>
+        <div style="margin-top:16px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:9px;">
+            <span style="width:7px; height:7px; border-radius:50%; background:var(--primary, #3b82f6); flex-shrink:0;"></span>
+            <span style="font-size:0.8rem; font-weight:700; color:#334155;">${g.caption}</span>
+            <span style="font-size:0.68rem; font-weight:700; color:#64748b; background:#f1f5f9; padding:1px 7px; border-radius:999px;">${g.urls.length}</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 200px)); gap:12px;">${thumbs}</div>
         </div>`;
     }).join('');
     html += `
-      <div style="margin-top:12px;">
-        <div style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:2px;">Room Photos (${totalImgs})</div>
+      <div style="margin-top:14px; background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:18px 20px; box-shadow:0 1px 3px rgba(15,23,42,0.04);">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:9px; background:rgba(59,130,246,0.10); color:var(--primary, #3b82f6);"><i class="ph ph-images" style="font-size:1.1rem;"></i></span>
+          <span style="font-size:0.95rem; font-weight:800; color:#0f172a; letter-spacing:-0.2px;">Room Photos</span>
+          <span style="font-size:0.72rem; font-weight:700; color:#475569; background:#f1f5f9; padding:2px 9px; border-radius:999px;">${totalImgs}</span>
+        </div>
         ${sections}
       </div>`;
   }
