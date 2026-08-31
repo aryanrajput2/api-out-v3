@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
+from config import API_KEY, BASE_URL, unique_correlation_id
 
 def fetch_hotel_detail(data: dict):
     env = data.get("env", BASE_URL).rstrip("/")
@@ -16,7 +16,7 @@ def fetch_hotel_detail(data: dict):
         "checkOut": data["checkOut"],
         "rooms": data["rooms"],
         "currency": "INR",
-        "correlationId": data["correlationId"],
+        "correlationId": unique_correlation_id(data.get("correlationId")),
         "hid": data["hid"],
     }
     

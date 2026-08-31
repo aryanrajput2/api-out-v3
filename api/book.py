@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import oms_base, default_key
+from config import oms_base, default_key, unique_correlation_id
 
 
 def book_hotel(data: dict):
@@ -67,9 +67,8 @@ def book_hotel(data: dict):
         "type": "HOTEL",
     }
     
-    # Add correlationId if provided
-    if data.get("correlationId"):
-        payload["correlationId"] = data.get("correlationId")
+    # Always send a unique correlationId for tracing this booking request.
+    payload["correlationId"] = unique_correlation_id(data.get("correlationId"))
 
     # Add gstInfo if provided
     gst_info = data.get("gstInfo")

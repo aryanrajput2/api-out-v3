@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
+from config import API_KEY, BASE_URL, unique_correlation_id
 
 def search_hotels(data: dict):
     env = data.get("env", BASE_URL).rstrip("/")
@@ -16,7 +16,8 @@ def search_hotels(data: dict):
         "checkOut": data["checkOut"],
         "rooms": data["rooms"],
         "currency": "INR",
-        "correlationId": data["correlationId"],
+        # Unique per request for tracing (see config.unique_correlation_id).
+        "correlationId": unique_correlation_id(data.get("correlationId")),
         "hids": data["hids"],
     }
     

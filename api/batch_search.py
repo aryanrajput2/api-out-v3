@@ -2,7 +2,7 @@ import asyncio
 import time
 import requests
 from requests import JSONDecodeError
-from config import API_KEY, BASE_URL
+from config import API_KEY, BASE_URL, unique_correlation_id
 
 async def search_hotels_batch(data: dict):
     """
@@ -42,8 +42,9 @@ async def search_hotels_batch(data: dict):
     
     # Create tasks for parallel requests
     async def fetch_batch(batch_hids, batch_number):
-        # Generate correlation ID: search_{location}_{batch_number}
-        correlation_id = f"search_{location}_{batch_number}"
+        # Unique correlation ID per request for tracing, keeping the
+        # search_{location}_{batch_number} prefix for readability.
+        correlation_id = unique_correlation_id(f"search_{location}_{batch_number}")
         
         # Convert hotel IDs to strings if they're integers
         hids = [str(h) if isinstance(h, int) else h for h in batch_hids]

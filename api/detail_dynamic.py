@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
+from config import API_KEY, BASE_URL, unique_correlation_id
 
 
 def dynamic_detail(data: dict):
@@ -17,7 +17,7 @@ def dynamic_detail(data: dict):
     }
 
     payload = {
-        "correlationId": data.get("correlationId"),
+        "correlationId": unique_correlation_id(data.get("correlationId")),
         "hid": data.get("hid"),
         "checkIn": data.get("checkIn"),
         "checkOut": data.get("checkOut"),

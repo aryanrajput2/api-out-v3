@@ -1,7 +1,23 @@
 import os
+import time
+import uuid
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def unique_correlation_id(base: str = None) -> str:
+    """Return a fresh, unique correlationId for a single outbound request so
+    every call is individually traceable. Keeps a short human-readable prefix
+    (any previously-appended unique tail is stripped so the id doesn't grow as
+    it is threaded through the search -> review -> book flow), then appends a
+    time+random tail. Tripjack links that flow via bookingId/optionId/
+    reviewHash — not correlationId — so a unique id per request is safe."""
+    base = (base or "").strip()
+    prefix = base.split("::")[0] if base else "ui"
+    if not prefix:
+        prefix = "ui"
+    return f"{prefix}::{int(time.time() * 1000):x}{uuid.uuid4().hex[:6]}"
 
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL", "https://apitest-hms.tripjack.com/")

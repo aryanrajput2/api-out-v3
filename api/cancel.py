@@ -2,7 +2,7 @@ import time
 import requests
 from requests import JSONDecodeError
 
-from config import oms_base, default_key, is_transient_auth_failure
+from config import oms_base, default_key, is_transient_auth_failure, unique_correlation_id
 
 # Tripjack's sandbox intermittently rejects the first cancel with a transient
 # 401 "Invalid API key", then accepts an identical retry seconds later. A 401
@@ -27,10 +27,13 @@ def cancel_booking(data: dict):
         "apikey": CANCEL_APIKEY,
     }
 
+    # Minimal payload (bookingId is in the URL) + a unique correlationId for
+    # tracing. Generated once so retries reuse the same id.
+    payload = {"correlationId": unique_correlation_id(data.get("correlationId"))}
+
     last_result = None
     for attempt in range(1, _MAX_ATTEMPTS + 1):
-        # The documentation shows an empty POST request or minimal payload
-        response = requests.post(CANCEL_URL, headers=headers, json={})
+        response = requests.post(CANCEL_URL, headers=headers, json=payload)
 
         try:
             result = response.json()

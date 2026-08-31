@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import API_KEY, BASE_URL
+from config import API_KEY, BASE_URL, unique_correlation_id
 
 
 def review_hotel(data: dict):
@@ -18,7 +18,7 @@ def review_hotel(data: dict):
 
     payload = {
         "optionId": data["optionId"],
-        "correlationId": data["correlationId"],
+        "correlationId": unique_correlation_id(data.get("correlationId")),
     }
     if "hotelId" in data and data["hotelId"]:
         payload["hotelId"] = data["hotelId"]

@@ -1,6 +1,6 @@
 import time
 import requests
-from config import oms_base, default_key, is_transient_auth_failure
+from config import oms_base, default_key, is_transient_auth_failure, unique_correlation_id
 
 # Tripjack's sandbox intermittently rejects the very first confirm-book with a
 # transient 401 "Invalid API key", then accepts an identical retry seconds
@@ -32,7 +32,9 @@ def confirm_booking(data: dict):
             {
                 "amount": float(amount) if amount is not None else 0.0
             }
-        ]
+        ],
+        # Unique per request for tracing (generated once so retries reuse it).
+        "correlationId": unique_correlation_id(data.get("correlationId")),
     }
 
     last_result = None

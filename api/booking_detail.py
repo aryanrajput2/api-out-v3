@@ -1,7 +1,7 @@
 import requests
 from requests import JSONDecodeError
 
-from config import OMS_BASE, DEFAULT_API_KEY, resolve_env
+from config import OMS_BASE, DEFAULT_API_KEY, resolve_env, unique_correlation_id
 
 
 def fetch_booking_detail(data: dict):
@@ -50,6 +50,7 @@ def fetch_booking_detail(data: dict):
     payload = {
         "bookingId": data.get("bookingId"),
         "requireHosis": True,
+        "correlationId": unique_correlation_id(data.get("correlationId")),
     }
 
     response = requests.post(BOOKING_DETAIL_URL, headers=headers, json=payload)
